@@ -155,12 +155,6 @@ tmpl.innerHTML = `
     <div id="palette" class="palette">
     <label draggable="true">
     <svg width="100%" height="100%" viewBox="0 0 100 100">
-      <use x="0.0" y="0.0" width="100" height="100" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#neuac"></use>
-    </svg>
-    <input name="donor" value="NeuAc" type="radio">
-    </label>
-    <label draggable="true">
-    <svg width="100%" height="100%" viewBox="0 0 100 100">
       <use x="0.0" y="0.0" width="100" height="100" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#gal"></use>
     </svg>
     <input name="donor" value="Gal" type="radio">
@@ -185,6 +179,17 @@ tmpl.innerHTML = `
     <slot id="textcontent"></slot>
   </div>
 </div>
+`;
+
+const palette_template = document.createElement('template');
+
+palette_template.innerHTML = `
+  <label draggable="true">
+  <svg width="100%" height="100%" viewBox="0 0 100 100">
+    <use x="0.0" y="0.0" width="100" height="100" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#neuac"></use>
+  </svg>
+  <input name="donor" value="NeuAc" type="radio">
+  </label>
 `;
 
 function WrapHTML() { return Reflect.construct(HTMLElement, [], Object.getPrototypeOf(this).constructor); }
@@ -380,7 +385,7 @@ let enableDropResidue = function(renderer,residue) {
     delete form.active_residue;
   });
 
-  target.addEventListener('click', show_anomer.bind(this,residue) );
+  target.addEventListener('click', (ev) => show_anomer.bind(this,residue)(ev.target) );
   target.addEventListener('dragenter', (ev) => {
     if (form.residue === residue) {
       return;
@@ -437,9 +442,18 @@ let wire_form_check_class = function() {
 
 let populate_palette = function(widget,palette) {
   let icons = widget.shadowRoot.getElementById('icons');
+  widget.donors=['Gal','Glc','GalNAc'];
   fetch('/sugars.svg')
   .then((response) => response.text())
-  .then( (xml) => icons.innerHTML = xml );
+  .then( (xml) => icons.innerHTML = xml )
+  .then( () => {
+    for (let sug of widget.donors) {
+      let palette_entry = palette_template.content.cloneNode(true);
+      palette_entry.querySelector('use').setAttribute('xlink:href',`#${sug.toLowerCase()}`);
+      palette_entry.querySelector('input').setAttribute('value',sug);
+      palette.appendChild(palette_entry);
+    }
+  });
 };
 
 let form_action = function(widget) {
@@ -451,7 +465,7 @@ let form_action = function(widget) {
   this.residue.renderer.refresh();
   enableDropResidue.call( widget, this.residue.renderer,new_res);
   this.residue.renderer.scaleToFit();
-  console.log(this.residue.renderer.sugars[0].sequence);
+  widget.sequence = this.residue.renderer.sugars[0].sequence;
   this.reset();
 };
 
