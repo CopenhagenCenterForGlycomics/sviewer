@@ -3,6 +3,8 @@
 
 import * as debug from 'debug-any-level';
 
+import * as Glycan from 'glycan.js';
+
 const module_string='sviewer:sviewer';
 
 const log = debug(module_string);
@@ -16,37 +18,37 @@ tmpl.innerHTML = `
     position: relative;
   }
 
-  #widget[resizeable] {
+  :host[resizeable] {
     resize: both;
     overflow: auto;
   }
 
-  #widget[resizeable] .widget_contents > div > svg {
+  :host[resizeable] .widget_contents > div > svg {
     width: calc(100% - 5px);
     height: calc(100% - 5px);
   }
 
-  #widget .widget_contents > div > svg {
+  :host .widget_contents > div > svg {
     width: 100%;
     height: 100%;
     pointer-events: auto;
   }
 
-  #widget .widget_contents > div > svg * {
+  :host .widget_contents > div > svg * {
     -moz-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
     transition: all 0.5s ease-in-out;
   }
 
-  #widget .widget_contents > div > svg {
+  :host .widget_contents > div > svg {
     -moz-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
     transition: all 0.5s ease-in-out;
   }
 
-  #widget .widget_contents {
+  :host .widget_contents {
     position: absolute;
     left: 0px;
     right: 0px;
@@ -56,7 +58,7 @@ tmpl.innerHTML = `
     height: 100%;
   }
 
-  #widget .pie_parent {
+  :host .pie_parent {
     position: fixed;
     top: 0px;
     left: 0px;
@@ -65,7 +67,7 @@ tmpl.innerHTML = `
     pointer-events: none;
   }
 
-  #widget .widget_contents > div {
+  :host .widget_contents > div {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -73,7 +75,7 @@ tmpl.innerHTML = `
     width: 100%;
   }
 
-  #widget .palette {
+  :host .palette {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -116,6 +118,9 @@ tmpl.innerHTML = `
       </x-piemenu>
     </div>
   </form>
+  <div id="textbox">
+    <slot id="textcontent"></slot>
+  </div>
 </div>
 `;
 
@@ -133,8 +138,8 @@ let wire_palette_pagezoom = () => {
       let zoom = parseFloat((window.innerWidth / document.documentElement.clientWidth).toFixed(2));
       let top = window.scrollY;
       let left = window.scrollX;
-      let palette = document.querySelector('#widget .palette');
-      let pie_parent = document.querySelector('#widget .pie_parent');
+      let palette = document.querySelector(':host .palette');
+      let pie_parent = document.querySelector(':host .pie_parent');
       palette.style.transformOrigin = `${window.scrollX}px ${top}px`;
       let widget_pos = palette.parentNode.parentNode.getBoundingClientRect();
       if (widget_pos.top < 0 && widget_pos.left < 0) {
@@ -157,6 +162,26 @@ let wire_palette_pagezoom = () => {
     ticking = true;
   }
   });
+};
+
+
+let redraw_sugar = function() {
+  this.renderer.sugars[0].sequence = this.sequence;
+  this.renderer.refresh();
+  this.renderer.scaleToFit();
+};
+
+let initialise_renderer = function() {
+  let Iupac = Glycan.CondensedIupac.IO;
+
+  let IupacSugar = Iupac(Glycan.Sugar);
+
+  this.renderer = new Glycan.SVGRenderer(this.shadowRoot.getElementById('output'),Glycan.FishEyeLayout);
+  let sug = new IupacSugar();
+  sug.sequence = 'Gal(b1-3)GlcNAc';
+  this.renderer.addSugar(sug);
+  this.renderer.refresh();
+  this.renderer.scaleToFit();
 };
 
 let set_glycan_sequence = function() {
@@ -330,6 +355,8 @@ let setup_drags = function() {
     });
 };
 
+const sequence_symbol = Symbol('sequence');
+
 class SViewer extends WrapHTML {
   constructor() {
     super();
@@ -337,6 +364,25 @@ class SViewer extends WrapHTML {
 
     let shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
+    let slot = shadowRoot.getElementById('textcontent');
+    slot.addEventListener('slotchange', () => {
+      this[sequence_symbol] = (slot.assignedNodes().filter( node => node.nodeType === Node.TEXT_NODE )).map( n => n.textContent).join('');
+      if (this.sequence) {
+        redraw_sugar.call(this);
+      }
+    });
+  }
+
+  connectedCallback() {
+    initialise_renderer.call(this);
+  }
+
+  set sequence(seq) {
+    this.textContent = seq;
+    return seq;
+  }
+  get sequence() {
+    return this[sequence_symbol];
   }
 }
 

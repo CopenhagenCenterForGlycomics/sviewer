@@ -18,6 +18,7 @@
     "jshint": "^2.8.0",
     "precommit-hook": "^3.0.0",
     "DragMenus" : "hirenj/DragMenus",
+    "glycan.js" : "hirenj/glycan.js",
     "watchify": "^3.9.0"
   },
   "scripts": {
@@ -38,7 +39,6 @@
   "author": "",
   "license": "TBD",
   "pre-commit": [
-    "jshint-pre-commit",
-    "validate"
+    "jshint-pre-commit"
   ]
 }
