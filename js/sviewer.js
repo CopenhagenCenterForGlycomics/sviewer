@@ -23,7 +23,7 @@ tmpl.innerHTML = `
     overflow: auto;
   }
 
-  :host[resizeable] .widget_contents > div > svg {
+  :host[resizeable] .widget_contents {
     width: calc(100% - 5px);
     height: calc(100% - 5px);
   }
