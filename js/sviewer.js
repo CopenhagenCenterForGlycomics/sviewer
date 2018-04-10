@@ -475,6 +475,9 @@ let wire_form_action = function(){
 
 const sequence_symbol = Symbol('sequence');
 
+ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
+
+
 class SViewer extends WrapHTML {
   constructor() {
     super();
@@ -486,6 +489,8 @@ class SViewer extends WrapHTML {
     this.form = shadowRoot.getElementById('new_linkage');
 
     let slot = shadowRoot.getElementById('textcontent');
+    ShadyCSS.styleElement(this);
+
     slot.addEventListener('slotchange', () => {
       this[sequence_symbol] = (slot.assignedNodes().filter( node => node.nodeType === Node.TEXT_NODE )).map( n => n.textContent).join('');
       if (this.sequence) {
