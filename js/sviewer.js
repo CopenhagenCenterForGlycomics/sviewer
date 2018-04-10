@@ -363,13 +363,19 @@ let show_anomer = function(residue,target) {
   let zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
   let target_pos = target.getBoundingClientRect();
   let vals = { top: target_pos.top ,left: target_pos.left ,width: target_pos.width ,height: target_pos.height };
+
+  if (vals.width < 5) { // Transforms are not being taken into account on the use element
+                        // in Firefox. https://bugzilla.mozilla.org/show_bug.cgi?id=1066435
+                        // Look for elements that are too small, and scale up.
+    vals.width = vals.width * 100;
+    vals.height = vals.height * 100;
+  }
   let anomer_size = anomer_chooser.getBoundingClientRect();
   let palette_top = (anomer_chooser.parentNode.getBoundingClientRect().top/zoom);
   let palette_left = (anomer_chooser.parentNode.getBoundingClientRect().left/zoom);
-
   let left_pos = (((vals.left + 0.5*vals.width - 0.5*anomer_size.width)/zoom) - palette_left).toFixed(2);
   let top_pos = (((vals.top+0.5*vals.height  - 0.5*anomer_size.height)/zoom) - palette_top).toFixed(2);
-
+  left_pos = ((vals.left + 0.5*vals.width - 0.5*anomer_size.width)/zoom).toFixed(2);
   anomer_chooser.style.transformOrigin = `${left_pos}px ${top_pos}px`;
   anomer_chooser.style.transform = `scale(1) translate(${left_pos}px,${top_pos}px)`;
   anomer_chooser.setAttribute('active',true);
