@@ -95,6 +95,10 @@ tmpl.innerHTML = `
     font-family: sans-serif;
   }
 
+  :host:not([showsequence]) #textbox {
+    display: none;
+  }
+
   :host x-piemenu {
     position: absolute;
     top: 0px;
@@ -264,7 +268,7 @@ let initialise_events = function() {
 };
 
 let initialise_renderer = function() {
-  Glycan.FishEyeLayout.LINKS = false;
+  Glycan.FishEyeLayout.LINKS = this.hasAttribute('links') ? true : false;
   let Iupac = Glycan.CondensedIupac.IO;
 
   let IupacSugar = Iupac(Glycan.Sugar);
@@ -507,7 +511,28 @@ class SViewer extends WrapHTML {
   constructor() {
     super();
     log('Initiating Sviewer element');
+  }
 
+  static get observedAttributes() {
+    return ['links'];
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log(name,oldValue,newValue);
+    if (name === 'links') {
+      if (newValue) {
+        Glycan.FishEyeLayout.LINKS = true;
+      } else {
+        Glycan.FishEyeLayout.LINKS = false;
+      }
+      if (this.renderer) {
+        this.renderer.refresh();
+        this.renderer.scaleToFit();
+      }
+    }
+  }
+
+  connectedCallback() {
     ShadyCSS.styleElement(this);
 
     let shadowRoot = this.attachShadow({mode: 'open'});
@@ -525,9 +550,8 @@ class SViewer extends WrapHTML {
     });
 
     populate_palette(this,shadowRoot.getElementById('palette'));
-  }
 
-  connectedCallback() {
+
     initialise_renderer.call(this);
     initialise_events.call(this);
   }
