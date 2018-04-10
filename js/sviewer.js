@@ -201,8 +201,8 @@ let rescale_widget_chrome = function(state) {
   let zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
   let top = window.scrollY;
   let left = window.scrollX;
-  let palette = this.shadowRoot.querySelector(':host .palette');
-  let pie_parent = this.shadowRoot.querySelector(':host .pie_parent');
+  let palette = this.shadowRoot.querySelector('.palette');
+  let pie_parent = this.shadowRoot.querySelector('.pie_parent');
   palette.style.transformOrigin = `${window.scrollX}px ${top}px`;
   let widget_pos = palette.parentNode.parentNode.getBoundingClientRect();
   if (widget_pos.top < 0 && widget_pos.left < 0) {
@@ -224,13 +224,14 @@ let rescale_widget_chrome = function(state) {
 };
 
 let window_scroll_listener = () => {
+  let state = window_scroll_listener.state;
   if (! window_scroll_listener.state.ticking) {
     window.requestAnimationFrame(rescale_widget_chrome.bind(state.owner,state));
     window_scroll_listener.state.ticking = true;
   }
 };
 
-let wire_palette_pagezoom = () => {
+let wire_palette_pagezoom = function() {
   window_scroll_listener.state = { ticking: false, owner: this };
   window.removeEventListener('scroll',window_scroll_listener);
   window.addEventListener('scroll', window_scroll_listener);
@@ -456,7 +457,10 @@ let populate_palette = function(widget,palette) {
   });
 };
 
-let form_action = function(widget) {
+let form_action = function(widget,ev) {
+  ev.preventDefault();
+  ev.stopPropagation();
+
   let new_res = new Glycan.Monosaccharide(this.donor.value);
   new_res.anomer = this.anomer.value;
   new_res.parent_linkage = this.donor.value.match(/Neu(Gc|Ac)/) ? 2 : 1;
@@ -467,10 +471,11 @@ let form_action = function(widget) {
   this.residue.renderer.scaleToFit();
   widget.sequence = this.residue.renderer.sugars[0].sequence;
   this.reset();
+  return false;
 };
 
 let wire_form_action = function(){
-  this.form.addEventListener('submit', form_action.bind(this.form,this));
+  this.form.addEventListener('finished', form_action.bind(this.form,this));
 };
 
 const sequence_symbol = Symbol('sequence');
@@ -483,13 +488,14 @@ class SViewer extends WrapHTML {
     super();
     log('Initiating Sviewer element');
 
+    ShadyCSS.styleElement(this);
+
     let shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
 
     this.form = shadowRoot.getElementById('new_linkage');
 
     let slot = shadowRoot.getElementById('textcontent');
-    ShadyCSS.styleElement(this);
 
     slot.addEventListener('slotchange', () => {
       this[sequence_symbol] = (slot.assignedNodes().filter( node => node.nodeType === Node.TEXT_NODE )).map( n => n.textContent).join('');

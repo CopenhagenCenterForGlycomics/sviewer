@@ -166,10 +166,14 @@ var DragDropTouch;
         // ** event handlers
         DragDropTouch.prototype._touchstart = function (e) {
             var _this = this;
+            var target = e.target;
+            if (e.__target) {
+                target = e.__target;
+            }
             if (this._shouldHandle(e)) {
                 // raise double-click and prevent zooming
                 if (Date.now() - this._lastClick < DragDropTouch._DBLCLICK) {
-                    if (this._dispatchEvent(e, 'dblclick', e.target)) {
+                    if (this._dispatchEvent(e, 'dblclick', target)) {
                         e.preventDefault();
                         this._reset();
                         return;
@@ -178,11 +182,11 @@ var DragDropTouch;
                 // clear all variables
                 this._reset();
                 // get nearest draggable element
-                var src = this._closestDraggable(e.target);
+                var src = this._closestDraggable(target);
                 if (src) {
                     // give caller a chance to handle the hover/move events
-                    if (!this._dispatchEvent(e, 'mousemove', e.target) &&
-                        !this._dispatchEvent(e, 'mousedown', e.target)) {
+                    if (!this._dispatchEvent(e, 'mousemove', target) &&
+                        !this._dispatchEvent(e, 'mousedown', target)) {
                         // get ready to start dragging
                         this._dragSource = src;
                         this._ptDown = this._getPoint(e);
@@ -233,16 +237,21 @@ var DragDropTouch;
             }
         };
         DragDropTouch.prototype._touchend = function (e) {
+            var target = e.target;
+            if (e.__target) {
+                target = e.__target;
+            }
+
             if (this._shouldHandle(e)) {
                 // see if target wants to handle up
-                if (this._dispatchEvent(this._lastTouch, 'mouseup', e.target)) {
+                if (this._dispatchEvent(this._lastTouch, 'mouseup', target)) {
                     e.preventDefault();
                     return;
                 }
                 // user clicked the element but didn't drag, so clear the source and simulate a click
                 if (!this._img) {
                     this._dragSource = null;
-                    this._dispatchEvent(this._lastTouch, 'click', e.target);
+                    this._dispatchEvent(this._lastTouch, 'click', target);
                     this._lastClick = Date.now();
                 }
                 // finish dragging

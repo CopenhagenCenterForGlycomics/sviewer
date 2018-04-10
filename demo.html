@@ -4,7 +4,13 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes,shrink-to-fit=no"/>
 	<title>Sviewer</title>
-	<script type="text/javascript" src="webcomponents-lite.js"></script>
+	<script>
+    ShadyDOM = { force: true };
+    if (window.customElements) {
+      customElements.forcePolyfill = true;
+    }
+	</script>
+	<script type="text/javascript" src="webcomponents-lite.js" shadydom></script>
 	<script type="text/javascript" src="node_modules/babel-polyfill/dist/polyfill.js"></script>
 	<script type="text/javascript" src="dragdroptouch.js"></script>
 	<script type="text/javascript" src="sviewer-bundle.js"></script>
@@ -35,12 +41,11 @@ x-piemenu button, x-piemenu label {
 </style>
 </head>
 <body>
-<!-- <x-sviewer resizeable="true" >Gal(b1-3)GlcNAc</x-sviewer> -->
-<x-piemenu active="true">
+<x-sviewer resizeable="true" >Gal(b1-3)GlcNAc</x-sviewer>
+<!--<x-piemenu active="true">
   <label><span>α</span><input name="anomer" value="a" type="radio"></label>
   <label><span>β</span><input name="anomer" value="b" type="radio"></label>
   <label><span>?</span><input name="anomer" value="?" type="radio"></label>
-</x-piemenu>
-
+</x-piemenu>-->
 </body>
 </html>
