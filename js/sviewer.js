@@ -75,6 +75,9 @@ tmpl.innerHTML = `
     height: 100%;
     width: 100%;
   }
+  :host:not([editable]) .palette {
+    display: none;
+  }
 
   :host .palette {
     position: absolute;
@@ -86,7 +89,6 @@ tmpl.innerHTML = `
   }
 
   :host #textbox {
-    pointer-events: none;
     top: auto;
     bottom: 0px;
     height: auto;
@@ -319,6 +321,9 @@ let wire_renderer_fisheye = function() {
     if (this.shadowRoot.querySelectorAll('x-piemenu[active]').length > 0) {
       return;
     }
+    if (! this.hasAttribute('editable')) {
+      return;
+    }
     Glycan.FishEyeLayout.focus = [ ev.svgX, ev.svgY ];
     let vp_zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
     let candidate_zoom = parseFloat((vp_zoom * vp_zoom * 3).toFixed(2));
@@ -356,6 +361,9 @@ let wire_renderer_fisheye = function() {
 
 
 let show_anomer = function(residue,target) {
+  if ( ! this.hasAttribute('editable')) {
+    return;
+  }
   let anomer_chooser = this.shadowRoot.getElementById('anomer_menu');
   let form = this.form;
   form.clear && form.clear();
@@ -397,6 +405,9 @@ let enableDropResidue = function(renderer,residue) {
 
   target.addEventListener('click', (ev) => show_anomer.bind(this,residue)(ev.target) );
   target.addEventListener('dragenter', (ev) => {
+    if (! this.hasAttribute('editable')) {
+      return;
+    }
     if (form.residue === residue) {
       return;
     }
