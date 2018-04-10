@@ -16,6 +16,7 @@ tmpl.innerHTML = `
   :host {
     display: block;
     position: relative;
+    --palette-icon-size: 32px;
   }
 
   :host[resizeable] {
@@ -127,6 +128,9 @@ tmpl.innerHTML = `
     and (min-device-width: 320px)
     and (max-device-width: 480px)
     and (-webkit-min-device-pixel-ratio: 2) {
+    :host {
+      --palette-icon-size: 32px;
+    }
     :host x-piemenu {
       --end-angle: 135;
       --start-angle: 35;
@@ -142,8 +146,8 @@ tmpl.innerHTML = `
 
   :host .palette label[draggable] {
     display: block;
-    width: 25px;
-    height: 25px;
+    width: var(--palette-icon-size);
+    height: var(--palette-icon-size);
     -webkit-user-drag: element;
     float: left;
   }
@@ -258,6 +262,7 @@ let initialise_events = function() {
 };
 
 let initialise_renderer = function() {
+  Glycan.FishEyeLayout.LINKS = false;
   let Iupac = Glycan.CondensedIupac.IO;
 
   let IupacSugar = Iupac(Glycan.Sugar);
