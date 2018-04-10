@@ -508,19 +508,21 @@ ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
 
 
 class SViewer extends WrapHTML {
-  constructor() {
-    super();
-    log('Initiating Sviewer element');
-  }
 
   static get observedAttributes() {
     return ['links'];
   }
 
+  constructor() {
+    super();
+    log('Initiating Sviewer element');
+  }
+
+
   attributeChangedCallback(name, oldValue, newValue) {
     console.log(name,oldValue,newValue);
     if (name === 'links') {
-      if (newValue) {
+      if (this.hasAttribute('links')) {
         Glycan.FishEyeLayout.LINKS = true;
       } else {
         Glycan.FishEyeLayout.LINKS = false;
