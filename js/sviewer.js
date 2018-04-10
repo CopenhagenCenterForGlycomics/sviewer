@@ -86,6 +86,10 @@ tmpl.innerHTML = `
 
   :host #textbox {
     pointer-events: none;
+    top: auto;
+    bottom: 0px;
+    height: auto;
+    font-family: sans-serif;
   }
 
   :host x-piemenu {
@@ -153,12 +157,6 @@ tmpl.innerHTML = `
   <div id="output"></div>
   <form id="new_linkage">
     <div id="palette" class="palette">
-    <label draggable="true">
-    <svg width="100%" height="100%" viewBox="0 0 100 100">
-      <use x="0.0" y="0.0" width="100" height="100" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#gal"></use>
-    </svg>
-    <input name="donor" value="Gal" type="radio">
-    </label>
     </div>
     <div class="pie_parent">
       <x-piemenu name="anomer" id="anomer_menu" data-next="linkage_menu">
@@ -449,7 +447,7 @@ let wire_form_check_class = function() {
 
 let populate_palette = function(widget,palette) {
   let icons = widget.shadowRoot.getElementById('icons');
-  widget.donors=['Gal','Glc','GalNAc'];
+  widget.donors=['Gal','Glc','Man','GalNAc','GlcNAc','NeuAc','NeuGc','GlcA','IdoA','Xyl','Fuc'];
   fetch('/sugars.svg')
   .then((response) => response.text())
   .then( (xml) => icons.innerHTML = xml )
