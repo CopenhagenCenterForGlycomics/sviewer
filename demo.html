@@ -21,30 +21,13 @@ body {
   overflow: hidden;
 }
 x-sviewer {
+	margin-left: 50%;
 	width: 200px;
 	height: 200px;
-}
-x-piemenu {
-	position: fixed;
-	width: 100px;
-	height: 100px;
-	z-index: 2;
-	--end-angle: -90;
-	--start-angle: -180;
-	--icon-size: 16px;
-}
-x-piemenu button, x-piemenu label {
-	font-family: sans-serif;
-	font-size: 16px;
 }
 </style>
 </head>
 <body>
-<x-sviewer resizeable="true" >Gal(b1-3)GlcNAc</x-sviewer>
-<!--<x-piemenu active="true">
-  <label><span>α</span><input name="anomer" value="a" type="radio"></label>
-  <label><span>β</span><input name="anomer" value="b" type="radio"></label>
-  <label><span>?</span><input name="anomer" value="?" type="radio"></label>
-</x-piemenu>-->
+<x-sviewer>Gal(b1-3)Glc(b1-3)Gal(b1-3)GlcNAc</x-sviewer>
 </body>
 </html>
