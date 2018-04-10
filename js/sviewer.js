@@ -312,7 +312,7 @@ let wire_renderer_fisheye = function() {
   let renderer = this.renderer;
 
   let last_req;
-  canvas.addEventListener('dragmove', (ev) => {
+  canvas.addEventListener('dragover', (ev) => {
     if (this.shadowRoot.querySelectorAll('x-piemenu[active]').length > 0) {
       return;
     }
@@ -329,7 +329,7 @@ let wire_renderer_fisheye = function() {
     });
   });
 
-  this.addEventListener('dragend', (ev) => {
+  document.addEventListener('dragend', (ev) => {
     Glycan.FishEyeLayout.focus = [ -1000, -1000 ];
     if (last_req) {
       cancelAnimationFrame(last_req);
