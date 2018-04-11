@@ -110,6 +110,10 @@ tmpl.innerHTML = `
     display: block;
   }
 
+  :host * {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+
   :host x-piemenu {
     position: absolute;
     top: 0px;
