@@ -19,12 +19,12 @@ tmpl.innerHTML = `
     --palette-icon-size: 32px;
   }
 
-  :host[resizeable] {
+  :host([resizeable]) {
     resize: both;
     overflow: auto;
   }
 
-  :host[resizeable] .widget_contents {
+  :host([resizeable]) .widget_contents {
     width: calc(100% - 5px);
     height: calc(100% - 5px);
   }
@@ -75,8 +75,14 @@ tmpl.innerHTML = `
     height: 100%;
     width: 100%;
   }
-  :host:not([editable]) .palette {
+
+  :host .palette {
     display: none;
+  }
+
+
+  :host([editable]) .palette {
+    display: block;
   }
 
   :host .palette {
@@ -95,8 +101,13 @@ tmpl.innerHTML = `
     font-family: sans-serif;
   }
 
-  :host:not([showsequence]) #textbox {
+  :host #textbox {
     display: none;
+  }
+
+
+  :host([showsequence]) #textbox {
+    display: block;
   }
 
   :host x-piemenu {
@@ -504,7 +515,9 @@ let wire_form_action = function(){
 
 const sequence_symbol = Symbol('sequence');
 
-ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
+if (window.ShadyCSS) {
+  ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
+}
 
 
 class SViewer extends WrapHTML {
@@ -535,7 +548,9 @@ class SViewer extends WrapHTML {
   }
 
   connectedCallback() {
-    ShadyCSS.styleElement(this);
+    if (window.ShadyCSS) {
+      ShadyCSS.styleElement(this);
+    }
 
     let shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
