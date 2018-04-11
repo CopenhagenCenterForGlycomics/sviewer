@@ -199,7 +199,7 @@ tmpl.innerHTML = `
     </div>
   </form>
   <div id="textbox">
-    <slot id="textcontent"></slot>
+    <slot id="textcontent"> </slot>
   </div>
 </div>
 `;
@@ -567,6 +567,8 @@ class SViewer extends WrapHTML {
 
     slot.addEventListener('slotchange', () => {
       this[sequence_symbol] = (slot.assignedNodes().filter( node => node.nodeType === Node.TEXT_NODE )).map( n => n.textContent).join('');
+      this[sequence_symbol] = this[sequence_symbol].replace(/^\s+/,'').replace(/\s+$/,'');
+      slot.assignedNodes()[0].textContent = this[sequence_symbol];
       if (this.sequence) {
         redraw_sugar.call(this);
       }
