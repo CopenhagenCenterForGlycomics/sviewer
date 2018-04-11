@@ -294,7 +294,9 @@ let initialise_renderer = function() {
   wire_renderer_fisheye.call(this);
   console.log("Wired canvas events");
   let sug = new IupacSugar();
-  sug.sequence = this.sequence || 'Gal';
+  if (this.sequence) {
+    sug.sequence = this.sequence;
+  }
   this.renderer.addSugar(sug);
   this.renderer.refresh();
   this.renderer.scaleToFit();
