@@ -5,6 +5,8 @@ import * as debug from 'debug-any-level';
 
 import * as Glycan from 'glycan.js';
 
+import { DraggableForm, DragManager } from 'DragMenus';
+
 const module_string='sviewer:sviewer';
 
 const log = debug(module_string);
@@ -296,12 +298,10 @@ let initialise_renderer = function() {
   wire_renderer_fisheye.call(this);
   console.log("Wired canvas events");
   let sug = new IupacSugar();
-  if (this.sequence) {
-    sug.sequence = this.sequence;
-  }
   this.renderer.addSugar(sug);
-  this.renderer.refresh();
-  this.renderer.scaleToFit();
+  if (this.sequence) {
+    redraw_sugar.call(this);
+  }
 };
 
 let wire_renderer_canvas_events = function() {
@@ -419,6 +419,9 @@ let show_anomer = function(residue,target) {
 let enableDropResidue = function(renderer,residue) {
   residue.renderer = renderer;
   let target = renderer.rendered.get(residue).residue;
+  if (target.style.pointerEvents === 'all') {
+    return;
+  }
   target.style.pointerEvents = 'all';
   let form = this.form;
 
@@ -455,8 +458,8 @@ let enableDropResidue = function(renderer,residue) {
 
 
 let wire_drag_functions = function() {
-  new Glycan.DragManager(this);
-  new Glycan.DraggableForm(this.form);
+  new DragManager(this);
+  new DraggableForm(this.form);
 };
 
 let wire_form_check_class = function() {
@@ -559,13 +562,14 @@ class SViewer extends WrapHTML {
     if (window.ShadyCSS) {
       ShadyCSS.styleElement(this);
     }
-
     let shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
 
-    this.form = shadowRoot.getElementById('new_linkage');
+    this.form = this.shadowRoot.getElementById('new_linkage');
 
-    let slot = shadowRoot.getElementById('textcontent');
+    let slot = this.shadowRoot.getElementById('textcontent');
+
+    this[sequence_symbol] = slot.assignedNodes()[0].textContent;
 
     slot.addEventListener('slotchange', () => {
       this[sequence_symbol] = (slot.assignedNodes().filter( node => node.nodeType === Node.TEXT_NODE )).map( n => n.textContent).join('');
@@ -576,7 +580,7 @@ class SViewer extends WrapHTML {
       }
     });
 
-    populate_palette(this,shadowRoot.getElementById('palette'));
+    populate_palette(this,this.shadowRoot.getElementById('palette'));
 
 
     initialise_renderer.call(this);
