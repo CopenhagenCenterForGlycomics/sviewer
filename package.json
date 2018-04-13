@@ -25,7 +25,7 @@
     "build-watch": "./node_modules/babel-cli/bin/babel.js lib js --watch -d dist",
     "build-web": "./node_modules/.bin/webpack -d",
     "build-watch-web": "./node_modules/.bin/webpack -d --watch",
-    "server": "python -m SimpleHTTPServer",
+    "server": "python ./scripts/simplehttpserver",
     "start": "npm run-script build-watch-web & npm run-script server",
     "lint": "jshint .",
     "validate": "npm ls"
