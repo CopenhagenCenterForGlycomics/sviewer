@@ -265,7 +265,9 @@ let unwire_palette_pagezoom = () => {
 }
 
 let redraw_sugar = function() {
-  this.renderer.sugars[0].sequence = this.sequence;
+  if (this.renderer.sugars[0].sequence !== this.sequence) {
+    this.renderer.sugars[0].sequence = this.sequence;
+  }
   this.renderer.refresh();
   for (let residue of this.renderer.sugars[0].composition() ) {
     enableDropResidue.call( this, this.renderer,residue );
@@ -510,7 +512,7 @@ let form_action = function(widget,ev) {
   this.residue.renderer.refresh();
   enableDropResidue.call( widget, this.residue.renderer,new_res);
   this.residue.renderer.scaleToFit();
-  widget.sequence = this.residue.renderer.sugars[0].sequence;
+  this.sequence = this.residue.renderer.sugars[0].sequence;
   this.reset();
   return false;
 };
@@ -582,7 +584,9 @@ class SViewer extends WrapHTML {
   }
 
   set sequence(seq) {
-    this.textContent = seq;
+    if (this.sequence !== seq) {
+      this.textContent = seq;
+    }
     return seq;
   }
   get sequence() {
