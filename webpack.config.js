@@ -1,9 +1,10 @@
 module.exports = {
   entry: {
-    'main': './js/index.js',
+    'sviewer': [ './js/index.js' ],
   },
   output: {
-    filename: 'sviewer-webpacked.js'
+    filename: '[name].bundle.js',
+    path: __dirname + '/dist'
   },
   module: {
     rules: [{
