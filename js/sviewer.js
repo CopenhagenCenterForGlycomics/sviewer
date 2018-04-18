@@ -1,4 +1,4 @@
-/* globals document,HTMLElement,customElements,window */
+/* globals document,HTMLElement,HTMLLabelElement,customElements,window,requestAnimationFrame,cancelAnimationFrame,fetch,ShadyCSS,Node */
 'use strict';
 
 import * as debug from 'debug-any-level';
@@ -262,135 +262,16 @@ let wire_palette_pagezoom = function() {
   window.addEventListener('scroll', window_scroll_listener);
 };
 
-let unwire_palette_pagezoom = () => {
-  window.removeEventListener('scroll',window_scroll_listener);
-}
-
-let redraw_sugar = function() {
-  if (this.renderer.sugars[0].sequence !== this.sequence) {
-    this.renderer.sugars[0].sequence = this.sequence;
-  }
-  this.renderer.refresh();
-  for (let residue of this.renderer.sugars[0].composition() ) {
-    enableDropResidue.call( this, this.renderer,residue );
-  }
-  this.renderer.scaleToFit();
-};
-
-let initialise_events = function() {
-  console.log("Initialising global events");
-  wire_drag_functions.call(this);
-  wire_palette_pagezoom.call(this);
-  wire_form_check_class.call(this);
-  wire_form_action.call(this);
-  console.log("Initialised global events");
-};
-
-let initialise_renderer = function() {
-  Glycan.FishEyeLayout.LINKS = this.hasAttribute('links') ? true : false;
-  let Iupac = Glycan.CondensedIupac.IO;
-
-  let IupacSugar = Iupac(Glycan.Sugar);
-
-  this.renderer = new Glycan.SVGRenderer(this.shadowRoot.getElementById('output'),Glycan.FishEyeLayout);
-  console.log("Wiring canvas events");
-  wire_renderer_canvas_events.call(this);
-  wire_renderer_fisheye.call(this);
-  console.log("Wired canvas events");
-  let sug = new IupacSugar();
-  this.renderer.addSugar(sug);
-  if (this.sequence) {
-    redraw_sugar.call(this);
-  }
-};
-
-let wire_renderer_canvas_events = function() {
-  let canvas = this.renderer.element.canvas;
-  let renderer = this.renderer;
-
-  canvas.addEventListener('click', (ev) => {
-    if (ev.target !== canvas) {
-      return;
-    }
-    this.form.clear();
-  });
-
-  canvas.addEventListener('dragleave', (ev) => {
-    if (ev.relatedTarget === canvas) {
-      setTimeout(() =>{
-        this.form.clear();
-        delete this.form.active_residue;
-        delete this.form.residue;
-      },100);
-      return;
-    }
-  });
-
-  this.addEventListener('dragend', (ev) => {
-    setTimeout(() =>{
-      this.form.reset();
-    },100);
-  });
-
-};
-
-let wire_renderer_fisheye = function() {
-
-  let canvas = this.renderer.element.canvas;
-  let renderer = this.renderer;
-
-  let last_req;
-  canvas.addEventListener('dragover', (ev) => {
-    if (this.shadowRoot.querySelectorAll('x-piemenu[active]').length > 0) {
-      return;
-    }
-    if (! this.hasAttribute('editable')) {
-      return;
-    }
-    Glycan.FishEyeLayout.focus = [ ev.svgX, ev.svgY ];
-    let vp_zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
-    let candidate_zoom = parseFloat((vp_zoom * vp_zoom * 3).toFixed(2));
-    Glycan.FishEyeLayout.zoom = candidate_zoom < 0.1 ? 0.1 : candidate_zoom;
-    Glycan.FishEyeLayout.lock_residues = true;
-    if (last_req) {
-      cancelAnimationFrame(last_req);
-    }
-    last_req = requestAnimationFrame(function() {
-      renderer.refresh();
-    });
-  });
-
-  document.addEventListener('dragend', (ev) => {
-    Glycan.FishEyeLayout.focus = [ -1000, -1000 ];
-    if (last_req) {
-      cancelAnimationFrame(last_req);
-    }
-    last_req = requestAnimationFrame(function() {
-      renderer.refresh();
-    });
-  });
-
-};
-
-// let set_glycan_sequence = function() {
-
-//     Glycan.FishEyeLayout.LINKS = true;
-//     let renderer = global_renderer;
-
-//     renderer.refresh();
-//     renderer.scaleToFit();
-//     sug.composition().map( enableDropResidue.bind(null,renderer) );
-// };
-
-
 let show_anomer = function(residue,target) {
   if ( ! this.hasAttribute('editable')) {
     return;
   }
   let anomer_chooser = this.shadowRoot.getElementById('anomer_menu');
   let form = this.form;
-  form.clear && form.clear();
-  console.log("Setting target to ",residue.identifier);
+  if (form.clear) {
+    form.clear();
+  }
+  log.info('Setting target to',residue.identifier);
   delete form.active_residue;
   form.residue = residue;
   anomer_chooser.removeAttribute('active');
@@ -425,7 +306,7 @@ let enableDropResidue = function(renderer,residue) {
   target.style.pointerEvents = 'all';
   let form = this.form;
 
-  target.addEventListener('dragleave', (ev) => {
+  target.addEventListener('dragleave', () => {
     delete form.active_residue;
   });
 
@@ -456,6 +337,95 @@ let enableDropResidue = function(renderer,residue) {
   });
 };
 
+let redraw_sugar = function() {
+  if (this.renderer.sugars[0].sequence !== this.sequence) {
+    this.renderer.sugars[0].sequence = this.sequence;
+  }
+  this.renderer.refresh();
+  for (let residue of this.renderer.sugars[0].composition() ) {
+    enableDropResidue.call( this, this.renderer,residue );
+  }
+  this.renderer.scaleToFit();
+};
+
+
+let wire_renderer_canvas_events = function() {
+  let canvas = this.renderer.element.canvas;
+
+  canvas.addEventListener('click', (ev) => {
+    if (ev.target !== canvas) {
+      return;
+    }
+    this.form.clear();
+  });
+
+  canvas.addEventListener('dragleave', (ev) => {
+    if (ev.relatedTarget === canvas) {
+      setTimeout(() =>{
+        this.form.clear();
+        delete this.form.active_residue;
+        delete this.form.residue;
+      },100);
+      return;
+    }
+  });
+
+  this.addEventListener('dragend', () => {
+    setTimeout(() =>{
+      this.form.reset();
+    },100);
+  });
+
+};
+
+let wire_renderer_fisheye = function() {
+
+  let canvas = this.renderer.element.canvas;
+  let renderer = this.renderer;
+
+  let last_req;
+  canvas.addEventListener('dragover', (ev) => {
+    if (this.shadowRoot.querySelectorAll('x-piemenu[active]').length > 0) {
+      return;
+    }
+    if (! this.hasAttribute('editable')) {
+      return;
+    }
+    Glycan.FishEyeLayout.focus = [ ev.svgX, ev.svgY ];
+    let vp_zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
+    let candidate_zoom = parseFloat((vp_zoom * vp_zoom * 3).toFixed(2));
+    Glycan.FishEyeLayout.zoom = candidate_zoom < 0.1 ? 0.1 : candidate_zoom;
+    Glycan.FishEyeLayout.lock_residues = true;
+    if (last_req) {
+      cancelAnimationFrame(last_req);
+    }
+    last_req = requestAnimationFrame(function() {
+      renderer.refresh();
+    });
+  });
+
+  document.addEventListener('dragend', () => {
+    Glycan.FishEyeLayout.focus = [ -1000, -1000 ];
+    if (last_req) {
+      cancelAnimationFrame(last_req);
+    }
+    last_req = requestAnimationFrame(function() {
+      renderer.refresh();
+    });
+  });
+
+};
+
+// let set_glycan_sequence = function() {
+
+//     Glycan.FishEyeLayout.LINKS = true;
+//     let renderer = global_renderer;
+
+//     renderer.refresh();
+//     renderer.scaleToFit();
+//     sug.composition().map( enableDropResidue.bind(null,renderer) );
+// };
+
 
 let wire_drag_functions = function() {
   new DragManager(this);
@@ -478,10 +448,10 @@ let wire_form_check_class = function() {
       }
     }
   });
-  this.form.addEventListener('reset', function(ev) {
+  this.form.addEventListener('reset', function() {
     delete this.residue;
 
-    for (let sib of this['donor']) {
+    for (let sib of this.donor) {
       sib.parentNode.classList.remove('checked');
     }
   });
@@ -524,12 +494,38 @@ let wire_form_action = function(){
   this.form.addEventListener('finished', form_action.bind(this.form,this));
 };
 
+let initialise_events = function() {
+  log.info('Initialising global events');
+  wire_drag_functions.call(this);
+  wire_palette_pagezoom.call(this);
+  wire_form_check_class.call(this);
+  wire_form_action.call(this);
+  log.info('Initialised global events');
+};
+
+let initialise_renderer = function() {
+  Glycan.FishEyeLayout.LINKS = this.hasAttribute('links') ? true : false;
+  let Iupac = Glycan.CondensedIupac.IO;
+
+  let IupacSugar = Iupac(Glycan.Sugar);
+
+  this.renderer = new Glycan.SVGRenderer(this.shadowRoot.getElementById('output'),Glycan.FishEyeLayout);
+  log.info('Wiring canvas events');
+  wire_renderer_canvas_events.call(this);
+  wire_renderer_fisheye.call(this);
+  log.info('Wired canvas events');
+  let sug = new IupacSugar();
+  this.renderer.addSugar(sug);
+  if (this.sequence) {
+    redraw_sugar.call(this);
+  }
+};
+
 const sequence_symbol = Symbol('sequence');
 
 if (window.ShadyCSS) {
   ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
 }
-
 
 class SViewer extends WrapHTML {
 
@@ -543,8 +539,7 @@ class SViewer extends WrapHTML {
   }
 
 
-  attributeChangedCallback(name, oldValue, newValue) {
-    console.log(name,oldValue,newValue);
+  attributeChangedCallback(name) {
     if (name === 'links') {
       if (this.hasAttribute('links')) {
         Glycan.FishEyeLayout.LINKS = true;
