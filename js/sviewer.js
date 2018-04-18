@@ -515,7 +515,7 @@ let form_action = function(widget,ev) {
   this.residue.renderer.refresh();
   enableDropResidue.call( widget, this.residue.renderer,new_res);
   this.residue.renderer.scaleToFit();
-  this.sequence = this.residue.renderer.sugars[0].sequence;
+  widget.sequence = this.residue.renderer.sugars[0].sequence;
   this.reset();
   return false;
 };
