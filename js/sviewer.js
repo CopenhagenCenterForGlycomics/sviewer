@@ -510,6 +510,7 @@ let initialise_renderer = function() {
   let IupacSugar = Iupac(Glycan.Sugar);
 
   this.renderer = new Glycan.SVGRenderer(this.shadowRoot.getElementById('output'),Glycan.FishEyeLayout);
+  this.renderer.rotate = this.hasAttribute('horizontal');
   log.info('Wiring canvas events');
   wire_renderer_canvas_events.call(this);
   wire_renderer_fisheye.call(this);
@@ -530,7 +531,7 @@ if (window.ShadyCSS) {
 class SViewer extends WrapHTML {
 
   static get observedAttributes() {
-    return ['links'];
+    return ['links','horizontal'];
   }
 
   constructor() {
@@ -550,6 +551,19 @@ class SViewer extends WrapHTML {
         this.renderer.refresh();
         this.renderer.scaleToFit();
       }
+    }
+    if (name === 'horizontal') {
+      if ( ! this.renderer ) {
+        return;
+      }
+
+      if (this.hasAttribute('horizontal')) {
+        this.renderer.rotate = true;
+      } else {
+        this.renderer.rotate = false;
+      }
+      this.renderer.refresh();
+      setTimeout(() => this.renderer.scaleToFit(),500);
     }
   }
 
