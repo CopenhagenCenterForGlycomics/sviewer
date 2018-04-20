@@ -35,6 +35,7 @@ tmpl.innerHTML = `
     width: 100%;
     height: 100%;
     pointer-events: auto;
+    font-family: Helvetica, sans-serif;
   }
 
   :host .widget_contents > div > svg * {
