@@ -1,4 +1,4 @@
-/* globals document,HTMLElement,HTMLLabelElement,customElements,window,requestAnimationFrame,cancelAnimationFrame,fetch,ShadyCSS,Node */
+/* globals document,HTMLElement,HTMLLabelElement,HTMLSlotElement,MutationObserver,Event,customElements,window,requestAnimationFrame,cancelAnimationFrame,fetch,ShadyCSS,Node */
 'use strict';
 
 import * as debug from 'debug-any-level';
@@ -164,6 +164,12 @@ tmpl.innerHTML = `
       height: 200px;
     }
   }
+
+  :host .palette label[data-disabled] {
+    opacity: 0.2;
+    pointer-events: none;
+  }
+
   :host .palette label.checked {
     background: #faa;
   }
@@ -275,6 +281,9 @@ let show_anomer = function(residue,target) {
   log.info('Setting target to',residue.identifier);
   delete form.active_residue;
   form.residue = residue;
+  let event = new Event('change',{bubbles: true});
+  form.dispatchEvent(event);
+
   anomer_chooser.removeAttribute('active');
   let zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
   let target_pos = target.getBoundingClientRect();
@@ -458,6 +467,29 @@ let wire_form_check_class = function() {
   });
 };
 
+const wire_palette_watcher = (label) => {
+  let config = { attributes: true, subtree: true,attributeFilter: ['disabled'] };
+  // Callback function to execute when mutations are observed
+  let callback = function(mutationsList) {
+      for(let mutation of mutationsList) {
+          if (mutation.type == 'attributes') {
+              if (label.querySelector('input[disabled]')) {
+                label.setAttribute('data-disabled','');
+              } else {
+                label.removeAttribute('data-disabled');
+              }
+          }
+      }
+  };
+
+  let observer = new MutationObserver(callback);
+
+  observer.observe(label, config);
+
+  // Later, you can stop observing
+  // observer.disconnect();
+};
+
 let populate_palette = function(widget,palette) {
   let icons = widget.shadowRoot.getElementById('icons');
   widget.donors=['Gal','Glc','Man','GalNAc','GlcNAc','NeuAc','NeuGc','GlcA','IdoA','Xyl','Fuc'];
@@ -465,11 +497,13 @@ let populate_palette = function(widget,palette) {
   .then((response) => response.text())
   .then( (xml) => icons.innerHTML = xml )
   .then( () => {
+
     for (let sug of widget.donors) {
       let palette_entry = palette_template.content.cloneNode(true);
       palette_entry.querySelector('use').setAttribute('xlink:href',`#${sug.toLowerCase()}`);
       palette_entry.querySelector('input').setAttribute('value',sug);
       palette.appendChild(palette_entry);
+      wire_palette_watcher(palette.lastElementChild);
     }
   });
 };
@@ -580,6 +614,10 @@ class SViewer extends WrapHTML {
     let slot = this.shadowRoot.getElementById('textcontent');
 
     this[sequence_symbol] = slot.assignedNodes()[0].textContent;
+
+    if (slot.assignedNodes()[0] instanceof HTMLSlotElement) {
+      this[sequence_symbol] = slot.assignedNodes()[0].assignedNodes()[0].textContent;
+    }
 
     slot.addEventListener('slotchange', () => {
       this[sequence_symbol] = (slot.assignedNodes().filter( node => node.nodeType === Node.TEXT_NODE )).map( n => n.textContent).join('');
