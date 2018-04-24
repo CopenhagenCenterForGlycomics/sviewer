@@ -5,6 +5,8 @@ import * as debug from 'debug-any-level';
 
 import * as Glycan from 'glycan.js';
 
+import ImageSaver from './imagesaver';
+
 import { DraggableForm, DragManager } from 'DragMenus';
 
 const module_string='sviewer:sviewer';
@@ -606,6 +608,10 @@ class SViewer extends WrapHTML {
     log('Initiating Sviewer element');
   }
 
+
+  save() {
+    ImageSaver(this,this.renderer.element.canvas,'svg');
+  }
 
   attributeChangedCallback(name) {
     if (name === 'links') {
