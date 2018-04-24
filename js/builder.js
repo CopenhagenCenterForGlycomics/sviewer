@@ -95,6 +95,10 @@ const wire_sviewer_events = function(viewer) {
     let linkage_val = this.linkage.value ? parseInt(this.linkage.value) : undefined;
     let residue_val = this.residue ? this.residue : undefined;
     let supported = reactions.supportsLinkageAt(viewer.renderer.sugars[0],donor_val,linkage_val,residue_val);
+    if (supported.anomerlinks && this.anomer.value) {
+      let anomer = this.anomer.value;
+      supported.linkage = supported.anomerlinks.filter( linkpair => linkpair.match(anomer) ).map( l => l.charAt(1) );
+    }
     adapt_form.call(widget,viewer.form.anomer,supported.anomer);
     adapt_form.call(widget,viewer.form.linkage,supported.linkage.map( link => ''+link ));
     changed = true;
