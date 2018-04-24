@@ -81,6 +81,11 @@ Red  #ed1c24
 <polyline fill="#f69ea1" stroke="#000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="
   67.802,60.462 78.803,94.32 50.001,69.823 21.196,94.322 32.199,60.462 3.386,39.531 38.999,39.534 50,5.678 61.002,39.536 96.615,39.539 67.804,60.462 "/>
     </symbol>
+    <symbol id="rbo" viewBox="0 0 100 100">
+<polyline fill="#f69ea1" stroke="#000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="
+  67.802,60.462 78.803,94.32 50.001,69.823 21.196,94.322 32.199,60.462 3.386,39.531 38.999,39.534 50,5.678 61.002,39.536 96.615,39.539 67.804,60.462 "/>
+    <text x="50" y="50" text-anchor="middle" stroke="#fff" fill="#fff" stroke-width="0" dy=".4em" dx="-0.1em" font-size="25" font-family="sans-serif" font-style="italic">ol</text>
+    </symbol>
     <symbol id="hexa" viewBox="0 0 100 100">
       <polyline fill="#fff" stroke="#000" points="50,5 95,50 5,50 50,5"/>
       <polyline fill="#fff" stroke="#000" points="50,95 95,50 5,50 50,95"/>
@@ -156,6 +161,10 @@ Red  #ed1c24
     <symbol id="phospho" viewBox="0 0 100 100">
       <circle cx="50" cy="50" fill="#fff" r="48" stroke-width="3" stroke="#000"/>
       <text x="50" y="50" text-anchor="middle" stroke="#000" stroke-width="2" dy=".35em" dx="0.05em" font-size="50">P</text>
+    </symbol>
+    <symbol id="p" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" fill="#bbe5fa" r="35" stroke-width="4" stroke="#2f5fac"/>
+      <text x="50" y="50" text-anchor="middle" fill="#2f5fac" stroke="none" stroke-width="2" dy=".35em" dx="0.05em" font-size="50">P</text>
     </symbol>
     <symbol id="ser" viewBox="0 0 100 100">
       <path d="M20,50 a1,1 0 0,0 30,0 a1,1 0 0,1 30,0" fill="none" stroke="#000" stroke-width="1"/>

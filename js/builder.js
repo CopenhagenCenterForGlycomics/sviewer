@@ -40,15 +40,15 @@ tmpl.innerHTML = `
 const set_anomers = function(viewer,anomers) {
   if ( ! anomers ) {
     for (let anomer of viewer.form.anomer) {
-      anomer.removeAttribute('disabled'); 
+      anomer.removeAttribute('disabled');
     }
     return;
   }
   for (let anomer of viewer.form.anomer) {
     if (anomers.indexOf(anomer.value) >= 0) {
-      anomer.removeAttribute('disabled'); 
+      anomer.removeAttribute('disabled');
     } else {
-      anomer.setAttribute('disabled','');       
+      anomer.setAttribute('disabled','');
     }
   }
 };
@@ -56,16 +56,16 @@ const set_anomers = function(viewer,anomers) {
 const set_linkage = function(viewer,linkages) {
   if ( ! linkages ) {
     for (let linkage of viewer.form.linkage) {
-      linkage.removeAttribute('disabled'); 
+      linkage.removeAttribute('disabled');
     }
     return;
   }
   linkages = [0].concat(linkages);
   for (let linkage of viewer.form.linkage) {
     if (linkages.indexOf(parseInt(linkage.value)) >= 0) {
-      linkage.removeAttribute('disabled'); 
+      linkage.removeAttribute('disabled');
     } else {
-      linkage.setAttribute('disabled','');       
+      linkage.setAttribute('disabled','');
     }
   }
 };
@@ -73,17 +73,17 @@ const set_linkage = function(viewer,linkages) {
 const set_donor = function(viewer,donors) {
   if ( ! donors ) {
     for (let donor of viewer.form.donor) {
-      donor.removeAttribute('disabled'); 
+      donor.removeAttribute('disabled');
     }
     return;
   }
   for (let donor of viewer.form.donor) {
     if (donors.indexOf(donor.value) >= 0) {
       console.log('Enabling',donor.value);
-      donor.removeAttribute('disabled'); 
+      donor.removeAttribute('disabled');
     } else {
       console.log('Disabling',donor.value);
-      donor.setAttribute('disabled','');       
+      donor.setAttribute('disabled','');
     }
   }
 };
@@ -151,11 +151,14 @@ class SugarBuilder extends WrapHTML {
   }
 
   attributeChangedCallback(name) {
+    if ( ! this.shadowRoot ) {
+      return;
+    }
     if (['links','horizontal','resizeable'].indexOf(name) >= 0 ) {
       if (this.hasAttribute(name)) {
         this.shadowRoot.getElementById('viewer').setAttribute(name,'');
       } else {
-        this.shadowRoot.getElementById('viewer').removeAttribute(name);        
+        this.shadowRoot.getElementById('viewer').removeAttribute(name);
       }
     }
   }

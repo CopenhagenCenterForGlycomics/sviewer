@@ -512,7 +512,14 @@ let form_action = function(widget,ev) {
   ev.preventDefault();
   ev.stopPropagation();
 
-  let new_res = new Glycan.Monosaccharide(this.donor.value);
+  let Iupac = Glycan.CondensedIupac.IO;
+
+  let IupacSugar = Iupac(Glycan.Sugar);
+
+  let sug = new IupacSugar();
+  sug.sequence = this.donor.value;
+
+  let new_res = sug.root;
   new_res.anomer = this.anomer.value;
   new_res.parent_linkage = this.donor.value.match(/Neu(Gc|Ac)/) ? 2 : 1;
   this.residue.addChild(parseInt(this.linkage.value),new_res);
