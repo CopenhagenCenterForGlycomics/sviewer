@@ -36,63 +36,52 @@ tmpl.innerHTML = `
 </div>
 `;
 
-
-const set_anomers = function(viewer,anomers) {
-  if ( ! anomers ) {
-    for (let anomer of viewer.form.anomer) {
-      anomer.removeAttribute('disabled');
+const demote_items = function(enabled_weight,elements,values) {
+  if ( ! values ) {
+    for (let el of elements) {
+      el.removeAttribute('data-weight');
     }
     return;
   }
-  for (let anomer of viewer.form.anomer) {
-    if (anomers.indexOf(anomer.value) >= 0) {
-      anomer.removeAttribute('disabled');
+  for (let el of elements) {
+    if (values.indexOf(el.value) >= 0) {
+      el.setAttribute('data-weight',enabled_weight);
     } else {
-      anomer.setAttribute('disabled','');
+      el.setAttribute('data-weight','-1');
     }
   }
 };
 
-const set_linkage = function(viewer,linkages) {
-  if ( ! linkages ) {
-    for (let linkage of viewer.form.linkage) {
-      linkage.removeAttribute('disabled');
+const disable_items = function(elements,values) {
+  if ( ! values ) {
+    for (let el of elements) {
+      el.removeAttribute('disabled');
     }
     return;
   }
-  linkages = [0].concat(linkages);
-  for (let linkage of viewer.form.linkage) {
-    if (linkages.indexOf(parseInt(linkage.value)) >= 0) {
-      linkage.removeAttribute('disabled');
+  for (let el of elements) {
+    if (values.indexOf(el.value) >= 0) {
+      console.log('Enabling',el.value);
+      el.removeAttribute('disabled');
     } else {
-      linkage.setAttribute('disabled','');
+      console.log('Disabling',el.value);
+      el.setAttribute('disabled','');
     }
   }
 };
 
-const set_donor = function(viewer,donors) {
-  if ( ! donors ) {
-    for (let donor of viewer.form.donor) {
-      donor.removeAttribute('disabled');
-    }
-    return;
+const adapt_form = function(elements,values) {
+  if (this.hasAttribute('strict')) {
+    return disable_items(elements,values);
   }
-  for (let donor of viewer.form.donor) {
-    if (donors.indexOf(donor.value) >= 0) {
-      console.log('Enabling',donor.value);
-      donor.removeAttribute('disabled');
-    } else {
-      console.log('Disabling',donor.value);
-      donor.setAttribute('disabled','');
-    }
-  }
+  return demote_items(4,elements,values);
 };
 
 const reset_form_disabled = function(widget,viewer) {
   let supported = widget.reactiongroup.supportsLinkageAt(viewer.renderer.sugars[0]);
-  set_donor(viewer,supported.donor);
-  set_anomers(viewer);
-  set_linkage(viewer);
+  adapt_form.call(widget,viewer.form.donor,supported.donor);
+  adapt_form.call(widget,viewer.form.anomer);
+  adapt_form.call(widget,viewer.form.linkage);
 };
 
 const wire_sviewer_events = function(viewer) {
@@ -105,8 +94,8 @@ const wire_sviewer_events = function(viewer) {
     let linkage_val = this.linkage.value ? parseInt(this.linkage.value) : undefined;
     let residue_val = this.residue ? this.residue : undefined;
     let supported = reactions.supportsLinkageAt(viewer.renderer.sugars[0],donor_val,linkage_val,residue_val);
-    set_anomers(viewer,supported.anomer);
-    set_linkage(viewer,supported.linkage);
+    adapt_form.call(widget,viewer.form.anomer,supported.anomer);
+    adapt_form.call(widget,viewer.form.linkage,supported.linkage.map( link => ''+link ));
     changed = true;
   });
   viewer.form.addEventListener('reset',function() {
@@ -161,6 +150,17 @@ class SugarBuilder extends WrapHTML {
         this.shadowRoot.getElementById('viewer').removeAttribute(name);
       }
     }
+  }
+
+  set sequence(sequence) {
+    this.shadowRoot.getElementById('viewer').sequence = sequence;
+  }
+  get sequence() {
+    return this.shadowRoot.getElementById('viewer').sequence;
+  }
+
+  get textContent() {
+    return this.sequence;
   }
 
   set reactions(reactions) {

@@ -134,6 +134,10 @@ tmpl.innerHTML = `
     pointer-events: all;
   }
 
+  :host x-piemenu[active] label[data-weight^="-"] {
+    opacity: calc( -1 * var(--weight) * 0.5 );
+  }
+
   :host x-piemenu button, x-piemenu label {
     font-family: sans-serif;
     font-size: var(--icon-size);
@@ -169,6 +173,11 @@ tmpl.innerHTML = `
     opacity: 0.2;
     pointer-events: none;
   }
+
+  :host .palette label[data-weight^="-"] {
+    opacity: 0.5;
+  }
+
 
   :host .palette label.checked {
     background: #faa;
@@ -468,15 +477,23 @@ let wire_form_check_class = function() {
 };
 
 const wire_palette_watcher = (label) => {
-  let config = { attributes: true, subtree: true,attributeFilter: ['disabled'] };
+  let config = { attributes: true, subtree: true,attributeFilter: ['disabled','data-weight'] };
   // Callback function to execute when mutations are observed
   let callback = function(mutationsList) {
       for(let mutation of mutationsList) {
+          if (mutation.target === label) {
+            return;
+          }
           if (mutation.type == 'attributes') {
               if (label.querySelector('input[disabled]')) {
                 label.setAttribute('data-disabled','');
               } else {
                 label.removeAttribute('data-disabled');
+              }
+              if (label.querySelector('input[data-weight]')) {
+                label.setAttribute('data-weight',label.querySelector('input[data-weight]').getAttribute('data-weight'));
+              } else {
+                label.removeAttribute('data-weight');
               }
           }
       }
