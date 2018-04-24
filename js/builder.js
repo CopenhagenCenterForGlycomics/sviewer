@@ -24,6 +24,7 @@ tmpl.innerHTML = `
   :host x-sviewer {
     width: 100%;
     height: 100%;
+    --demoted-opacity: 0.8;
   }
   :host .widget_contents {
     width: 100%;
@@ -44,6 +45,7 @@ const demote_items = function(enabled_weight,elements,values) {
     return;
   }
   for (let el of elements) {
+    el.removeAttribute('disabled');
     if (values.indexOf(el.value) >= 0) {
       el.setAttribute('data-weight',enabled_weight);
     } else {
@@ -60,11 +62,10 @@ const disable_items = function(elements,values) {
     return;
   }
   for (let el of elements) {
+    el.removeAttribute('data-weight');
     if (values.indexOf(el.value) >= 0) {
-      console.log('Enabling',el.value);
       el.removeAttribute('disabled');
     } else {
-      console.log('Disabling',el.value);
       el.setAttribute('disabled','');
     }
   }
@@ -115,7 +116,7 @@ if (window.ShadyCSS) {
 
 class SugarBuilder extends WrapHTML {
   static get observedAttributes() {
-    return ['resizable','links','horizontal'];
+    return ['resizable','links','horizontal','strict'];
   }
 
   constructor() {
@@ -154,6 +155,9 @@ class SugarBuilder extends WrapHTML {
       } else {
         this.shadowRoot.getElementById('viewer').removeAttribute(name);
       }
+    }
+    if (name === 'strict') {
+      reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
     }
   }
 

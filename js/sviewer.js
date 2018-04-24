@@ -19,6 +19,7 @@ tmpl.innerHTML = `
     display: block;
     position: relative;
     --palette-icon-size: 32px;
+    --demoted-opacity: 0.5;
   }
 
   :host([resizeable]) {
@@ -135,7 +136,7 @@ tmpl.innerHTML = `
   }
 
   :host x-piemenu[active] label[data-weight^="-"] {
-    opacity: calc( -1 * var(--weight) * 0.5 );
+    opacity: calc( -1 * var(--weight) * var(--demoted-opacity) );
   }
 
   :host x-piemenu button, x-piemenu label {
@@ -147,6 +148,13 @@ tmpl.innerHTML = `
     background: #6052E2;
     color: #ffffff;
   }
+
+  :host x-piemenu button[data-weight^="-"].hover, x-piemenu label[data-weight^="-"].hover, x-piemenu button[data-weight^="-"]:hover, x-piemenu label[data-weight^="-"]:hover {
+    background: #FFE2E2;
+    opacity: 1;
+    color: #000000;
+  }
+
 
   :host #icons {
     display: none;
@@ -175,7 +183,7 @@ tmpl.innerHTML = `
   }
 
   :host .palette label[data-weight^="-"] {
-    opacity: 0.5;
+    opacity: var(--demoted-opacity);
   }
 
 
