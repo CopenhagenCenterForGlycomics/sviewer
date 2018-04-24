@@ -136,7 +136,12 @@ class SugarBuilder extends WrapHTML {
 
     fetch('/reactions.json')
     .then((response) => response.json())
-    .then((reactions) => this.reactions = reactions );
+    .then((reactions) => this.reactions = reactions )
+    .then( () => reset_form_disabled(this,this.shadowRoot.getElementById('viewer')) );
+
+    if ( this.sequence && this.reactiongroup ) {
+      reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+    }
   }
 
   attributeChangedCallback(name) {
@@ -154,6 +159,7 @@ class SugarBuilder extends WrapHTML {
 
   set sequence(sequence) {
     this.shadowRoot.getElementById('viewer').sequence = sequence;
+    reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
   }
   get sequence() {
     return this.shadowRoot.getElementById('viewer').sequence;
