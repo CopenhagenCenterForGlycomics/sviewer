@@ -165,6 +165,15 @@ class SugarBuilder extends WrapHTML {
     }
   }
 
+  savePNG() {
+    this.shadowRoot.getElementById('viewer').save('png');
+  }
+
+  saveSVG() {
+    this.shadowRoot.getElementById('viewer').save('svg');
+  }
+
+
   set sequence(sequence) {
     this.shadowRoot.getElementById('viewer').sequence = sequence;
     reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));

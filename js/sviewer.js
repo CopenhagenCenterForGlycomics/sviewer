@@ -609,8 +609,8 @@ class SViewer extends WrapHTML {
   }
 
 
-  save() {
-    ImageSaver(this,this.renderer.element.canvas,'svg');
+  save(format='svg') {
+    ImageSaver(this,this.renderer.element.canvas,format);
   }
 
   attributeChangedCallback(name) {

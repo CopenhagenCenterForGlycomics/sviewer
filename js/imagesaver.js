@@ -11,7 +11,6 @@ let download = (uri,filename='image.png') => {
   a.style = 'display: none';
   a.setAttribute('download', filename);
   a.setAttribute('href', uri);
-  a.setAttribute('target', '_blank');
   a.dispatchEvent(evt);
 };
 
