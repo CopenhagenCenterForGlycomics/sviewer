@@ -20,6 +20,11 @@ x-sviewer, x-sugarbuilder {
 	width: 50%;
 	height: 50%;
 }
+x-sugarframe {
+	width: 300%;
+	--highlight-stroke: #0a0;
+	--highlight-stroke-opacity: 0.5;
+}
 </style>
 </head>
 <body>
@@ -29,16 +34,18 @@ x-sviewer, x-sugarbuilder {
 <!-- <x-sviewer editable resizeable links>Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser</x-sviewer>
  --><x-sugarbuilder strict resizeable linkangles >Gal(b1-3)GalNAc(a1-O)Ser</x-sugarbuilder>
  <button type="button" onclick="document.querySelector('x-sugarbuilder').saveSVG();">Save</button>
+ <div style="overflow: auto;">
  <x-sugarframe src="human.svg">
-	g > g, g > use {
-		opacity: 0.2;
+	svg > g > g, svg > g > use {
+		opacity: 0.1;
 	}
 	g g.tagged {
 		opacity: 1;
+		stroke-width: 10;
+		stroke-opacity: 0.5;
+		filter: url(#highlight);
 	}
-	.tagged g, .tagged use {
-		opacity: 1;
-	}
- </x-sugarframe>
+</x-sugarframe>
+</div>
 </body>
 </html>
