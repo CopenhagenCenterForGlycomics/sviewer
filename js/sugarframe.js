@@ -61,7 +61,7 @@ const FILTER_TEXT = `
                                                  0 0 0 0 0
                                                  0 0 0 0 0
                                                  0 0 0 30 -3" result="contrastup"/>
-  <feMorphology operator="dilate" in="contrastup" radius="10"/>
+  <feMorphology operator="dilate" in="contrastup" radius="3"/>
   <feColorMatrix mode="matrix"           values="0 0 0 0 1
                                                  0 0 0 0 1
                                                  0 0 0 0 1
