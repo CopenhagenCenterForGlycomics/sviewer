@@ -15,6 +15,10 @@ let download = (uri,filename='image.png') => {
   a.dispatchEvent(evt);
 };
 
+const rect_tmpl = document.createElement('template');
+
+rect_tmpl.innerHTML = '<rect xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="100" height="100" fill="#fff" opacity="0" />';
+
 let save = (widget,svg,format='png') => {
   let canvas = document.createElement('canvas');
   canvas.width=widget.getBoundingClientRect().width;
@@ -23,8 +27,14 @@ let save = (widget,svg,format='png') => {
   let new_svg = svg.cloneNode(true);
   let defs = widget.shadowRoot.getElementById('icons').querySelector('defs');
   new_svg.appendChild(defs.cloneNode(true));
+  for (let symbol of new_svg.querySelectorAll('defs symbol')) {
+    symbol.insertBefore(rect_tmpl.content.cloneNode(true), symbol.firstChild);
+  }
   for (let strokes of new_svg.querySelectorAll('symbol *[stroke-width]')) {
-    strokes.setAttribute('stroke-width',parseInt(strokes.getAttribute('stroke-width'))/100) ;
+    if (strokes.getAttribute('fill') === 'none') {
+      continue;
+    }
+    strokes.setAttribute('stroke-width',parseInt(strokes.getAttribute('stroke-width'))/widget.renderer.constructor.GLOBAL_SCALE) ;
   }
 
   for (let use of new_svg.querySelectorAll('use')) {
