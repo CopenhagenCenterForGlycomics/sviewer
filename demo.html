@@ -37,10 +37,10 @@ x-sugarframe {
  <button type="button" onclick="document.querySelector('x-sugarbuilder').saveSVG();">Save</button>
  <div style="overflow: auto;">
  <x-sugarframe src="human.svg">
-	svg > g > g, svg > g > use {
+	svg > g > g > g, svg > g > g > use {
 		opacity: 0.1;
 	}
-	g g.tagged {
+	g g g.tagged {
 		opacity: 1;
 		stroke-width: 10;
 		stroke-opacity: 0.5;
