@@ -120,7 +120,7 @@ if (window.ShadyCSS) {
 
 class SugarBuilder extends WrapHTML {
   static get observedAttributes() {
-    return ['resizable','links','horizontal','strict'];
+    return ['resizable','links','horizontal','strict','linkangles'];
   }
 
   constructor() {
@@ -135,9 +135,10 @@ class SugarBuilder extends WrapHTML {
     let shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
     wire_sviewer_events.call(this,shadowRoot.getElementById('viewer'));
-    this.attributeChangedCallback('links');
     this.attributeChangedCallback('horizontal');
     this.attributeChangedCallback('resizeable');
+    this.attributeChangedCallback('linkangles');
+    this.attributeChangedCallback('links');
 
     fetch('/reactions.json')
     .then((response) => response.json())
@@ -153,12 +154,15 @@ class SugarBuilder extends WrapHTML {
     if ( ! this.shadowRoot ) {
       return;
     }
-    if (['links','horizontal','resizeable'].indexOf(name) >= 0 ) {
+    if (['links','horizontal','resizeable','linkangles'].indexOf(name) >= 0 ) {
       if (this.hasAttribute(name)) {
         this.shadowRoot.getElementById('viewer').setAttribute(name,'');
       } else {
         this.shadowRoot.getElementById('viewer').removeAttribute(name);
       }
+    }
+    if (name === 'linkangles') {
+      this.attributeChangedCallback('links');
     }
     if (name === 'strict') {
       reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));

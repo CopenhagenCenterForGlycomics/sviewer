@@ -34,6 +34,7 @@ let save = (widget,svg,format='png') => {
       continue;
     }
     strokes.setAttribute('stroke-width',parseInt(strokes.getAttribute('stroke-width'))/widget.renderer.constructor.GLOBAL_SCALE) ;
+    strokes.setAttribute('stroke-miterlimit',parseInt(strokes.getAttribute('stroke-miterlimit') || '1')/widget.renderer.constructor.GLOBAL_SCALE);
   }
 
   for (let use of new_svg.querySelectorAll('use')) {

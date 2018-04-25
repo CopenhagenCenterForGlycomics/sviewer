@@ -420,11 +420,11 @@ let wire_renderer_fisheye = function() {
     if (! this.hasAttribute('editable')) {
       return;
     }
-    Glycan.FishEyeLayout.focus = [ ev.svgX, ev.svgY ];
+    this.LayoutEngine.focus = [ ev.svgX, ev.svgY ];
     let vp_zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
     let candidate_zoom = parseFloat((vp_zoom * vp_zoom * 3).toFixed(2));
-    Glycan.FishEyeLayout.zoom = candidate_zoom < 0.1 ? 0.1 : candidate_zoom;
-    Glycan.FishEyeLayout.lock_residues = true;
+    this.LayoutEngine.zoom = candidate_zoom < 0.1 ? 0.1 : candidate_zoom;
+    this.LayoutEngine.lock_residues = true;
     if (last_req) {
       cancelAnimationFrame(last_req);
     }
@@ -434,7 +434,7 @@ let wire_renderer_fisheye = function() {
   });
 
   document.addEventListener('dragend', () => {
-    Glycan.FishEyeLayout.focus = [ -1000, -1000 ];
+    this.LayoutEngine.focus = [ -1000, -1000 ];
     if (last_req) {
       cancelAnimationFrame(last_req);
     }
@@ -573,12 +573,12 @@ let initialise_events = function() {
 };
 
 let initialise_renderer = function() {
-  Glycan.FishEyeLayout.LINKS = this.hasAttribute('links') ? true : false;
+  this.LayoutEngine.LINKS = this.hasAttribute('links') ? true : false;
   let Iupac = Glycan.CondensedIupac.IO;
 
   let IupacSugar = Iupac(Glycan.Sugar);
 
-  this.renderer = new Glycan.SVGRenderer(this.shadowRoot.getElementById('output'),Glycan.FishEyeLayout);
+  this.renderer = new Glycan.SVGRenderer(this.shadowRoot.getElementById('output'),this.LayoutEngine);
   this.renderer.rotate = this.hasAttribute('horizontal');
   log.info('Wiring canvas events');
   wire_renderer_canvas_events.call(this);
@@ -600,7 +600,7 @@ if (window.ShadyCSS) {
 class SViewer extends WrapHTML {
 
   static get observedAttributes() {
-    return ['links','horizontal'];
+    return ['links','horizontal','linkangles'];
   }
 
   constructor() {
@@ -613,12 +613,20 @@ class SViewer extends WrapHTML {
     ImageSaver(this,this.renderer.element.canvas,format);
   }
 
+  get LayoutEngine() {
+    if (this.hasAttribute('linkangles')) {
+      return Glycan.LinkageLayoutFishEye;
+    } else {
+      return Glycan.SugarAwareLayoutFishEye;
+    }
+  }
+
   attributeChangedCallback(name) {
     if (name === 'links') {
       if (this.hasAttribute('links')) {
-        Glycan.FishEyeLayout.LINKS = true;
+        this.LayoutEngine.LINKS = true;
       } else {
-        Glycan.FishEyeLayout.LINKS = false;
+        this.LayoutEngine.LINKS = false;
       }
       if (this.renderer) {
         this.renderer.refresh();
@@ -637,6 +645,12 @@ class SViewer extends WrapHTML {
       }
       this.renderer.refresh();
       setTimeout(() => this.renderer.scaleToFit(),500);
+    }
+    if (name === 'linkangles') {
+      this.LayoutEngine.LINKS = this.renderer.LayoutEngine.LINKS;
+      this.renderer.LayoutEngine = this.LayoutEngine;
+      this.renderer.refresh();
+      this.renderer.scaleToFit();
     }
   }
 

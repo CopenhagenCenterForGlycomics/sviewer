@@ -37,7 +37,7 @@ Red  #ed1c24
       <text x="50" y="25" text-anchor="middle" stroke="#000" stroke-width="2" dy=".35em" dx="0.05em" font-size="25">P</text>
     </symbol>
     <symbol id="glc" viewBox="0 0 100 100">
-      <circle cx="50" cy="50" fill="#0090bc" r="40" stroke-width="0" stroke="#000"/>
+      <circle cx="50" cy="50" fill="#0090bc" r="40" stroke-width="1" stroke="#000"/>
     </symbol>
     <symbol id="gal" viewBox="0 0 100 100">
       <circle cx="50" cy="50" fill="#ffd400" r="40" stroke-width="1" stroke="#000"/>
@@ -58,7 +58,7 @@ Red  #ed1c24
       <path d="M50,15 90,90 10,90 z" fill="#ed1c24" stroke="#000" stroke-width="1"/>
     </symbol>
     <symbol id="fucnac" viewBox="0 0 100 100">
-      <path d="M50,15 90,90 50,90 z" fill="#ed1c24" stroke="#000" stroke-width=""/>
+      <path d="M50,15 90,90 50,90 z" fill="#ed1c24" stroke="#000" stroke-width="1"/>
       <path d="M50,15 50,90 10,90 z" fill="#fff" stroke="#000" stroke-width="1"/>
     </symbol>
     <symbol id="rha" viewBox="0 0 100 100">
@@ -87,16 +87,16 @@ Red  #ed1c24
     <text x="50" y="50" text-anchor="middle" stroke="#fff" fill="#fff" stroke-width="0" dy=".4em" dx="-0.1em" font-size="25" font-family="sans-serif" font-style="italic">ol</text>
     </symbol>
     <symbol id="hexa" viewBox="0 0 100 100">
-      <polyline fill="#fff" stroke="#000" points="50,5 95,50 5,50 50,5"/>
-      <polyline fill="#fff" stroke="#000" points="50,95 95,50 5,50 50,95"/>
+      <polyline fill="#fff" stroke="#000" stroke-width="1" points="50,5 95,50 5,50 50,5"/>
+      <polyline fill="#fff" stroke="#000" stroke-width="1" points="50,95 95,50 5,50 50,95"/>
     </symbol>
     <symbol id="glca" viewBox="0 0 100 100">
-      <polyline fill="#0090bc" stroke="#000" points="50,5 95,50 5,50 50,5"/>
-      <polyline fill="#fff" stroke="#000" points="50,95 95,50 5,50 50,95"/>
+      <polyline fill="#0090bc" stroke="#000" stroke-width="1" points="50,5 95,50 5,50 50,5"/>
+      <polyline fill="#fff" stroke="#000" stroke-width="1" points="50,95 95,50 5,50 50,95"/>
     </symbol>
     <symbol id="idoa" viewBox="0 0 100 100">
-      <polyline fill="#fff" stroke="#000" points="50,5 95,50 5,50 50,5"/>
-      <polyline fill="#a17a4d" stroke="#000" points="50,95 95,50 5,50 50,95"/>
+      <polyline fill="#fff" stroke="#000" stroke-width="1" points="50,5 95,50 5,50 50,5"/>
+      <polyline fill="#a17a4d" stroke="#000" stroke-width="1" points="50,95 95,50 5,50 50,95"/>
     </symbol>
     <symbol id="man(a1-2)man" viewBox="0 0 100 100">
       <svg viewBox="0 0 100 100" x="0" y="0" width="100" height="50">
