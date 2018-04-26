@@ -13,6 +13,227 @@ const Iupac = Glycan.CondensedIupac.IO;
 
 const IupacSugar = Iupac(Glycan.Sugar);
 
+const NLINKED_CORE = new IupacSugar();
+NLINKED_CORE.sequence = 'Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-N)Asn';
+
+const HEPG2_GENES = ['CSGALNACT1',
+'ALG10',
+'FUT8',
+'GCNT3',
+'ST3GAL6',
+'MGAT5',
+'PIGZ',
+'KDELC2',
+'C1GALT1',
+'B4GALNT4',
+'ALG6',
+'CHSY1',
+'PIGA',
+'ALG1',
+'FUT10',
+'EXTL2',
+'TMTC4',
+'FKTN',
+'B4GALNT1',
+'ALG10B',
+'EXT1',
+'ALG8',
+'POMT2',
+'KDELC1',
+'PIGV',
+'B4GALT7',
+'GALNT11',
+'B4GALNT3',
+'GALNT10',
+'PIGB',
+'DPY19L1',
+'B4GALT5',
+'ALG14',
+'DPY19L4',
+'ALG5',
+'FUT11',
+'GXYLT1',
+'DPM1',
+'EXTL3',
+'GCNT2',
+'TMTC3',
+'PIGM',
+'DPY19L3',
+'XYLT2',
+'ALG12',
+'ST3GAL3',
+'STT3B',
+'B3GNT3',
+'FUT6',
+'GCNT1',
+'FUT1',
+'ST6GALNAC6',
+'B3GAT3',
+'CHPF',
+'ST3GAL4',
+'CSGALNACT2',
+'MGAT4A',
+'GALNT1',
+'FKRP',
+'C1GALT1C1',
+'B3GNT2',
+'OGT',
+'ST6GALNAC4',
+'B4GALT1',
+'MFNG',
+'CHPF2',
+'STT3A',
+'ALG2',
+'RFNG',
+'B4GALT4',
+'ST6GAL1',
+'MGAT1',
+'B4GALT3',
+'ST3GAL1',
+'MGAT4B',
+'GALNT2',
+'B3GALT6',
+'POFUT2',
+'POGLUT1',
+'ALG9',
+'MGAT2',
+'EXT2',
+'B4GALT2',
+'POMT1',
+'ST3GAL2',
+'ALG3',
+'UGCG',
+'POFUT1',
+'ALG13',
+'TMEM5',
+'ALG11',
+'POMGNT1',
+'B3GALNT2'];
+
+
+const HEK_GENES = [
+'B3GALT6',
+'PIGV',
+'ST3GAL3',
+'B4GALT2',
+'POMGNT1',
+'ALG6',
+'ST6GALNAC3',
+'ST6GALNAC5',
+'ALG14',
+'EXTL2',
+'PIGM',
+'B4GALT3',
+'GALNT2',
+'B3GALNT2',
+'CSGALNACT2',
+'FUT11',
+'B4GALNT4',
+'GALNT18',
+'EXT2',
+'B3GAT3',
+'B4GAT1',
+'ALG8',
+'KDELC2',
+'ALG9',
+'ST3GAL4',
+'STT3A',
+'B4GALNT3',
+'TMTC1',
+'ALG10',
+'ALG10B',
+'GXYLT1',
+'GALNT6',
+'B4GALNT1',
+'DPY19L2',
+'TMEM5',
+'TMTC2',
+'TMTC3',
+'GALNT4',
+'B3GNT4',
+'B3GLCT',
+'ALG5',
+'ALG11',
+'TMTC4',
+'KDELC1',
+'MGAT2',
+'FUT8',
+'GALNT16',
+'POMT2',
+'PIGB',
+'ST8SIA2',
+'CHSY1',
+'ALG1',
+'XYLT1',
+'ST3GAL2',
+'XYLT2',
+'ST6GALNAC1',
+'ST6GALNAC2',
+'MGAT5B',
+'RFNG',
+'B4GALT6',
+'GALNT1',
+'ST8SIA5',
+'COLGALT1',
+'DPY19L3',
+'FKRP',
+'B3GNT2',
+'ST3GAL5',
+'MGAT4A',
+'MGAT5',
+'GALNT13',
+'GALNT3',
+'CHPF',
+'POFUT1',
+'B4GALT5',
+'DPM1',
+'POFUT2',
+'MGAT3',
+'ALG12',
+'STT3B',
+'POMGNT2',
+'EOGT',
+'GXYLT2',
+'ST3GAL6',
+'POGLUT1',
+'B4GALT4',
+'B3GALNT1',
+'B3GNT5',
+'ST6GAL1',
+'XXYLT1',
+'ALG3',
+'UGT8',
+'GALNT7',
+'CHSY3',
+'GALNT10',
+'B4GALT7',
+'MGAT1',
+'MGAT4B',
+'GCNT2',
+'B3GAT2',
+'C1GALT1',
+'DPY19L1',
+'CHPF2',
+'GALNT11',
+'EXTL3',
+'FUT10',
+'DPY19L4',
+'EXT1',
+'ST3GAL1',
+'B4GALT1',
+'GCNT1',
+'GALNT12',
+'ALG2',
+'FKTN',
+'UGCG',
+'ST6GALNAC4',
+'ST6GALNAC6',
+'POMT1',
+'PIGA',
+'OGT',
+'ALG13',
+'C1GALT1C1'
+];
 
 function WrapHTML() { return Reflect.construct(HTMLElement, [], Object.getPrototypeOf(this).constructor); }
 Object.setPrototypeOf(WrapHTML.prototype, HTMLElement.prototype);
@@ -174,12 +395,35 @@ class SugarFrame extends WrapHTML {
     this.renderer.groupTag = tag_symbol;
     this.renderer.sugars.forEach( sug => {
       this.reactiongroup.supportLinkages(sug,this.reactiongroup.reactions,tag_symbol);
+      let matches = sug.match_sugar_pattern(NLINKED_CORE, Glycan.Reaction.Comparator );
+      if (matches.length > 0) {
+        matches[0].composition().forEach( traced => traced.original.setTag(tag_symbol) );
+      }
+      sug.root.setTag(tag_symbol);
+
+      for (let residue of sug.breadth_first_traversal()) {
+        if ( ! residue.parent ) {
+          continue;
+        }
+        if (! residue.parent.getTag(tag_symbol)) {
+          residue.setTag(tag_symbol,null);
+        }
+      }
     });
     this.renderer.refresh();
   }
 
   set reactions(reactions) {
-    this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(reactions,IupacSugar);
+    let wanted_reactions = [];
+    console.log('We have',HEK_GENES.length,'HEK293 genes');
+    console.log('We have',HEPG2_GENES.length,'HEPG2 genes');
+
+    for (let gene of HEPG2_GENES) {
+      if (reactions[gene]) {
+        wanted_reactions[gene] = reactions[gene];
+      }
+    }
+    this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(wanted_reactions,IupacSugar);
   }
 
   get reactions() {
