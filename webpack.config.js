@@ -1,6 +1,6 @@
 module.exports = {
   entry: {
-    'sviewer': [ './js/index.js' ],
+    'sviewer': [ './js/sugarviewers.js' ],
   },
   output: {
     filename: '[name].bundle.js',
