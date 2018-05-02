@@ -22,6 +22,7 @@ tmpl.innerHTML = `
     position: relative;
     --palette-icon-size: 32px;
     --demoted-opacity: 0.5;
+    --sugars-url:/sugars.svg;
   }
 
   :host([resizeable]) {
@@ -519,8 +520,9 @@ const wire_palette_watcher = (label) => {
 
 let populate_palette = function(widget,palette) {
   let icons = widget.shadowRoot.getElementById('icons');
+  let sugarpath = window.getComputedStyle(widget).getPropertyValue('--sugars-url').replace(/\s+/g,'');
   widget.donors=['Gal','Glc','Man','GalNAc','GlcNAc','NeuAc','NeuGc','GlcA','IdoA','Xyl','Fuc'];
-  fetch('/sugars.svg')
+  fetch(sugarpath)
   .then((response) => response.text())
   .then( (xml) => icons.innerHTML = xml )
   .then( () => {
@@ -579,6 +581,8 @@ let initialise_renderer = function() {
   let IupacSugar = Iupac(Glycan.Sugar);
 
   this.renderer = new Glycan.SVGRenderer(this.shadowRoot.getElementById('output'),this.LayoutEngine);
+  let sugarpath = window.getComputedStyle(this).getPropertyValue('--sugars-url').replace(/\s+/g,'');
+  this.renderer.symbolpath = sugarpath;
   this.renderer.rotate = this.hasAttribute('horizontal');
   log.info('Wiring canvas events');
   wire_renderer_canvas_events.call(this);
@@ -600,7 +604,7 @@ if (window.ShadyCSS) {
 class SViewer extends WrapHTML {
 
   static get observedAttributes() {
-    return ['links','horizontal','linkangles'];
+    return ['links','horizontal','linkangles','sugars'];
   }
 
   constructor() {
@@ -631,6 +635,11 @@ class SViewer extends WrapHTML {
       if (this.renderer) {
         this.renderer.refresh();
         this.renderer.scaleToFit();
+      }
+    }
+    if (name === 'sugars') {
+      if (this.hasAttribute('sugars')) {
+        this.style.setProperty( '--sugars-url', this.getAttribute('sugars'));
       }
     }
     if (name === 'horizontal') {

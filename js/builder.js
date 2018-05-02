@@ -133,14 +133,18 @@ class SugarBuilder extends WrapHTML {
       ShadyCSS.styleElement(this);
     }
     let shadowRoot = this.attachShadow({mode: 'open'});
-    shadowRoot.appendChild(tmpl.content.cloneNode(true));
+    let template_content = tmpl.content.cloneNode(true);
+    template_content.querySelector('x-sviewer').setAttribute('sugars',this.getAttribute('sugars'));
+    shadowRoot.appendChild(template_content);
     wire_sviewer_events.call(this,shadowRoot.getElementById('viewer'));
     this.attributeChangedCallback('horizontal');
     this.attributeChangedCallback('resizeable');
     this.attributeChangedCallback('linkangles');
     this.attributeChangedCallback('links');
+    this.attributeChangedCallback('sugars');
 
-    fetch('/reactions.json')
+
+    fetch(this.getAttribute('reactions-src') || 'reactions.json')
     .then((response) => response.json())
     .then((reactions) => this.reactions = reactions )
     .then( () => reset_form_disabled(this,this.shadowRoot.getElementById('viewer')) );
@@ -163,6 +167,13 @@ class SugarBuilder extends WrapHTML {
     }
     if (name === 'linkangles') {
       this.attributeChangedCallback('links');
+    }
+    if (name === 'sugars') {
+      if (this.hasAttribute(name)) {
+        this.shadowRoot.getElementById('viewer').setAttribute(name,this.getAttribute(name));
+      } else {
+        this.shadowRoot.getElementById('viewer').removeAttribute(name);
+      }
     }
     if (name === 'strict') {
       reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
