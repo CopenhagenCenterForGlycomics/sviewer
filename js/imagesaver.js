@@ -38,7 +38,7 @@ let save = (widget,svg,format='png') => {
   }
 
   for (let use of new_svg.querySelectorAll('use')) {
-    use.setAttribute('xlink:href',use.getAttribute('xlink:href').replace('sugars.svg',''));
+    use.setAttribute('xlink:href',use.getAttribute('xlink:href').replace(/.*#/,'#'));
   }
   let data = (new XMLSerializer()).serializeToString(new_svg);
 
