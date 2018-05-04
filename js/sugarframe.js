@@ -1,4 +1,4 @@
-/* globals document,HTMLElement,customElements,window,fetch,ShadyCSS */
+/* globals document,HTMLElement,customElements,window,ShadyCSS */
 'use strict';
 
 import * as debug from 'debug-any-level';
@@ -371,10 +371,6 @@ class SugarFrame extends WrapHTML {
       this.tagSupported();
     });
     this.shadowRoot.getElementById('targetsvg').setAttribute('data',this.getAttribute('src'));
-    fetch('/reactions.json')
-    .then((response) => response.json())
-    .then((reactions) => this.reactions = reactions );
-
   }
 
   attributeChangedCallback(name) {
@@ -424,6 +420,7 @@ class SugarFrame extends WrapHTML {
       }
     }
     this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(wanted_reactions,IupacSugar);
+    this.tagSupported();
   }
 
   get reactions() {
