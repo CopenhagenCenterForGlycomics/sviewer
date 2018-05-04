@@ -9,6 +9,11 @@ const module_string='sviewer:builder';
 
 const log = debug(module_string);
 
+const Iupac = Glycan.CondensedIupac.IO;
+
+const IupacSugar = Iupac(Glycan.Sugar);
+
+
 function WrapHTML() { return Reflect.construct(HTMLElement, [], Object.getPrototypeOf(this).constructor); }
 Object.setPrototypeOf(WrapHTML.prototype, HTMLElement.prototype);
 Object.setPrototypeOf(WrapHTML, HTMLElement);
@@ -143,14 +148,17 @@ class SugarBuilder extends WrapHTML {
     this.attributeChangedCallback('links');
     this.attributeChangedCallback('sugars');
 
+    if (this.hasAttribute('reactions-src')) {
+      fetch(this.getAttribute('reactions-src') || 'reactions.json')
+      .then((response) => response.json())
+      .then((reactions) => this.reactions = reactions )
+      .then( () => reset_form_disabled(this,this.shadowRoot.getElementById('viewer')) );
+    }
 
-    fetch(this.getAttribute('reactions-src') || 'reactions.json')
-    .then((response) => response.json())
-    .then((reactions) => this.reactions = reactions )
-    .then( () => reset_form_disabled(this,this.shadowRoot.getElementById('viewer')) );
+    this.reactiongroup = Glycan.ReactionGroup.groupFromJSON({},IupacSugar);
 
     if ( this.sequence && this.reactiongroup ) {
-      reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+      // reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
     }
   }
 
@@ -191,7 +199,7 @@ class SugarBuilder extends WrapHTML {
 
   set sequence(sequence) {
     this.shadowRoot.getElementById('viewer').sequence = sequence;
-    reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+    setTimeout( () => reset_form_disabled(this,this.shadowRoot.getElementById('viewer')),10);
   }
   get sequence() {
     return this.shadowRoot.getElementById('viewer').sequence;
@@ -203,11 +211,9 @@ class SugarBuilder extends WrapHTML {
 
   set reactions(reactions) {
 
-    let Iupac = Glycan.CondensedIupac.IO;
-
-    let IupacSugar = Iupac(Glycan.Sugar);
-
     this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(reactions,IupacSugar);
+    reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+
   }
 
   get reactions() {
