@@ -131,11 +131,13 @@ tmpl.innerHTML = `
   }
 
   :host .palette label {
-    flex: 0;
+    transform: translate(-2000%,0px);
+    transition: transform 0.5s ease-in-out;
   }
 
   :host .palette.expanded label {
     flex: 1;
+    transform: translate(0px,0px);
     min-width: var(--palette-icon-size);
     min-height: var(--palette-icon-size);
     max-width: var(--palette-icon-size);
