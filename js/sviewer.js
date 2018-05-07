@@ -255,23 +255,37 @@ let rescale_widget_chrome = function(state) {
   let left = window.scrollX;
   let palette = this.shadowRoot.querySelector('.palette');
   let pie_parent = this.shadowRoot.querySelector('.pie_parent');
-  palette.style.transformOrigin = `${window.scrollX}px ${top}px`;
+
   let widget_pos = palette.parentNode.parentNode.getBoundingClientRect();
-  if (widget_pos.top < 0 && widget_pos.left < 0) {
-    palette.style.position = 'fixed';
+
+
+  if (widget_pos.top < 0 || widget_pos.left < 0) {
+    let fs_left = widget_pos.left < 0 ? -1*widget_pos.left : 0;
+    let fs_top = widget_pos.top < 0 ? -1*widget_pos.top : 0;
+    palette.style.position = 'absolute';
+    palette.style.transformOrigin = `${fs_left}px ${fs_top}px`;
+    // Viewport width
+    palette.style.width=document.documentElement.clientWidth+'px';
+    palette.style.transform = `scale(${zoom}) translate(${fs_left}px,${fs_top}px)`;
   } else {
     palette.style.position = 'absolute';
+    palette.style.width=(1/zoom*100).toFixed(2)+'%';
+    palette.style.transformOrigin = `${0}px ${0}px`;
+    palette.style.transform = `scale(${zoom}) translate(${0}px,0px)`;
   }
 
-  if (zoom < 0.8) {
-    left -= palette.parentNode.parentNode.offsetLeft/zoom;
-    palette.style.width = (50/zoom)+'%';
-  } else {
-    palette.style.width='100%';
+  let looper = palette;
+  let offsetLeft = 0;
+  while (looper.parentNode) {
+    offsetLeft += looper.offsetLeft;
+    looper = looper.parentNode;
   }
-  palette.style.transform = `scale(${zoom}) translate(${left}px,${top}px)`;
+
+  left -= offsetLeft/zoom;
+
   pie_parent.style.transformOrigin = `${window.scrollX}px ${top}px`;
   pie_parent.style.transform = `scale(${zoom}) translate(${left}px,${top}px)`;
+
   state.ticking = false;
 };
 
