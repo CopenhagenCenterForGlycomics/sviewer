@@ -23,6 +23,7 @@ tmpl.innerHTML = `
     --palette-icon-size: 32px;
     --demoted-opacity: 0.5;
     --sugars-url:/sugars.svg;
+    --palette-background-color: #eee;
   }
 
   :host([resizeable]) {
@@ -89,16 +90,61 @@ tmpl.innerHTML = `
 
 
   :host([editable]) .palette {
-    display: block;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: flex-start;
+    justify-content: space-between;
   }
+
+  :host([editable]) .palette:after {
+    content: "";
+    flex: auto;
+  }
+
 
   :host .palette {
     position: absolute;
     top: 0px;
     left: 0px;
     right: 0px;
-    background: #eee;
+    background: var(--palette-background-color);
     pointer-events: auto;
+    overflow: hidden;
+    width: var(--expandedwidth);
+    background: none;
+    height: auto;
+  }
+
+  :host #palette_closer {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: %23000; fill: none;%7D%3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
+    width: var(--palette-icon-size);
+    height: var(--palette-icon-size);
+    -moz-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    -webkit-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+    background-repeat: no-repeat;
+    position: relative;
+  }
+  :host .palette.expanded #palette_closer {
+    transform: rotate(405deg);
+  }
+
+  :host .palette label {
+    flex: 0;
+  }
+
+  :host .palette.expanded label {
+    flex: 1;
+    min-width: var(--palette-icon-size);
+    min-height: var(--palette-icon-size);
+    max-width: var(--palette-icon-size);
+    max-height: var(--palette-icon-size);
+  }
+
+  :host .palette.expanded {
+    width: var(--expandedwidth);
+    background: var(--palette-background-color);
   }
 
   :host #textbox {
@@ -199,7 +245,6 @@ tmpl.innerHTML = `
     width: var(--palette-icon-size);
     height: var(--palette-icon-size);
     -webkit-user-drag: element;
-    float: left;
   }
   :host .palette label[draggable] input {
     display: none;
@@ -211,6 +256,7 @@ tmpl.innerHTML = `
   <div id="output"></div>
   <form id="new_linkage">
     <div id="palette" class="palette">
+    <div id="palette_closer" onclick="this.parentNode.classList.toggle('expanded')"></div>
     </div>
     <div class="pie_parent">
       <x-piemenu name="anomer" id="anomer_menu" data-next="linkage_menu">
@@ -265,11 +311,15 @@ let rescale_widget_chrome = function(state) {
     palette.style.position = 'absolute';
     palette.style.transformOrigin = `${fs_left}px ${fs_top}px`;
     // Viewport width
-    palette.style.width=document.documentElement.clientWidth+'px';
+    if ( palette.classList.contains('expanded') ) {
+      palette.style.setProperty('--expandedwidth',document.documentElement.clientWidth+'px');
+    }
     palette.style.transform = `scale(${zoom}) translate(${fs_left}px,${fs_top}px)`;
   } else {
     palette.style.position = 'absolute';
-    palette.style.width=(1/zoom*100).toFixed(2)+'%';
+    if ( palette.classList.contains('expanded') ) {
+      palette.style.setProperty('--expandedwidth',(1/zoom*100).toFixed(2)+'%');
+    }
     palette.style.transformOrigin = `${0}px ${0}px`;
     palette.style.transform = `scale(${zoom}) translate(${0}px,0px)`;
   }
