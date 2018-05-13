@@ -764,7 +764,8 @@ class SViewer extends WrapHTML {
 
   set sequence(seq) {
     if (this.sequence !== seq) {
-      this.textContent = seq;
+      let newseq = this.ownerDocument.createTextNode(seq);
+      this.replaceChild(newseq,this.firstChild);
     }
     return seq;
   }
