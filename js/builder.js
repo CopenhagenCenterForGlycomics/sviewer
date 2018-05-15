@@ -4,15 +4,11 @@
 import * as debug from 'debug-any-level';
 
 import * as Glycan from 'glycan.js';
+import { IupacSugar } from './sviewer';
 
 const module_string='sviewer:builder';
 
 const log = debug(module_string);
-
-const Iupac = Glycan.CondensedIupac.IO;
-
-const IupacSugar = Iupac(Glycan.Sugar);
-
 
 function WrapHTML() { return Reflect.construct(HTMLElement, [], Object.getPrototypeOf(this).constructor); }
 Object.setPrototypeOf(WrapHTML.prototype, HTMLElement.prototype);

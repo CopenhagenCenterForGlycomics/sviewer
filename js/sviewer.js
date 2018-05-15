@@ -13,6 +13,11 @@ const module_string='sviewer:sviewer';
 
 const log = debug(module_string);
 
+const Iupac = Glycan.CondensedIupac.IO;
+
+const IupacSugar = Glycan.Mass(Iupac(Glycan.Sugar));
+
+
 const tmpl = document.createElement('template');
 
 tmpl.innerHTML = `
@@ -607,10 +612,6 @@ let form_action = function(widget,ev) {
   ev.preventDefault();
   ev.stopPropagation();
 
-  let Iupac = Glycan.CondensedIupac.IO;
-
-  let IupacSugar = Iupac(Glycan.Sugar);
-
   let sug = new IupacSugar();
   sug.sequence = this.donor.value;
 
@@ -642,9 +643,6 @@ let initialise_events = function() {
 
 let initialise_renderer = function() {
   this.LayoutEngine.LINKS = this.hasAttribute('links') ? true : false;
-  let Iupac = Glycan.CondensedIupac.IO;
-
-  let IupacSugar = Iupac(Glycan.Sugar);
 
   this.renderer = new Glycan.SVGRenderer(this.shadowRoot.getElementById('output'),this.LayoutEngine);
   let sugarpath = window.getComputedStyle(this).getPropertyValue('--sugars-url').replace(/\s+/g,'');
@@ -777,3 +775,4 @@ class SViewer extends WrapHTML {
 customElements.define('x-sviewer',SViewer);
 
 export default SViewer;
+export { IupacSugar };
