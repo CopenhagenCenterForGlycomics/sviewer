@@ -1,4 +1,4 @@
-/* globals document,HTMLElement,HTMLLabelElement,HTMLSlotElement,MutationObserver,Event,customElements,window,requestAnimationFrame,cancelAnimationFrame,fetch,ShadyCSS,Node */
+/* globals document,HTMLElement,HTMLLabelElement,MutationObserver,Event,customElements,window,requestAnimationFrame,cancelAnimationFrame,fetch,ShadyCSS,Node */
 'use strict';
 
 import * as debug from 'debug-any-level';
@@ -738,16 +738,14 @@ class SViewer extends WrapHTML {
 
     let slot = this.shadowRoot.getElementById('textcontent');
 
-    this[sequence_symbol] = slot.assignedNodes()[0].textContent;
-
-    if (slot.assignedNodes()[0] instanceof HTMLSlotElement) {
-      this[sequence_symbol] = slot.assignedNodes()[0].assignedNodes()[0].textContent;
-    }
+    this[sequence_symbol] = slot.assignedNodes({flatten: true})[0].textContent;
 
     slot.addEventListener('slotchange', () => {
-      this[sequence_symbol] = (slot.assignedNodes().filter( node => node.nodeType === Node.TEXT_NODE )).map( n => n.textContent).join('');
-      this[sequence_symbol] = this[sequence_symbol].replace(/^\s+/,'').replace(/\s+$/,'');
-      slot.assignedNodes()[0].textContent = this[sequence_symbol];
+      let newseq = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.TEXT_NODE )).map( n => n.textContent).join('');
+      newseq = newseq.replace(/^\s+/,'').replace(/\s+$/,'');
+      if (newseq !== this.sequence) {
+        this[sequence_symbol] = newseq;
+      }
       if (this.sequence) {
         redraw_sugar.call(this);
       }
@@ -762,8 +760,10 @@ class SViewer extends WrapHTML {
 
   set sequence(seq) {
     if (this.sequence !== seq) {
-      let newseq = this.ownerDocument.createTextNode(seq);
-      this.replaceChild(newseq,this.firstChild);
+      let slot = this.shadowRoot.getElementById('textcontent');
+      let text = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.TEXT_NODE ))[0];
+      text.textContent = seq;
+      slot.dispatchEvent(new Event('slotchange'));
     }
     return seq;
   }
