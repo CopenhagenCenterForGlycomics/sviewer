@@ -389,9 +389,10 @@ let show_anomer = function(residue,target) {
   let anomer_size = anomer_chooser.getBoundingClientRect();
   let palette_top = (anomer_chooser.parentNode.getBoundingClientRect().top/zoom);
   let palette_left = (anomer_chooser.parentNode.getBoundingClientRect().left/zoom);
-  let left_pos = (((vals.left + 0.5*vals.width - 0.5*anomer_size.width)/zoom) - palette_left).toFixed(2);
+  let left_pos = (((vals.left +0.5*vals.width - 0.5*anomer_size.width)/zoom) - palette_left).toFixed(2);
   let top_pos = (((vals.top+0.5*vals.height  - 0.5*anomer_size.height)/zoom) - palette_top).toFixed(2);
   left_pos = ((vals.left + 0.5*vals.width - 0.5*anomer_size.width)/zoom).toFixed(2);
+
   anomer_chooser.style.transformOrigin = `${left_pos}px ${top_pos}px`;
   anomer_chooser.style.transform = `scale(1) translate(${left_pos}px,${top_pos}px)`;
   anomer_chooser.setAttribute('active',true);
@@ -422,6 +423,16 @@ let enableDropResidue = function(renderer,residue) {
 
     if (form.active_residue === residue) {
       return;
+    }
+
+    if (form.active_center) {
+      let center = form.active_center;
+      if (center.r < 75) {
+        center.r = 75;
+      }
+      if ( Math.pow(ev.clientX - center.left,2) + Math.pow(ev.clientY - center.top,2) < Math.pow(1*center.r,2) ) {
+        return;
+      }
     }
 
     form.clear();
@@ -462,6 +473,16 @@ let wire_renderer_canvas_events = function() {
 
   canvas.addEventListener('dragleave', (ev) => {
     if (ev.relatedTarget === canvas) {
+      if (this.form.active_center) {
+        let center = this.form.active_center;
+        if (center.r < 75) {
+          center.r = 75;
+        }
+        if ( Math.pow(ev.clientX - center.left,2) + Math.pow(ev.clientY - center.top,2) < Math.pow(1*center.r,2) ) {
+          return;
+        }
+      }
+
       setTimeout(() =>{
         this.form.clear();
         delete this.form.active_residue;
