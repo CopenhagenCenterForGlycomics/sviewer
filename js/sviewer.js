@@ -305,6 +305,9 @@ Object.setPrototypeOf(WrapHTML, HTMLElement);
 
 
 let rescale_widget_chrome = function(state) {
+  if ( ! this.hasAttribute('editable')) {
+    return;
+  }
   let zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
   let top = window.scrollY;
   let left = window.scrollX;
@@ -348,18 +351,23 @@ let rescale_widget_chrome = function(state) {
   state.ticking = false;
 };
 
-let window_scroll_listener = () => {
-  let state = window_scroll_listener.state;
-  if (! window_scroll_listener.state.ticking) {
+
+let window_scroll_listener = (state) => {
+  if (! state.ticking) {
     window.requestAnimationFrame(rescale_widget_chrome.bind(state.owner,state));
-    window_scroll_listener.state.ticking = true;
+    state.ticking = true;
   }
 };
 
+let create_scroll_listener = (state) => {
+  return () => window_scroll_listener(state);
+};
+
 let wire_palette_pagezoom = function() {
-  window_scroll_listener.state = { ticking: false, owner: this };
-  window.removeEventListener('scroll',window_scroll_listener);
-  window.addEventListener('scroll', window_scroll_listener);
+  let state = { ticking: false, owner: this };
+  let scroll_listener = create_scroll_listener(state);
+  window.removeEventListener('scroll',scroll_listener);
+  window.addEventListener('scroll', scroll_listener);
 };
 
 let show_anomer = function(residue,target) {
