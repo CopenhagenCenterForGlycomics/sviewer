@@ -232,7 +232,9 @@ tmpl.innerHTML = `
       height: 200px;
     }
   }
-
+  :host .palette label svg {
+    pointer-events: none;
+  }
   :host .palette label[data-disabled] {
     opacity: 0.2;
     pointer-events: none;
