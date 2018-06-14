@@ -255,6 +255,11 @@ tmpl.innerHTML = `
     height: var(--palette-icon-size);
     -webkit-user-drag: element;
   }
+
+  :host .palette label input[value="delete"] {
+    display: none;
+  }
+
   :host .palette label[draggable] input {
     display: none;
   }
@@ -266,6 +271,16 @@ tmpl.innerHTML = `
   <form id="new_linkage">
     <div id="palette" class="palette">
     <div id="palette_closer" onclick="this.parentNode.classList.toggle('expanded')"></div>
+    <label>
+    <svg viewBox="-100 -100 812 812">
+      <g>
+      <path d="m510.81 85.933c-29.254-14.929-58.367-16.325-59.592-16.375-0.246-0.012-0.492-0.017-0.737-0.017h-46.303c3e-3 -0.139 0.022-0.273 0.022-0.415 0-26.812-12.761-48.09-35.931-59.913-16.138-8.234-31.876-9.122-33.618-9.194-0.244-0.013-0.49-0.019-0.736-0.019h-55.832c-0.246 0-0.492 6e-3 -0.737 0.017-1.741 0.074-17.48 0.96-33.616 9.194-23.172 11.824-35.932 33.102-35.932 59.913 0 0.142 0.017 0.276 0.022 0.415h-46.303c-0.246 0-0.492 6e-3 -0.737 0.017-1.226 0.051-30.337 1.446-59.593 16.375-28.241 14.41-61.905 44.075-61.905 103.55 0 9.581 7.767 17.35 17.35 17.35h15.245l67.087 390.76c1.43 8.328 8.65 14.416 17.099 14.416h299.87c8.449 0 15.67-6.088 17.099-14.416l67.087-390.76h15.245c9.581 0 17.35-7.768 17.35-17.35-1e-3 -59.473-33.666-89.138-61.907-103.55zm-435.41 86.197c4.22-24.493 17.846-42.891 40.665-54.828 21.272-11.123 43.329-12.888 45.936-13.063h288c2.585 0.172 24.08 1.906 45.034 12.6 23.361 11.922 37.29 30.475 41.562 55.29l-461.2 1e-3zm167.1-103c0-13.566 5.156-22.656 16.226-28.599 8.889-4.773 18.372-5.701 19.886-5.825h54.742c1.736 0.142 11.12 1.102 19.92 5.825 11.07 5.944 16.228 15.033 16.228 28.599 0 0.142 0.017 0.276 0.022 0.415h-127.04c2e-3 -0.139 0.02-0.275 0.02-0.415zm198.81 508.18h-270.62l-63.605-370.47h397.83l-63.605 370.47z"/>
+      <path d="m306 519.57c9.581 0 17.35-7.768 17.35-17.35v-244.31c0-9.581-7.768-17.35-17.35-17.35-9.583 0-17.35 7.768-17.35 17.35v244.31c0 9.582 7.769 17.35 17.35 17.35z"/>
+      <path d="m203.78 503.75c0.801 9.022 8.373 15.816 17.261 15.816 0.513 0 1.032-0.023 1.553-0.068 9.545-0.847 16.596-9.273 15.749-18.816l-21.687-244.31c-0.847-9.545-9.265-16.609-18.817-15.749-9.545 0.847-16.595 9.27-15.748 18.816l21.689 244.31z"/>
+      <path d="m389.4 519.5c0.52 0.045 1.04 0.068 1.553 0.068 8.889 0 16.462-6.794 17.263-15.816l21.687-244.31c0.847-9.545-6.202-17.968-15.748-18.816-9.544-0.856-17.968 6.204-18.817 15.749l-21.687 244.31c-0.847 9.544 6.204 17.97 15.749 18.817z"/>
+      </g>
+    </svg>
+    <input name="donor" value="delete" type="radio"></label>
     </div>
     <div class="pie_parent">
       <x-piemenu name="anomer" id="anomer_menu" data-next="linkage_menu">
@@ -422,7 +437,17 @@ let enableDropResidue = function(renderer,residue) {
     delete form.active_residue;
   });
 
-  target.addEventListener('click', (ev) => show_anomer.bind(this,residue)(ev.target) );
+  target.addEventListener('click', (ev) => {
+    if (form.donor.value === 'delete') {
+      let parent = residue.parent;
+      parent.removeChild(parent.linkageOf(residue),residue);
+      parent.balance();
+      parent.renderer.refresh();
+
+      return;
+    }
+    show_anomer.bind(this,residue)(ev.target);
+  });
   target.addEventListener('dragenter', (ev) => {
     if (! this.hasAttribute('editable')) {
       return;
