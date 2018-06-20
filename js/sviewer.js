@@ -431,10 +431,12 @@ let show_anomer = function(residue,target) {
 let enableDropResidue = function(renderer,residue) {
   residue.renderer = renderer;
   if (! renderer.rendered.has(residue)) {
-    console.log(renderer.rendered);
     return;
   }
-  let target = renderer.rendered.get(residue).residue;
+  let target = renderer.rendered.get(residue).residue.element;
+  if ( ! target ) {
+    return;
+  }
   if (target.style.pointerEvents === 'all') {
     return;
   }
