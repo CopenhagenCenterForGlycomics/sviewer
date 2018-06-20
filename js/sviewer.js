@@ -48,6 +48,10 @@ tmpl.innerHTML = `
     font-family: Helvetica, sans-serif;
   }
 
+  :host .widget_contents > div > canvas {
+    height: 100%;
+  }
+
   :host .widget_contents > div > svg * {
     -moz-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;
@@ -426,6 +430,10 @@ let show_anomer = function(residue,target) {
 
 let enableDropResidue = function(renderer,residue) {
   residue.renderer = renderer;
+  if (! renderer.rendered.has(residue)) {
+    console.log(renderer.rendered);
+    return;
+  }
   let target = renderer.rendered.get(residue).residue;
   if (target.style.pointerEvents === 'all') {
     return;
@@ -484,7 +492,11 @@ let enableDropResidue = function(renderer,residue) {
   });
 };
 
-let redraw_sugar = function() {
+let redraw_sugar = function(skip_ready) {
+  if (this.renderer.ready && ! skip_ready) {
+    this.renderer.ready.then( () => redraw_sugar.call(this,true) );
+    return;
+  }
   if (this.renderer.sugars[0].sequence !== this.sequence) {
     this.renderer.sugars[0].sequence = this.sequence;
   }
@@ -548,7 +560,7 @@ let wire_renderer_fisheye = function() {
     if (! this.hasAttribute('editable')) {
       return;
     }
-    this.LayoutEngine.focus = [ ev.svgX, ev.svgY ];
+    this.LayoutEngine.focus = [ ev.sugarX, ev.sugarY ];
     let vp_zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
     let candidate_zoom = parseFloat((vp_zoom * vp_zoom * 3).toFixed(2));
     this.LayoutEngine.zoom = candidate_zoom < 0.1 ? 0.1 : candidate_zoom;
@@ -700,7 +712,7 @@ let initialise_events = function() {
 let initialise_renderer = function() {
   this.LayoutEngine.LINKS = this.hasAttribute('links') ? true : false;
 
-  this.renderer = new Glycan.SVGRenderer(this.shadowRoot.getElementById('output'),this.LayoutEngine);
+  this.renderer = new Glycan.RoughCanvasRenderer(this.shadowRoot.getElementById('output'),this.LayoutEngine);
   let sugarpath = window.getComputedStyle(this).getPropertyValue('--sugars-url').replace(/\s+/g,'');
   this.renderer.symbolpath = sugarpath;
   this.renderer.rotate = this.hasAttribute('horizontal');
