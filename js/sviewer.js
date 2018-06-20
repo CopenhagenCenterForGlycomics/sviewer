@@ -689,9 +689,10 @@ let form_action = function(widget,ev) {
   new_res.parent_linkage = this.donor.value.match(/Neu(Gc|Ac)/) ? 2 : 1;
   this.residue.addChild(parseInt(this.linkage.value),new_res);
   this.residue.balance();
-  this.residue.renderer.refresh();
-  enableDropResidue.call( widget, this.residue.renderer,new_res);
-  this.residue.renderer.scaleToFit();
+  this.residue.renderer.refresh().then( () => {
+    enableDropResidue.call( widget, this.residue.renderer,new_res);
+    this.residue.renderer.scaleToFit();
+  });
   widget.sequence = this.residue.renderer.sugars[0].sequence;
   this.reset();
   return false;
