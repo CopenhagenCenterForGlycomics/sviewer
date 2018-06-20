@@ -494,19 +494,18 @@ let enableDropResidue = function(renderer,residue) {
   });
 };
 
-let redraw_sugar = function(skip_ready) {
-  if (this.renderer.ready && ! skip_ready) {
-    this.renderer.ready.then( () => redraw_sugar.call(this,true) );
-    return;
-  }
+let redraw_sugar = function() {
   if (this.renderer.sugars[0].sequence !== this.sequence) {
     this.renderer.sugars[0].sequence = this.sequence;
   }
-  this.renderer.refresh();
-  for (let residue of this.renderer.sugars[0].composition() ) {
-    enableDropResidue.call( this, this.renderer,residue );
-  }
-  this.renderer.scaleToFit();
+  this.renderer.refresh().then( () => {
+    if (this.hasAttribute('editable')) {
+      for (let residue of this.renderer.sugars[0].composition() ) {
+        enableDropResidue.call( this, this.renderer,residue );
+      }
+    }
+    this.renderer.scaleToFit();
+  });
 };
 
 
