@@ -121,7 +121,7 @@ if (window.ShadyCSS) {
 
 class SugarBuilder extends WrapHTML {
   static get observedAttributes() {
-    return ['resizable','links','horizontal','strict','linkangles'];
+    return ['resizable','links','horizontal','strict','linkangles','sketch'];
   }
 
   constructor() {
@@ -162,7 +162,7 @@ class SugarBuilder extends WrapHTML {
     if ( ! this.shadowRoot ) {
       return;
     }
-    if (['links','horizontal','resizeable','linkangles'].indexOf(name) >= 0 ) {
+    if (['links','horizontal','resizeable','linkangles','sketch'].indexOf(name) >= 0 ) {
       if (this.hasAttribute(name)) {
         this.shadowRoot.getElementById('viewer').setAttribute(name,'');
       } else {

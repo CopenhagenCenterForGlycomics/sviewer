@@ -3,7 +3,7 @@
 
 import * as debug from 'debug-any-level';
 
-import * as Glycan from 'glycan.js';
+import {CondensedIupac, Mass, Sugar, LinkageLayoutFishEye, SugarAwareLayoutFishEye, RoughCanvasRenderer, SVGRenderer} from 'glycan.js';
 
 import ImageSaver from './imagesaver';
 
@@ -13,9 +13,9 @@ const module_string='sviewer:sviewer';
 
 const log = debug(module_string);
 
-const Iupac = Glycan.CondensedIupac.IO;
+const Iupac = CondensedIupac.IO;
 
-const IupacSugar = Glycan.Mass(Iupac(Glycan.Sugar));
+const IupacSugar = Mass(Iupac(Sugar));
 
 
 const tmpl = document.createElement('template');
@@ -689,11 +689,13 @@ let form_action = function(widget,ev) {
   new_res.parent_linkage = this.donor.value.match(/Neu(Gc|Ac)/) ? 2 : 1;
   this.residue.addChild(parseInt(this.linkage.value),new_res);
   this.residue.balance();
-  this.residue.renderer.refresh().then( () => {
-    enableDropResidue.call( widget, this.residue.renderer,new_res);
-    this.residue.renderer.scaleToFit();
+  let renderer = this.residue.renderer;
+
+  renderer.refresh().then( () => {
+    enableDropResidue.call( widget, renderer,new_res);
+    renderer.scaleToFit();
   });
-  widget.sequence = this.residue.renderer.sugars[0].sequence;
+  widget.sequence = renderer.sugars[0].sequence;
   this.reset();
   return false;
 };
@@ -714,7 +716,14 @@ let initialise_events = function() {
 let initialise_renderer = function() {
   this.LayoutEngine.LINKS = this.hasAttribute('links') ? true : false;
 
-  this.renderer = new Glycan.RoughCanvasRenderer(this.shadowRoot.getElementById('output'),this.LayoutEngine);
+  let renderer_class = this.hasAttribute('sketch') ? RoughCanvasRenderer : SVGRenderer;
+
+  if ( this.renderer ) {
+    this.shadowRoot.getElementById('output').removeChild(this.renderer.element.canvas);
+    this.renderer = null;
+  }
+
+  this.renderer = new renderer_class(this.shadowRoot.getElementById('output'),this.LayoutEngine);
   let sugarpath = window.getComputedStyle(this).getPropertyValue('--sugars-url').replace(/\s+/g,'');
   this.renderer.symbolpath = sugarpath;
   this.renderer.rotate = this.hasAttribute('horizontal');
@@ -738,7 +747,7 @@ if (window.ShadyCSS) {
 class SViewer extends WrapHTML {
 
   static get observedAttributes() {
-    return ['links','horizontal','linkangles','sugars'];
+    return ['links','horizontal','linkangles','sugars','sketch'];
   }
 
   constructor() {
@@ -753,13 +762,17 @@ class SViewer extends WrapHTML {
 
   get LayoutEngine() {
     if (this.hasAttribute('linkangles')) {
-      return Glycan.LinkageLayoutFishEye;
+      return LinkageLayoutFishEye;
     } else {
-      return Glycan.SugarAwareLayoutFishEye;
+      return SugarAwareLayoutFishEye;
     }
   }
 
   attributeChangedCallback(name) {
+    if (name === 'sketch') {
+      initialise_renderer.call(this);
+      return;
+    }
     if (name === 'links') {
       if (this.hasAttribute('links')) {
         this.LayoutEngine.LINKS = true;
