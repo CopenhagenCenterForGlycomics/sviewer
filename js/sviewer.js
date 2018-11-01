@@ -3,7 +3,7 @@
 
 import * as debug from 'debug-any-level';
 
-import {CondensedIupac, Mass, Sugar, LinkageLayoutFishEye, SugarAwareLayoutFishEye, RoughCanvasRenderer, SVGRenderer} from 'glycan.js';
+import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, RoughCanvasRenderer, SVGRenderer} from 'glycan.js';
 
 import ImageSaver from './imagesaver';
 
@@ -293,6 +293,9 @@ tmpl.innerHTML = `
         <label><span>?</span><input name="anomer" value="?" type="radio"></label>
       </x-piemenu>
       <x-piemenu name="linkage" id="linkage_menu">
+        <label><span>N</span><input name="linkage" value="${Monosaccharide.LINKAGES.N}" type="radio"></label>
+        <label><span>O</span><input name="linkage" value="${Monosaccharide.LINKAGES.O}" type="radio"></label>
+        <label><span>?</span><input name="linkage" value="0" type="radio"></label>
         <label><span>2</span><input name="linkage" value="2" type="radio"></label>
         <label><span>3</span><input name="linkage" value="3" type="radio"></label>
         <label><span>4</span><input name="linkage" value="4" type="radio"></label>
