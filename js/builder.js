@@ -81,7 +81,7 @@ const adapt_form = function(elements,values) {
 
 const reset_form_disabled = function(widget,viewer) {
   let supported = widget.reactiongroup.supportsLinkageAt(viewer.renderer.sugars[0]);
-  adapt_form.call(widget,viewer.form.donor,supported.donor);
+  adapt_form.call(widget,Array.from(viewer.form.donor).filter(el => el.value !== 'delete'),supported.donor);
   adapt_form.call(widget,viewer.form.anomer);
   adapt_form.call(widget,viewer.form.linkage);
 };
