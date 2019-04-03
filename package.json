@@ -11,12 +11,13 @@
   },
   "devDependencies": {
     "DragMenus": "hirenj/DragMenus",
+    "@babel/core": "^7.4.3",
     "babel-loader": "^8.0.5",
-    "babel-preset-env": "^1.6.0",
+    "@babel/preset-env": "^7.0.0",
     "glycan.js": "hirenj/glycan.js",
     "jshint": "^2.8.0",
     "precommit-hook": "^3.0.0",
-    "webpack": "^4.5.0",
+    "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
   },
   "scripts": {
