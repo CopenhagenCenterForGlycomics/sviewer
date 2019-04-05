@@ -149,6 +149,9 @@ class SugarFrame extends WrapHTML {
     this.shadowRoot.getElementById('targetsvg').addEventListener('load', () => {
       copy_styles.call(this);
       this.renderer = Glycan.SVGRenderer.fromSVGElement(this.shadowRoot.querySelector('object').contentDocument.documentElement,IupacSugar);
+      for (let sugar of this.renderer.sugars) {
+        sugar.freeze();
+      }
       this.tagSupported();
     });
     this.shadowRoot.getElementById('targetsvg').setAttribute('data',this.getAttribute('src'));
@@ -194,6 +197,9 @@ class SugarFrame extends WrapHTML {
   }
 
   set reactions(reactions) {
+    if ( ! reactions ) {
+      return;
+    }
     this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(reactions,IupacSugar);
     if (this.renderer) {
       this.tagSupported();
