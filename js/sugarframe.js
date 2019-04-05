@@ -68,7 +68,7 @@ const FILTER_TEXT = `
                                                  0 0 0 0 1
                                                  0 0 0 0 1
                                                  0 0 0 0.3 0" result="feather_back"/>
-  <feMorphology operator="dilate" in="feather_back" radius="10"/>
+  <feMorphology operator="dilate" in="feather_back" radius="5"/>
   <feColorMatrix mode="matrix" values="0 0 0 0 0.1
                                        0 0 0 0 0.1
                                        0 0 0 0 0.1
@@ -117,6 +117,11 @@ const make_filter = function(svg) {
   filter.innerHTML = FILTER_TEXT;
   filter.setAttribute('id','highlight');
   filter.setAttribute('filterUnits','objectBoundingBox');
+  filter.setAttribute('y','-40%');
+  filter.setAttribute('x','-40%');
+  filter.setAttribute('width','180%');
+  filter.setAttribute('height','180%');
+
   this[highlight_filter] = filter;
   svg.documentElement.appendChild(filter);
   update_highlight_colours.call(this);
@@ -174,6 +179,8 @@ class SugarFrame extends WrapHTML {
     if ( ! this.reactiongroup ) {
       return;
     }
+    this.renderer.groupTag = Symbol('unsupported');
+    this.renderer.refresh();
     let tag_symbol = Symbol('supported');
     this.renderer.groupTag = tag_symbol;
     this.renderer.sugars.forEach( sug => {
