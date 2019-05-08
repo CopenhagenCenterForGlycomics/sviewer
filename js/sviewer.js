@@ -1,4 +1,4 @@
-/* globals document,HTMLElement,HTMLLabelElement,MutationObserver,Event,customElements,window,requestAnimationFrame,cancelAnimationFrame,fetch,ShadyCSS,Node */
+/* globals document,HTMLElement,HTMLLabelElement,MutationObserver,Event,customElements,window,requestAnimationFrame,cancelAnimationFrame,ShadyCSS,Node */
 'use strict';
 
 import * as debug from 'debug-any-level';
@@ -663,10 +663,8 @@ const wire_palette_watcher = (label) => {
 
 let populate_palette = function(widget,palette) {
   let icons = widget.shadowRoot.getElementById('icons');
-  let sugarpath = window.getComputedStyle(widget).getPropertyValue('--sugars-url').replace(/\s+/g,'');
   widget.donors=['Gal','Glc','Man','GalNAc','GlcNAc','NeuAc','NeuGc','GlcA','IdoA','Xyl','Fuc'];
-  fetch(sugarpath)
-  .then((response) => response.text())
+  Promise.resolve(SVGRenderer.SYMBOLS)
   .then( (xml) => icons.innerHTML = xml )
   .then( () => {
 
@@ -727,8 +725,6 @@ let initialise_renderer = function() {
   }
 
   this.renderer = new renderer_class(this.shadowRoot.getElementById('output'),this.LayoutEngine);
-  let sugarpath = window.getComputedStyle(this).getPropertyValue('--sugars-url').replace(/\s+/g,'');
-  this.renderer.symbolpath = sugarpath;
   this.renderer.rotate = this.hasAttribute('horizontal');
   log.info('Wiring canvas events');
   wire_renderer_canvas_events.call(this);
