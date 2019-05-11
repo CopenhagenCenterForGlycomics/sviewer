@@ -41,6 +41,11 @@ tmpl.innerHTML = `
     height: calc(100% - 5px);
   }
 
+  :host #output {
+    display: flex;
+    justify-content: center;
+  }
+
   :host .widget_contents > div > svg {
     width: 100%;
     height: 100%;
@@ -49,6 +54,8 @@ tmpl.innerHTML = `
   }
 
   :host .widget_contents > div > canvas {
+    object-fit: scale-down;
+    width: 100%;
     height: 100%;
   }
 
