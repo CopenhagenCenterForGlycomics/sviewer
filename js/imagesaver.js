@@ -16,7 +16,7 @@ let download = (uri,filename='image.png') => {
 
 const rect_tmpl = document.createElement('template');
 
-rect_tmpl.innerHTML = '<rect xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="100" height="100" fill="#fff" opacity="0" />';
+rect_tmpl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg"><rect  x="0" y="0" width="100" height="100" fill="#fff" opacity="0" /></svg>';
 
 let save = (widget,svg,format='png') => {
   let canvas = document.createElement('canvas');
@@ -27,7 +27,7 @@ let save = (widget,svg,format='png') => {
   let defs = widget.shadowRoot.getElementById('icons').querySelector('defs');
   new_svg.appendChild(defs.cloneNode(true));
   for (let symbol of new_svg.querySelectorAll('defs symbol')) {
-    symbol.insertBefore(rect_tmpl.content.cloneNode(true), symbol.firstChild);
+    symbol.insertBefore(rect_tmpl.content.cloneNode(true).firstChild.firstChild, symbol.firstChild);
   }
   for (let strokes of new_svg.querySelectorAll('symbol *[stroke-width]')) {
     if (strokes.getAttribute('fill') === 'none') {
