@@ -1,4 +1,4 @@
-/* globals document,HTMLElement,customElements,window,ShadyCSS */
+/* globals document,HTMLElement,customElements,window,ShadyCSS,CustomEvent */
 'use strict';
 
 import * as debug from 'debug-any-level';
@@ -158,6 +158,9 @@ class SugarFrame extends WrapHTML {
         sugar.freeze();
       }
       this.tagSupported();
+      this.dispatchEvent(new CustomEvent('load', {
+        bubbles: true,
+      }));
     });
     this.shadowRoot.getElementById('targetsvg').setAttribute('data',this.getAttribute('src'));
   }
@@ -175,13 +178,12 @@ class SugarFrame extends WrapHTML {
     }
   }
 
-  tagSupported() {
+  tagSupported(tag_symbol=Symbol('supported')) {
     if ( ! this.reactiongroup ) {
       return;
     }
     this.renderer.groupTag = Symbol('unsupported');
     this.renderer.refresh();
-    let tag_symbol = Symbol('supported');
     this.renderer.groupTag = tag_symbol;
     this.renderer.sugars.forEach( sug => {
       this.reactiongroup.supportLinkages(sug,this.reactiongroup.reactions,tag_symbol);
