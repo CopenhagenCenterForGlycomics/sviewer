@@ -44,6 +44,10 @@ tmpl.innerHTML = `
     height: 100%;
     position: relative;
   }
+
+  #styles {
+    display: none;
+  }
 </style>
 
 <div id="styles">
@@ -76,10 +80,6 @@ const FILTER_TEXT = `
   <feComposite in2="outeroutline" in="feather_back" result="outline"/>
   <feComposite in2="outline" in="SourceGraphic"/>
 `;
-
-if (window.ShadyCSS) {
-  ShadyCSS.prepareTemplate(tmpl, 'x-sugarframe');
-}
 
 const hex_to_component = (hex) => {
   // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
@@ -136,12 +136,20 @@ const copy_styles = function() {
 };
 
 class SugarFrame extends WrapHTML {
+
+  static get tag() {
+    return 'x-sugarframe';
+  }
+
   static get observedAttributes() {
     return [];
   }
 
   constructor() {
     super();
+    if (window.ShadyCSS) {
+      ShadyCSS.prepareTemplate(tmpl, this.constructor.tag);
+    }
     log('Initiating SugarFrame element');
   }
 
