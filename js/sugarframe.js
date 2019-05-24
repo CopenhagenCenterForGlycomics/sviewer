@@ -137,10 +137,6 @@ const copy_styles = function() {
 
 class SugarFrame extends WrapHTML {
 
-  static get tag() {
-    return 'x-sugarframe';
-  }
-
   static get observedAttributes() {
     return [];
   }
@@ -148,7 +144,7 @@ class SugarFrame extends WrapHTML {
   constructor() {
     super();
     if (window.ShadyCSS) {
-      ShadyCSS.prepareTemplate(tmpl, this.constructor.tag);
+      ShadyCSS.prepareTemplate(tmpl, this.tagName.toLowerCase());
     }
     log('Initiating SugarFrame element');
   }
