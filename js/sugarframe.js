@@ -183,14 +183,14 @@ class SugarFrame extends WrapHTML {
   }
 
   tagSupported(tag_symbol=Symbol('supported')) {
-    if ( ! this.reactiongroup ) {
+    if ( ! this.reactions ) {
       return;
     }
     this.renderer.groupTag = Symbol('unsupported');
     this.renderer.refresh();
     this.renderer.groupTag = tag_symbol;
     this.renderer.sugars.forEach( sug => {
-      this.reactiongroup.supportLinkages(sug,this.reactiongroup.reactions,tag_symbol);
+      this.reactions.supportLinkages(sug,this.reactions.reactions,tag_symbol);
       let matches = sug.match_sugar_pattern(NLINKED_CORE, Reaction.Comparator );
       if (matches.length > 0) {
         matches[0].composition().forEach( traced => traced.original.setTag(tag_symbol) );
