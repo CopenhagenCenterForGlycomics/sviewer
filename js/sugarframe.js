@@ -3,15 +3,15 @@
 
 import * as debug from 'debug-any-level';
 
-import * as Glycan from 'glycan.js';
+import { CondensedIupac, Sugar, SVGRenderer, Reaction, ReactionGroup } from 'glycan.js';
 
 const module_string='sviewer:sugarframe';
 
 const log = debug(module_string);
 
-const Iupac = Glycan.CondensedIupac.IO;
+const Iupac = CondensedIupac.IO;
 
-const IupacSugar = Iupac(Glycan.Sugar);
+const IupacSugar = Iupac(Sugar);
 
 const NLINKED_CORE = new IupacSugar();
 NLINKED_CORE.sequence = 'Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-N)Asn';
@@ -157,7 +157,7 @@ class SugarFrame extends WrapHTML {
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
     this.shadowRoot.getElementById('targetsvg').addEventListener('load', () => {
       copy_styles.call(this);
-      this.renderer = Glycan.SVGRenderer.fromSVGElement(this.shadowRoot.querySelector('object').contentDocument.documentElement,IupacSugar);
+      this.renderer = SVGRenderer.fromSVGElement(this.shadowRoot.querySelector('object').contentDocument.documentElement,IupacSugar);
       for (let sugar of this.renderer.sugars) {
         sugar.freeze();
       }
@@ -191,7 +191,7 @@ class SugarFrame extends WrapHTML {
     this.renderer.groupTag = tag_symbol;
     this.renderer.sugars.forEach( sug => {
       this.reactiongroup.supportLinkages(sug,this.reactiongroup.reactions,tag_symbol);
-      let matches = sug.match_sugar_pattern(NLINKED_CORE, Glycan.Reaction.Comparator );
+      let matches = sug.match_sugar_pattern(NLINKED_CORE, Reaction.Comparator );
       if (matches.length > 0) {
         matches[0].composition().forEach( traced => traced.original.setTag(tag_symbol) );
       }
@@ -213,7 +213,7 @@ class SugarFrame extends WrapHTML {
     if ( ! reactions ) {
       return;
     }
-    this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(reactions,IupacSugar);
+    this.reactiongroup = ReactionGroup.groupFromJSON(reactions,IupacSugar);
     if (this.renderer) {
       this.tagSupported();
     }
