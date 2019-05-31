@@ -53,9 +53,11 @@ tmpl.innerHTML = `
 <div id="styles">
 <slot></slot>
 </div>
-
-<object id="targetsvg" type="image/svg+xml"></object>
 `;
+
+const targetsvg_tmpl = document.createElement('template');
+
+targetsvg_tmpl.innerHTML = '<object id="targetsvg" type="image/svg+xml"></object>';
 
 const FILTER_TEXT = `
   <feColorMatrix mode="matrix" in="SourceGraphic" values="0 0 0 0 0
@@ -135,6 +137,37 @@ const copy_styles = function() {
   make_filter.call(this,svg);
 };
 
+const bind_load_event = function(el) {
+  el.addEventListener('load', () => {
+    if ( el.contentDocument.documentElement.tagName.toUpperCase() !== 'SVG' ) {
+      this.dispatchEvent(new CustomEvent('error', {
+        bubbles: true,
+      }));
+      return;
+    }
+    copy_styles.call(this);
+    this.renderer = SVGRenderer.fromSVGElement(el.contentDocument.documentElement,this.constructor.SugarClass);
+    for (let sugar of this.renderer.sugars) {
+      sugar.freeze();
+    }
+    this.tagSupported();
+    this.dispatchEvent(new CustomEvent('load', {
+      bubbles: true,
+    }));
+  });
+};
+
+const add_target_svg = function() {
+  let current_target = this.shadowRoot.getElementById('targetsvg');
+  if (current_target) {
+    current_target.parentNode.removeChild(current_target);
+  }
+  this.shadowRoot.appendChild(targetsvg_tmpl.content.cloneNode(true));
+  current_target = this.shadowRoot.getElementById('targetsvg');
+  bind_load_event.call(this,current_target);
+  current_target.setAttribute('data',this.getAttribute('src'));
+};
+
 class SugarFrame extends WrapHTML {
 
   static get SugarClass() {
@@ -142,7 +175,7 @@ class SugarFrame extends WrapHTML {
   }
 
   static get observedAttributes() {
-    return [];
+    return ['src'];
   }
 
   constructor() {
@@ -159,18 +192,7 @@ class SugarFrame extends WrapHTML {
     }
     let shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
-    this.shadowRoot.getElementById('targetsvg').addEventListener('load', () => {
-      copy_styles.call(this);
-      this.renderer = SVGRenderer.fromSVGElement(this.shadowRoot.querySelector('object').contentDocument.documentElement,this.constructor.SugarClass);
-      for (let sugar of this.renderer.sugars) {
-        sugar.freeze();
-      }
-      this.tagSupported();
-      this.dispatchEvent(new CustomEvent('load', {
-        bubbles: true,
-      }));
-    });
-    this.shadowRoot.getElementById('targetsvg').setAttribute('data',this.getAttribute('src'));
+    add_target_svg.call(this);
   }
 
   attributeChangedCallback(name) {
@@ -183,6 +205,9 @@ class SugarFrame extends WrapHTML {
       } else {
         this.shadowRoot.getElementById('viewer').removeAttribute(name);
       }
+    }
+    if (name === 'src') {
+      add_target_svg.call(this);
     }
   }
 
