@@ -608,6 +608,17 @@ let wire_renderer_fisheye = function() {
 // };
 
 
+const update_icon_text_orientation = function() {
+  let is_rotated = this.renderer.rotate;
+  for (let text of this.shadowRoot.querySelectorAll('#icons symbol text')) {
+    if (is_rotated) {
+      text.setAttribute('transform','rotate(90,50,50)');
+    } else {
+      text.removeAttribute('transform');
+    }
+  }
+};
+
 let wire_drag_functions = function() {
   new DragManager(this);
   new DraggableForm(this.form);
@@ -734,6 +745,9 @@ let initialise_renderer = function() {
 
   this.renderer = new renderer_class(this.shadowRoot.getElementById('output'),this.LayoutEngine);
   this.renderer.rotate = this.hasAttribute('horizontal');
+
+  update_icon_text_orientation.call(this);
+
   log.info('Wiring canvas events');
   wire_renderer_canvas_events.call(this);
   wire_renderer_fisheye.call(this);
@@ -806,6 +820,9 @@ class SViewer extends WrapHTML {
       } else {
         this.renderer.rotate = false;
       }
+
+      update_icon_text_orientation.call(this);
+
       this.renderer.refresh();
       setTimeout(() => this.renderer.scaleToFit(),500);
     }
