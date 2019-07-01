@@ -7,6 +7,8 @@ import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, Sugar
 
 import ImageSaver from './imagesaver';
 
+import {default as repeatCallback} from './autorepeat';
+
 import { DraggableForm, DragManager } from 'DragMenus';
 
 const module_string='sviewer:sviewer';
@@ -710,6 +712,8 @@ let form_action = function(widget,ev) {
   this.residue.addChild(parseInt(this.linkage.value),new_res);
   this.residue.balance();
   let renderer = this.residue.renderer;
+
+  repeatCallback(renderer.sugars[0]);
 
   renderer.refresh().then( () => {
     enableDropResidue.call( widget, renderer,new_res);
