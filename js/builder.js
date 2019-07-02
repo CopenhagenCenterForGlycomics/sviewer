@@ -80,7 +80,9 @@ const adapt_form = function(elements,values) {
 };
 
 const reset_form_disabled = function(widget,viewer) {
-  let supported = widget.reactiongroup.supportsLinkageAt(viewer.renderer.sugars[0]);
+  let sugar = viewer.renderer.sugars[0].clone();
+  sugar.freeze();
+  let supported = widget.reactiongroup.supportsLinkageAt(sugar);
   adapt_form.call(widget,Array.from(viewer.form.donor).filter(el => el.value !== 'delete'),supported.donor);
   adapt_form.call(widget,viewer.form.anomer);
   adapt_form.call(widget,viewer.form.linkage);
@@ -95,7 +97,12 @@ const wire_sviewer_events = function(viewer) {
     let donor_val = this.donor.value ? this.donor.value : undefined;
     let linkage_val = this.linkage.value ? parseInt(this.linkage.value) : undefined;
     let residue_val = this.residue ? this.residue : undefined;
-    let supported = reactions.supportsLinkageAt(viewer.renderer.sugars[0],donor_val,linkage_val,residue_val);
+    let sugar = viewer.renderer.sugars[0].clone();
+    sugar.freeze();
+    if (residue_val) {
+      residue_val = sugar.locate_monosaccharide(viewer.renderer.sugars[0].location_for_monosaccharide(residue_val));
+    }
+    let supported = reactions.supportsLinkageAt(sugar,donor_val,linkage_val,residue_val);
     if (supported.anomerlinks && this.anomer.value) {
       let anomer = this.anomer.value;
       supported.linkage = supported.anomerlinks.filter( linkpair => linkpair.match(anomer) ).map( l => parseInt(l.substr(1)) );

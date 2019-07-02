@@ -3,7 +3,7 @@
 
 import * as debug from 'debug-any-level';
 
-import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, RoughCanvasRenderer, SVGRenderer} from 'glycan.js';
+import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, RoughCanvasRenderer, SVGRenderer, Repeat } from 'glycan.js';
 
 import ImageSaver from './imagesaver';
 
@@ -709,8 +709,18 @@ let form_action = function(widget,ev) {
   let new_res = sug.root;
   new_res.anomer = this.anomer.value;
   new_res.parent_linkage = this.donor.value.match(/Neu(Gc|Ac)/) ? 2 : 1;
-  this.residue.addChild(parseInt(this.linkage.value),new_res);
+
+  if ( (this.residue instanceof Repeat.Monosaccharide) && 
+       this.residue.repeat.mode === Repeat.MODE_MINIMAL &&
+       (! this.residue.endsRepeat || this.residue.repeat.root.identifier !== new_res.identifier) &&
+       (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0)
+      ) {
+    this.residue.original.addChild(parseInt(this.linkage.value),new_res);
+  } else {
+    this.residue.addChild(parseInt(this.linkage.value),new_res);    
+  }
   this.residue.balance();
+
   let renderer = this.residue.renderer;
 
   repeatCallback(renderer.sugars[0]);
