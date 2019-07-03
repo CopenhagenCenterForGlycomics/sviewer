@@ -717,13 +717,14 @@ let form_action = function(widget,ev) {
       ) {
     this.residue.original.addChild(parseInt(this.linkage.value),new_res);
   } else {
-    this.residue.addChild(parseInt(this.linkage.value),new_res);    
+    this.residue.addChild(parseInt(this.linkage.value),new_res);
   }
   this.residue.balance();
 
   let renderer = this.residue.renderer;
-
+  console.log(renderer.sugars[0].sequence);
   repeatCallback(renderer.sugars[0]);
+  console.log(renderer.sugars[0].sequence);
 
   renderer.refresh().then( () => {
     enableDropResidue.call( widget, renderer,new_res);

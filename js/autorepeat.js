@@ -5,10 +5,10 @@ const Iupac = CondensedIupac.IO;
 const IupacSugar = Iupac(Sugar);
 
 const TYPEI = new IupacSugar();
-TYPEI.sequence = 'Gal(b1-3)GlcNAc(b1-?)*';
+TYPEI.sequence = 'GlcNAc(b1-3)Gal(b1-3)*';
 
 const TYPEII = new IupacSugar();
-TYPEII.sequence = 'Gal(b1-4)GlcNAc(b1-?)*';
+TYPEII.sequence = 'GlcNAc(b1-3)Gal(b1-4)*';
 
 
 const repeat_pattern = Symbol('pattern');
