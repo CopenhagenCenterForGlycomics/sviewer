@@ -26,12 +26,13 @@ const changed = (sugar) => {
       if (root.parent && (root.parent instanceof Repeat.Monosaccharide) && root.parent.repeat[repeat_pattern] === pattern) {
         let repeat = root.parent.repeat;
         root.parent.removeChild(root.parent.linkageOf(root),root);
-        repeat.identifier = ''+(parseInt(repeat.identifier)+1);
+        repeat.max += 1;
+        repeat.identifier = ''+repeat.max;
         continue;
       }
       let repeat = Repeat.addToSugar(sugar,root,leaf,Repeat.MODE_MINIMAL,1,1);
       repeat[repeat_pattern] = pattern;
-      repeat.identifier = '1';
+      repeat.identifier = ''+repeat.max;
     }
   }
 };

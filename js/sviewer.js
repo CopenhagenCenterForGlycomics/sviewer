@@ -507,9 +507,18 @@ let enableDropResidue = function(renderer,residue) {
   });
 };
 
+const expand_repeats = (sugars,collapse=true) => {
+  for (let sugar of sugars) {
+    for (let repeat of sugar.repeats) {
+      repeat.mode = collapse ? Repeat.MODE_MINIMAL : Repeat.MODE_EXPAND;
+    }
+  }
+};
+
 let redraw_sugar = function() {
   if (this.renderer.sugars[0].sequence !== this.sequence) {
     this.renderer.sugars[0].sequence = this.sequence;
+    expand_repeats(this.renderer.sugars, ! this.hasAttribute('longrepeats'));
   }
   this.renderer.refresh().then( () => {
     if (this.hasAttribute('editable')) {
@@ -599,15 +608,6 @@ let wire_renderer_fisheye = function() {
 
 };
 
-// let set_glycan_sequence = function() {
-
-//     Glycan.FishEyeLayout.LINKS = true;
-//     let renderer = global_renderer;
-
-//     renderer.refresh();
-//     renderer.scaleToFit();
-//     sug.composition().map( enableDropResidue.bind(null,renderer) );
-// };
 
 
 const update_icon_text_orientation = function() {
@@ -781,7 +781,7 @@ if (window.ShadyCSS) {
 class SViewer extends WrapHTML {
 
   static get observedAttributes() {
-    return ['links','horizontal','linkangles','sugars','sketch'];
+    return ['links','horizontal','linkangles','sugars','sketch','longrepeats'];
   }
 
   constructor() {
@@ -816,6 +816,19 @@ class SViewer extends WrapHTML {
       if (this.renderer) {
         this.renderer.refresh();
         this.renderer.scaleToFit();
+      }
+    }
+    if (name === 'longrepeats') {
+      if (this.sequence) {
+        expand_repeats(this.renderer.sugars, ! this.hasAttribute('longrepeats'));
+        this.renderer.refresh().then( () => {
+          if (this.hasAttribute('editable')) {
+            for (let residue of this.renderer.sugars[0].composition() ) {
+              enableDropResidue.call( this, this.renderer,residue );
+            }
+          }
+          this.renderer.scaleToFit();
+        });
       }
     }
     if (name === 'sugars') {
