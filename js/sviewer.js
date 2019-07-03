@@ -710,7 +710,7 @@ let form_action = function(widget,ev) {
   new_res.anomer = this.anomer.value;
   new_res.parent_linkage = this.donor.value.match(/Neu(Gc|Ac)/) ? 2 : 1;
 
-  if ( (this.residue instanceof Repeat.Monosaccharide) && 
+  if ( (this.residue instanceof Repeat.Monosaccharide) &&
        this.residue.repeat.mode === Repeat.MODE_MINIMAL &&
        (! this.residue.endsRepeat || this.residue.repeat.root.identifier !== new_res.identifier) &&
        (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0)
@@ -722,9 +722,7 @@ let form_action = function(widget,ev) {
   this.residue.balance();
 
   let renderer = this.residue.renderer;
-  console.log(renderer.sugars[0].sequence);
   repeatCallback(renderer.sugars[0]);
-  console.log(renderer.sugars[0].sequence);
 
   renderer.refresh().then( () => {
     enableDropResidue.call( widget, renderer,new_res);
