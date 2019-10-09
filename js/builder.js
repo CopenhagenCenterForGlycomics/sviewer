@@ -79,11 +79,21 @@ const adapt_form = function(elements,values) {
   return demote_items(4,elements,values);
 };
 
+const update_donors = function(donors) {
+  let reaction_donors = donors.reactions.map( reac => [].concat(reac.delta.composition()).reverse().shift().identifier )
+                              .filter( (o,i,a) => a.indexOf(o) == i );
+  const viewer = this.shadowRoot.getElementById('viewer');
+  reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 );
+  viewer.donors = viewer.donors.concat( reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 ) );
+};
+
 const reset_form_disabled = function(widget,viewer) {
   let sugar = viewer.renderer.sugars[0].clone();
   sugar.freeze();
   let supported = widget.reactiongroup.supportsLinkageAt(sugar);
-  adapt_form.call(widget,Array.from(viewer.form.donor).filter(el => el.value !== 'delete'),supported.donor);
+  if (viewer.form.donor) {
+    adapt_form.call(widget,Array.from(viewer.form.donor).filter(el => el.value !== 'delete'),supported.donor);
+  }
   adapt_form.call(widget,viewer.form.anomer);
   adapt_form.call(widget,viewer.form.linkage);
 };
@@ -161,7 +171,9 @@ class SugarBuilder extends WrapHTML {
 
     this.reactiongroup = Glycan.ReactionGroup.groupFromJSON({},IupacSugar);
 
-    if ( this.sequence && this.reactiongroup ) {
+
+    if ( this.reactiongroup ) {
+      update_donors.call(this,this.reactiongroup);
       // reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
     }
   }
@@ -220,6 +232,7 @@ class SugarBuilder extends WrapHTML {
   set reactions(reactions) {
 
     this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(reactions,IupacSugar);
+    update_donors.call(this,this.reactiongroup);
     reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
 
   }

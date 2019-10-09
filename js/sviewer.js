@@ -19,6 +19,9 @@ const Iupac = CondensedIupac.IO;
 
 const IupacSugar = Mass(Iupac(Sugar));
 
+const sequence_symbol = Symbol('sequence');
+
+const donors_symbol = Symbol('donors');
 
 const tmpl = document.createElement('template');
 
@@ -285,7 +288,7 @@ tmpl.innerHTML = `
   <form id="new_linkage">
     <div id="palette" class="palette">
     <div id="palette_closer" onclick="this.parentNode.classList.toggle('expanded')"></div>
-    <label>
+    <label id="palette_delete">
     <svg viewBox="-100 -100 812 812">
       <g>
       <path d="m510.81 85.933c-29.254-14.929-58.367-16.325-59.592-16.375-0.246-0.012-0.492-0.017-0.737-0.017h-46.303c3e-3 -0.139 0.022-0.273 0.022-0.415 0-26.812-12.761-48.09-35.931-59.913-16.138-8.234-31.876-9.122-33.618-9.194-0.244-0.013-0.49-0.019-0.736-0.019h-55.832c-0.246 0-0.492 6e-3 -0.737 0.017-1.741 0.074-17.48 0.96-33.616 9.194-23.172 11.824-35.932 33.102-35.932 59.913 0 0.142 0.017 0.276 0.022 0.415h-46.303c-0.246 0-0.492 6e-3 -0.737 0.017-1.226 0.051-30.337 1.446-59.593 16.375-28.241 14.41-61.905 44.075-61.905 103.55 0 9.581 7.767 17.35 17.35 17.35h15.245l67.087 390.76c1.43 8.328 8.65 14.416 17.099 14.416h299.87c8.449 0 15.67-6.088 17.099-14.416l67.087-390.76h15.245c9.581 0 17.35-7.768 17.35-17.35-1e-3 -59.473-33.666-89.138-61.907-103.55zm-435.41 86.197c4.22-24.493 17.846-42.891 40.665-54.828 21.272-11.123 43.329-12.888 45.936-13.063h288c2.585 0.172 24.08 1.906 45.034 12.6 23.361 11.922 37.29 30.475 41.562 55.29l-461.2 1e-3zm167.1-103c0-13.566 5.156-22.656 16.226-28.599 8.889-4.773 18.372-5.701 19.886-5.825h54.742c1.736 0.142 11.12 1.102 19.92 5.825 11.07 5.944 16.228 15.033 16.228 28.599 0 0.142 0.017 0.276 0.022 0.415h-127.04c2e-3 -0.139 0.02-0.275 0.02-0.415zm198.81 508.18h-270.62l-63.605-370.47h397.83l-63.605 370.47z"/>
@@ -300,7 +303,7 @@ tmpl.innerHTML = `
       <x-piemenu name="anomer" id="anomer_menu" data-next="linkage_menu">
         <label><span>α</span><input name="anomer" value="a" type="radio"></label>
         <label><span>β</span><input name="anomer" value="b" type="radio"></label>
-        <label><span>?</span><input name="anomer" value="?" type="radio"></label>
+        <label><span>?</span><input name="anomer" value="u" type="radio"></label>
       </x-piemenu>
       <x-piemenu name="linkage" id="linkage_menu">
         <label><span>N</span><input name="linkage" value="${Monosaccharide.LINKAGES.N}" type="radio"></label>
@@ -682,9 +685,12 @@ const wire_palette_watcher = (label) => {
   // observer.disconnect();
 };
 
-let populate_palette = function(widget,palette) {
+let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc','GlcNAc','NeuAc','NeuGc','GlcA','IdoA','Xyl','Fuc']) {
   let icons = widget.shadowRoot.getElementById('icons');
-  widget.donors=['Gal','Glc','Man','GalNAc','GlcNAc','NeuAc','NeuGc','GlcA','IdoA','Xyl','Fuc'];
+  while (palette.lastElementChild && palette.lastElementChild.getAttribute('id') !== 'palette_delete') {
+    palette.removeChild(palette.lastElementChild);
+  }
+  widget[donors_symbol] = donors;
   Promise.resolve(SVGRenderer.SYMBOLS)
   .then( (xml) => icons.innerHTML = xml )
   .then( () => {
@@ -771,8 +777,6 @@ let initialise_renderer = function() {
     redraw_sugar.call(this);
   }
 };
-
-const sequence_symbol = Symbol('sequence');
 
 if (window.ShadyCSS) {
   ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
@@ -889,6 +893,14 @@ class SViewer extends WrapHTML {
 
     initialise_renderer.call(this);
     initialise_events.call(this);
+  }
+
+  get donors() {
+    return Object.freeze([].concat(this[donors_symbol]));
+  }
+
+  set donors(donors) {
+    populate_palette(this,this.shadowRoot.getElementById('palette'),[].concat(donors));
   }
 
   set sequence(seq) {
