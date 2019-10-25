@@ -5,6 +5,8 @@ import * as debug from 'debug-any-level';
 
 import { CondensedIupac, Sugar, SVGRenderer, Reaction, ReactionGroup } from 'glycan.js';
 
+import ImageSaver from './imagesaver';
+
 const module_string='sviewer:sugarframe';
 
 const log = debug(module_string);
@@ -213,6 +215,10 @@ class SugarFrame extends WrapHTML {
     if (name === 'src') {
       add_target_svg.call(this);
     }
+  }
+
+  save(format='svg') {
+    ImageSaver(this,this.renderer.element.canvas,format);
   }
 
   tagSupported(tag_symbol=Symbol('supported')) {

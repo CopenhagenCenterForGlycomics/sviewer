@@ -24,10 +24,12 @@ let save = (widget,svg,format='png') => {
   canvas.height=widget.getBoundingClientRect().height;
   let ctx = canvas.getContext('2d');
   let new_svg = svg.cloneNode(true);
-  let defs = widget.shadowRoot.getElementById('icons').querySelector('defs');
-  new_svg.appendChild(defs.cloneNode(true));
-  for (let symbol of new_svg.querySelectorAll('defs symbol')) {
-    symbol.insertBefore(rect_tmpl.content.cloneNode(true).firstChild.firstChild, symbol.firstChild);
+  if (widget.shadowRoot.getElementById('icons')) {
+    let defs = widget.shadowRoot.getElementById('icons').querySelector('defs');
+    new_svg.appendChild(defs.cloneNode(true));
+    for (let symbol of new_svg.querySelectorAll('defs symbol')) {
+      symbol.insertBefore(rect_tmpl.content.cloneNode(true).firstChild.firstChild, symbol.firstChild);
+    }
   }
   for (let strokes of new_svg.querySelectorAll('symbol *[stroke-width]')) {
     if (strokes.getAttribute('fill') === 'none') {
