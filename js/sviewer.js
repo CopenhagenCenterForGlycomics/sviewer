@@ -489,6 +489,9 @@ let enableDropResidue = function(renderer,residue) {
     if (! this.hasAttribute('editable')) {
       return;
     }
+
+    this.highlightResidues([residue]);
+
     if (form.residue === residue) {
       return;
     }
@@ -512,8 +515,6 @@ let enableDropResidue = function(renderer,residue) {
     // We should wait for a drag over at least 300 ms after
     // to set the target
     form.active_residue = residue;
-
-    this.highlightResidues([form.active_residue]);
 
     if (form.menu_timeout) {
       clearTimeout(form.menu_timeout);
