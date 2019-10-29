@@ -51,6 +51,11 @@ tmpl.innerHTML = `
     justify-content: center;
   }
 
+  :host #highlights {
+    width: 100%;
+    height: 100%;
+  }
+
   :host .widget_contents > div > svg {
     width: 100%;
     height: 100%;
@@ -283,6 +288,7 @@ tmpl.innerHTML = `
 
 </style>
 <div class="widget_contents" >
+  <canvas id="highlights"></canvas>
   <div id="icons"></div>
   <div id="output"></div>
   <form id="new_linkage">
@@ -416,6 +422,7 @@ let show_anomer = function(residue,target) {
   }
   log.info('Setting target to',residue.identifier);
   delete form.active_residue;
+  this.highlightResidues([]);
   form.residue = residue;
   let event = new Event('change',{bubbles: true});
   form.dispatchEvent(event);
@@ -461,6 +468,10 @@ let enableDropResidue = function(renderer,residue) {
 
   target.addEventListener('dragleave', () => {
     delete form.active_residue;
+    if (form.menu_timeout) {
+      clearTimeout(form.menu_timeout);
+    }
+    this.highlightResidues([]);
   });
 
   target.addEventListener('click', (ev) => {
@@ -501,6 +512,8 @@ let enableDropResidue = function(renderer,residue) {
     // We should wait for a drag over at least 300 ms after
     // to set the target
     form.active_residue = residue;
+
+    this.highlightResidues([form.active_residue]);
 
     if (form.menu_timeout) {
       clearTimeout(form.menu_timeout);
@@ -560,6 +573,10 @@ let wire_renderer_canvas_events = function() {
         this.form.clear();
         delete this.form.active_residue;
         delete this.form.residue;
+        if (this.form.menu_timeout) {
+          clearTimeout(this.form.menu_timeout);
+        }
+        this.highlightResidues([]);
       },100);
       return;
     }
@@ -914,6 +931,26 @@ class SViewer extends WrapHTML {
   }
   get sequence() {
     return this[sequence_symbol];
+  }
+
+  highlightResidues(residues) {
+    let layout = this.renderer.layoutFor(residues[0]);
+    let canv = this.shadowRoot.querySelector('#highlights');
+    const ctx = canv.getContext('2d');
+    ctx.clearRect(0, 0, canv.width, canv.height);
+    if ( ! layout ) {
+      return;
+    }
+    let boundingrect = canv.getBoundingClientRect();
+    canv.width = boundingrect.width;
+    canv.height = boundingrect.height;
+    let {x,y,width,height} = this.renderer.screenCoordinatesFromLayout(layout);
+    x = x-boundingrect.left;
+    y = y-boundingrect.top;
+    ctx.beginPath();
+    ctx.arc( x+0.5*width,y+0.5*height, 1.5*width/2,0, 2*Math.PI, false );
+    ctx.fillStyle = '#eeeeee';
+    ctx.fill();
   }
 }
 
