@@ -19,6 +19,8 @@ const Iupac = CondensedIupac.IO;
 
 const IupacSugar = Mass(Iupac(Sugar));
 
+import { Tween, autoPlay } from 'es6-tween';
+
 const sequence_symbol = Symbol('sequence');
 
 const donors_symbol = Symbol('donors');
@@ -492,8 +494,9 @@ let enableDropResidue = function(renderer,residue) {
     if (! this.hasAttribute('editable')) {
       return;
     }
-
-    this.highlightResidues([residue]);
+    if (! form.active_center) {
+      this.highlightResidues([residue]);
+    }
 
     if (form.residue === residue) {
       return;
@@ -587,6 +590,7 @@ let wire_renderer_canvas_events = function() {
   });
 
   this.addEventListener('dragend', () => {
+    this.highlightResidues([]);
     setTimeout(() =>{
       this.form.reset();
     },100);
@@ -594,8 +598,10 @@ let wire_renderer_canvas_events = function() {
 
 };
 
-let wire_renderer_fisheye = function() {
-
+let wire_renderer_fisheye = function(arg) {
+  if (!arg) {
+    return;
+  }
   let canvas = this.renderer.element.canvas;
   let renderer = this.renderer;
 
@@ -943,6 +949,10 @@ class SViewer extends WrapHTML {
     let canv = this.shadowRoot.querySelector('#highlights');
     const ctx = canv.getContext('2d');
     ctx.clearRect(0, 0, canv.width, canv.height);
+    if (this.anim_tween) {
+      this.anim_tween.stop();
+      delete this.anim_tween;
+    }
     if ( ! layout ) {
       return;
     }
@@ -952,10 +962,24 @@ class SViewer extends WrapHTML {
     let {x,y,width,height} = this.renderer.screenCoordinatesFromLayout(layout);
     x = x-boundingrect.left;
     y = y-boundingrect.top;
-    ctx.beginPath();
-    ctx.arc( x+0.5*width,y+0.5*height, 1.5*width/2,0, 2*Math.PI, false );
-    ctx.fillStyle = '#eeeeee';
-    ctx.fill();
+    autoPlay(true);
+
+    this.anim_tween = new Tween({angle: 0, opacity: 0})
+    .to({ angle: 2*Math.PI, opacity: 1 }, 450)
+    .on('update', ({ angle, opacity }) => {
+      ctx.clearRect(x-0.5*width,y-0.5*height,2*width,2*height);
+      ctx.beginPath();
+      ctx.lineWidth = 10;
+      if (opacity >= 0.9) {
+        ctx.strokeStyle = `rgba(0,200,100,${opacity.toFixed(2)})`;
+      } else {
+        ctx.strokeStyle = `rgba(0,0,0,${opacity.toFixed(2)})`;
+      }
+      ctx.arc( x+0.5*width,y+0.5*height, 1.5*width/2,-0.5*Math.PI, angle-0.5*Math.PI, false );
+      ctx.stroke();
+    })
+    .start();
+
   }
 }
 
