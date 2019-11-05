@@ -471,6 +471,9 @@ let enableDropResidue = function(renderer,residue) {
     if (form.menu_timeout) {
       clearTimeout(form.menu_timeout);
     }
+    if ( ! form.active_center ) {
+      form.clear();
+    }
     this.highlightResidues([]);
   });
 
