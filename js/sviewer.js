@@ -754,6 +754,7 @@ let form_action = function(widget,ev) {
   renderer.refresh().then( () => {
     enableDropResidue.call( widget, renderer,new_res);
     renderer.scaleToFit();
+    widget.highlightResidues([]);
   });
   widget.sequence = renderer.sugars[0].sequence;
   this.reset();
