@@ -225,6 +225,24 @@ tmpl.innerHTML = `
     font-size: var(--icon-size);
   }
 
+  @keyframes piemenuselection {
+    0% {
+      background-position: right top;
+      color: #000000;
+    }
+    100% {
+      background-position: left top;
+      color: #ffffff;
+    }
+  }
+
+
+  :host x-piemenu label.dragover {
+    background: linear-gradient(var(--slice-background-rotate-angle),var(--selection-color) 50%, var(--palette-background-color) 50%);
+    background-size: 375% 100%;
+    animation: piemenuselection 650ms;
+  }
+
   :host x-piemenu button.hover, x-piemenu label.hover, x-piemenu button:hover, x-piemenu label:hover {
     background: var(--selection-color);
     color: #ffffff;
