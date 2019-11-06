@@ -300,17 +300,30 @@ tmpl.innerHTML = `
     cursor: -moz-grab;
     cursor: -webkit-grab;
 
-    background: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.8);
     width: var(--palette-icon-size);
     height: var(--palette-icon-size);
 
     -webkit-user-drag: element;
 
-    box-shadow: 2px 1px 1px rgba(90,90,90,0.5);
+    box-shadow: 2px 2px 2px rgba(90,90,90,0.6);
     padding: 0.5px;
     margin-right: 2px;
     margin-left: 2px;
-    border: solid rgba(90,90,90,0.5) 0.5px
+    border: solid rgba(90,90,90,0.5) 0.5px;
+    padding-left: 7px;
+  }
+
+  :host .palette label[draggable]:before {
+    position: absolute;
+    content: '';
+    height: 75%;
+    left: 2px;
+    top: 12.5%;
+    width: 2px;
+    background-image: linear-gradient(0deg, #999, #999 40%, transparent 40%, transparent 100%);
+    background-size: 1px 25%;
+    border: none;
   }
 
   :host .palette label[draggable].checked {
