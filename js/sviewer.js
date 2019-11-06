@@ -162,8 +162,12 @@ tmpl.innerHTML = `
     position: relative;
     cursor: pointer;
   }
-  :host .palette.expanded #palette_closer {
+  :host(:not(.dragging)) .palette.expanded #palette_closer {
     transform: rotate(405deg);
+  }
+
+  :host(.dragging) .palette.expanded {
+    pointer-events: none;
   }
 
   :host .palette label {
@@ -171,7 +175,7 @@ tmpl.innerHTML = `
     transition: transform 0.5s ease-in-out;
   }
 
-  :host .palette.expanded label {
+  :host(:not(.dragging)) .palette.expanded label {
     flex: 1;
     transform: translate(0px,0px);
     min-width: var(--palette-icon-size);
@@ -180,7 +184,7 @@ tmpl.innerHTML = `
     max-height: var(--palette-icon-size);
   }
 
-  :host .palette.expanded {
+  :host(:not(.dragging)) .palette.expanded {
     width: var(--expandedwidth);
     background: var(--palette-background-color);
   }
@@ -663,11 +667,20 @@ let wire_renderer_canvas_events = function() {
 };
 
 let wire_renderer_fisheye = function(arg) {
-  if (!arg) {
-    return;
-  }
   let canvas = this.renderer.element.canvas;
   let renderer = this.renderer;
+
+  canvas.addEventListener('dragover', () => {
+    this.classList.add('dragging');
+  });
+
+  document.addEventListener('dragend', () => {
+    this.classList.remove('dragging');
+  });
+
+  if ( ! arg ) {
+    return;
+  }
 
   let last_req;
   canvas.addEventListener('dragover', (ev) => {
