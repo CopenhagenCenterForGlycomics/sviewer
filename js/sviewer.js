@@ -66,7 +66,7 @@ tmpl.innerHTML = `
   }
 
   :host .widget_contents > div > canvas {
-    object-fit: scale-down;
+    object-fit: contain;
     width: 100%;
     height: 100%;
   }
