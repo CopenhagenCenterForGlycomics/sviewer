@@ -143,10 +143,15 @@ tmpl.innerHTML = `
     width: var(--expandedwidth);
     background: none;
     height: auto;
+    min-height: calc(var(--palette-icon-size) + 5px);
+  }
+
+  :host #palette_closer_wrap {
+    filter: drop-shadow(3px 2px 2px rgba(50, 50, 0, 0.5));
   }
 
   :host #palette_closer {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: %23000; fill: none;%7D%3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: %23000; fill: rgba(240,240,240,1);%7D%3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
     width: var(--palette-icon-size);
     height: var(--palette-icon-size);
     -moz-transition: all 0.5s ease-in-out;
@@ -155,6 +160,7 @@ tmpl.innerHTML = `
     transition: all 0.5s ease-in-out;
     background-repeat: no-repeat;
     position: relative;
+    cursor: pointer;
   }
   :host .palette.expanded #palette_closer {
     transform: rotate(405deg);
@@ -344,8 +350,10 @@ tmpl.innerHTML = `
   <div id="icons"></div>
   <div id="output"></div>
   <form id="new_linkage">
-    <div id="palette" class="palette">
-    <div id="palette_closer" onclick="this.parentNode.classList.toggle('expanded')"></div>
+    <div id="palette" class="palette expanded">
+    <div id="palette_closer_wrap">
+    <div id="palette_closer" onclick="this.parentNode.parentNode.classList.toggle('expanded')"></div>
+    </div>
     <label id="palette_delete">
     <svg viewBox="-100 -100 812 812">
       <g>
@@ -977,6 +985,11 @@ class SViewer extends WrapHTML {
 
     initialise_renderer.call(this);
     initialise_events.call(this);
+
+    setTimeout(() => {
+      this.shadowRoot.querySelector('#palette_closer').click();
+    },1000);
+
   }
 
   get donors() {
