@@ -36,6 +36,7 @@ tmpl.innerHTML = `
     --demoted-opacity: 0.5;
     --sugars-url:/sugars.svg;
     --palette-background-color: #eee;
+    --selection-color: #6052E2;
   }
 
   :host([resizeable]) {
@@ -225,7 +226,7 @@ tmpl.innerHTML = `
   }
 
   :host x-piemenu button.hover, x-piemenu label.hover, x-piemenu button:hover, x-piemenu label:hover {
-    background: #6052E2;
+    background: var(--selection-color);
     color: #ffffff;
   }
 
@@ -275,9 +276,27 @@ tmpl.innerHTML = `
 
   :host .palette label[draggable] {
     display: block;
+
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+
+    background: rgba(255,255,255,0.5);
     width: var(--palette-icon-size);
     height: var(--palette-icon-size);
+
     -webkit-user-drag: element;
+
+    box-shadow: 2px 1px 1px rgba(90,90,90,0.5);
+    padding: 0.5px;
+    margin-right: 2px;
+    margin-left: 2px;
+    border: solid rgba(90,90,90,0.5) 0.5px
+  }
+
+  :host .palette label[draggable].checked {
+    background: var(--selection-color);
   }
 
   :host .palette label input[value="delete"] {
@@ -557,6 +576,10 @@ let redraw_sugar = function() {
 let wire_renderer_canvas_events = function() {
   let canvas = this.renderer.element.canvas;
 
+  this.addEventListener('drag', ()=> {
+    this.classList.add('dragging');
+  });
+
   canvas.addEventListener('click', (ev) => {
     if (ev.target !== canvas) {
       return;
@@ -576,20 +599,20 @@ let wire_renderer_canvas_events = function() {
         }
       }
 
-      setTimeout(() =>{
-        this.form.clear();
-        delete this.form.active_residue;
-        delete this.form.residue;
-        if (this.form.menu_timeout) {
-          clearTimeout(this.form.menu_timeout);
-        }
-        this.highlightResidues([]);
-      },100);
+      this.form.clear();
+      delete this.form.active_residue;
+      delete this.form.residue;
+      if (this.form.menu_timeout) {
+        clearTimeout(this.form.menu_timeout);
+      }
+      this.highlightResidues([]);
+
       return;
     }
   });
 
   this.addEventListener('dragend', () => {
+    this.classList.remove('dragging');
     this.highlightResidues([]);
     setTimeout(() =>{
       this.form.reset();
@@ -971,7 +994,7 @@ class SViewer extends WrapHTML {
       ctx.beginPath();
       ctx.lineWidth = 10;
       if (opacity >= 0.9) {
-        ctx.strokeStyle = `rgba(0,200,100,${opacity.toFixed(2)})`;
+        ctx.strokeStyle = window.getComputedStyle(this).getPropertyValue('--selection-color');
       } else {
         ctx.strokeStyle = `rgba(0,0,0,${opacity.toFixed(2)})`;
       }
