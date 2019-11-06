@@ -311,7 +311,7 @@ tmpl.innerHTML = `
     height: var(--palette-icon-size);
 
     -webkit-user-drag: element;
-
+    border-radius: 5px;
     box-shadow: 2px 2px 2px rgba(90,90,90,0.6);
     padding: 0.5px;
     margin-right: 2px;
@@ -325,7 +325,7 @@ tmpl.innerHTML = `
     content: '';
     height: 75%;
     left: 2px;
-    top: 12.5%;
+    top: calc(12.5% - 2px);
     width: 2px;
     background-image: linear-gradient(0deg, #999, #999 40%, transparent 40%, transparent 100%);
     background-size: 1px 25%;
