@@ -538,7 +538,9 @@ let enableDropResidue = function(renderer,residue) {
 
       return;
     }
-    show_anomer.bind(this,residue)(ev.target);
+    if (form.donor.value) {
+      show_anomer.bind(this,residue)(ev.target);
+    }
   });
   target.addEventListener('dragenter', (ev) => {
     if (! this.hasAttribute('editable')) {
