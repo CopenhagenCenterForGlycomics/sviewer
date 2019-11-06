@@ -19,6 +19,8 @@ const Iupac = CondensedIupac.IO;
 
 const IupacSugar = Mass(Iupac(Sugar));
 
+import { Tween, autoPlay } from 'es6-tween';
+
 const sequence_symbol = Symbol('sequence');
 
 const donors_symbol = Symbol('donors');
@@ -34,6 +36,7 @@ tmpl.innerHTML = `
     --demoted-opacity: 0.5;
     --sugars-url:/sugars.svg;
     --palette-background-color: #eee;
+    --selection-color: #6052E2;
   }
 
   :host([resizeable]) {
@@ -51,6 +54,11 @@ tmpl.innerHTML = `
     justify-content: center;
   }
 
+  :host #highlights {
+    width: 100%;
+    height: 100%;
+  }
+
   :host .widget_contents > div > svg {
     width: 100%;
     height: 100%;
@@ -59,16 +67,16 @@ tmpl.innerHTML = `
   }
 
   :host .widget_contents > div > canvas {
-    object-fit: scale-down;
+    object-fit: contain;
     width: 100%;
     height: 100%;
   }
 
   :host .widget_contents > div > svg * {
-    -moz-transition: all 0.5s ease-in-out;
-    -o-transition: all 0.5s ease-in-out;
-    -webkit-transition: all 0.5s ease-in-out;
-    transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.1s ease-in-out;
+    -o-transition: all 0.1s ease-in-out;
+    -webkit-transition: all 0.1s ease-in-out;
+    transition: all 0.1s ease-in-out;
   }
 
   :host .widget_contents > div > svg {
@@ -135,10 +143,15 @@ tmpl.innerHTML = `
     width: var(--expandedwidth);
     background: none;
     height: auto;
+    min-height: calc(var(--palette-icon-size) + 5px);
+  }
+
+  :host #palette_closer_wrap {
+    filter: drop-shadow(3px 2px 2px rgba(50, 50, 0, 0.5));
   }
 
   :host #palette_closer {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: %23000; fill: none;%7D%3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: %23000; fill: rgba(240,240,240,1);%7D%3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
     width: var(--palette-icon-size);
     height: var(--palette-icon-size);
     -moz-transition: all 0.5s ease-in-out;
@@ -147,9 +160,14 @@ tmpl.innerHTML = `
     transition: all 0.5s ease-in-out;
     background-repeat: no-repeat;
     position: relative;
+    cursor: pointer;
   }
-  :host .palette.expanded #palette_closer {
+  :host(:not(.dragging)) .palette.expanded #palette_closer {
     transform: rotate(405deg);
+  }
+
+  :host(.dragging) .palette.expanded {
+    pointer-events: none;
   }
 
   :host .palette label {
@@ -157,7 +175,7 @@ tmpl.innerHTML = `
     transition: transform 0.5s ease-in-out;
   }
 
-  :host .palette.expanded label {
+  :host(:not(.dragging)) .palette.expanded label {
     flex: 1;
     transform: translate(0px,0px);
     min-width: var(--palette-icon-size);
@@ -166,7 +184,7 @@ tmpl.innerHTML = `
     max-height: var(--palette-icon-size);
   }
 
-  :host .palette.expanded {
+  :host(:not(.dragging)) .palette.expanded {
     width: var(--expandedwidth);
     background: var(--palette-background-color);
   }
@@ -217,8 +235,26 @@ tmpl.innerHTML = `
     font-size: var(--icon-size);
   }
 
+  @keyframes piemenuselection {
+    0% {
+      background-position: right top;
+      color: #000000;
+    }
+    100% {
+      background-position: left top;
+      color: #ffffff;
+    }
+  }
+
+
+  :host x-piemenu label.dragover {
+    background: linear-gradient(var(--slice-background-rotate-angle),var(--selection-color) 50%, var(--palette-background-color) 50%);
+    background-size: 375% 100%;
+    animation: piemenuselection 650ms;
+  }
+
   :host x-piemenu button.hover, x-piemenu label.hover, x-piemenu button:hover, x-piemenu label:hover {
-    background: #6052E2;
+    background: var(--selection-color);
     color: #ffffff;
   }
 
@@ -268,9 +304,40 @@ tmpl.innerHTML = `
 
   :host .palette label[draggable] {
     display: block;
+
+    cursor: move; /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+
+    background: rgba(255,255,255,0.8);
     width: var(--palette-icon-size);
     height: var(--palette-icon-size);
+
     -webkit-user-drag: element;
+    border-radius: 5px;
+    box-shadow: 2px 2px 2px rgba(90,90,90,0.6);
+    padding: 0.5px;
+    margin-right: 2px;
+    margin-left: 2px;
+    border: solid rgba(90,90,90,0.5) 0.5px;
+    padding-left: 7px;
+  }
+
+  :host .palette label[draggable]:before {
+    position: absolute;
+    content: '';
+    height: 75%;
+    left: 2px;
+    top: calc(12.5% - 2px);
+    width: 2px;
+    background-image: linear-gradient(0deg, #999, #999 40%, transparent 40%, transparent 100%);
+    background-size: 1px 25%;
+    border: none;
+  }
+
+  :host .palette label[draggable].checked {
+    background: var(--selection-color);
   }
 
   :host .palette label input[value="delete"] {
@@ -283,11 +350,14 @@ tmpl.innerHTML = `
 
 </style>
 <div class="widget_contents" >
+  <canvas id="highlights"></canvas>
   <div id="icons"></div>
   <div id="output"></div>
   <form id="new_linkage">
-    <div id="palette" class="palette">
-    <div id="palette_closer" onclick="this.parentNode.classList.toggle('expanded')"></div>
+    <div id="palette" class="palette expanded">
+    <div id="palette_closer_wrap">
+    <div id="palette_closer" onclick="this.parentNode.parentNode.classList.toggle('expanded')"></div>
+    </div>
     <label id="palette_delete">
     <svg viewBox="-100 -100 812 812">
       <g>
@@ -416,6 +486,7 @@ let show_anomer = function(residue,target) {
   }
   log.info('Setting target to',residue.identifier);
   delete form.active_residue;
+  this.highlightResidues([]);
   form.residue = residue;
   let event = new Event('change',{bubbles: true});
   form.dispatchEvent(event);
@@ -461,6 +532,13 @@ let enableDropResidue = function(renderer,residue) {
 
   target.addEventListener('dragleave', () => {
     delete form.active_residue;
+    if (form.menu_timeout) {
+      clearTimeout(form.menu_timeout);
+    }
+    if ( ! form.active_center ) {
+      form.clear();
+    }
+    this.highlightResidues([]);
   });
 
   target.addEventListener('click', (ev) => {
@@ -472,12 +550,18 @@ let enableDropResidue = function(renderer,residue) {
 
       return;
     }
-    show_anomer.bind(this,residue)(ev.target);
+    if (form.donor.value) {
+      show_anomer.bind(this,residue)(ev.target);
+    }
   });
   target.addEventListener('dragenter', (ev) => {
     if (! this.hasAttribute('editable')) {
       return;
     }
+    if (! form.active_center) {
+      this.highlightResidues([residue]);
+    }
+
     if (form.residue === residue) {
       return;
     }
@@ -537,6 +621,10 @@ let redraw_sugar = function() {
 let wire_renderer_canvas_events = function() {
   let canvas = this.renderer.element.canvas;
 
+  this.addEventListener('drag', ()=> {
+    this.classList.add('dragging');
+  });
+
   canvas.addEventListener('click', (ev) => {
     if (ev.target !== canvas) {
       return;
@@ -556,16 +644,21 @@ let wire_renderer_canvas_events = function() {
         }
       }
 
-      setTimeout(() =>{
-        this.form.clear();
-        delete this.form.active_residue;
-        delete this.form.residue;
-      },100);
+      this.form.clear();
+      delete this.form.active_residue;
+      delete this.form.residue;
+      if (this.form.menu_timeout) {
+        clearTimeout(this.form.menu_timeout);
+      }
+      this.highlightResidues([]);
+
       return;
     }
   });
 
   this.addEventListener('dragend', () => {
+    this.classList.remove('dragging');
+    this.highlightResidues([]);
     setTimeout(() =>{
       this.form.reset();
     },100);
@@ -573,10 +666,21 @@ let wire_renderer_canvas_events = function() {
 
 };
 
-let wire_renderer_fisheye = function() {
-
+let wire_renderer_fisheye = function(arg) {
   let canvas = this.renderer.element.canvas;
   let renderer = this.renderer;
+
+  canvas.addEventListener('dragover', () => {
+    this.classList.add('dragging');
+  });
+
+  document.addEventListener('dragend', () => {
+    this.classList.remove('dragging');
+  });
+
+  if ( ! arg ) {
+    return;
+  }
 
   let last_req;
   canvas.addEventListener('dragover', (ev) => {
@@ -733,6 +837,7 @@ let form_action = function(widget,ev) {
   renderer.refresh().then( () => {
     enableDropResidue.call( widget, renderer,new_res);
     renderer.scaleToFit();
+    widget.highlightResidues([]);
   });
   widget.sequence = renderer.sugars[0].sequence;
   this.reset();
@@ -893,6 +998,11 @@ class SViewer extends WrapHTML {
 
     initialise_renderer.call(this);
     initialise_events.call(this);
+
+    setTimeout(() => {
+      this.shadowRoot.querySelector('#palette').classList.remove('expanded');
+    },1000);
+
   }
 
   get donors() {
@@ -914,6 +1024,44 @@ class SViewer extends WrapHTML {
   }
   get sequence() {
     return this[sequence_symbol];
+  }
+
+  highlightResidues(residues) {
+    let layout = this.renderer.layoutFor(residues[0]);
+    let canv = this.shadowRoot.querySelector('#highlights');
+    const ctx = canv.getContext('2d');
+    ctx.clearRect(0, 0, canv.width, canv.height);
+    if (this.anim_tween) {
+      this.anim_tween.stop();
+      delete this.anim_tween;
+    }
+    if ( ! layout ) {
+      return;
+    }
+    let boundingrect = canv.getBoundingClientRect();
+    canv.width = boundingrect.width;
+    canv.height = boundingrect.height;
+    let {x,y,width,height} = this.renderer.screenCoordinatesFromLayout(layout);
+    x = x-boundingrect.left;
+    y = y-boundingrect.top;
+    autoPlay(true);
+
+    this.anim_tween = new Tween({angle: 0, opacity: 0})
+    .to({ angle: 2*Math.PI, opacity: 1 }, 450)
+    .on('update', ({ angle, opacity }) => {
+      ctx.clearRect(x-0.5*width,y-0.5*height,2*width,2*height);
+      ctx.beginPath();
+      ctx.lineWidth = 10;
+      if (opacity >= 0.9) {
+        ctx.strokeStyle = window.getComputedStyle(this).getPropertyValue('--selection-color');
+      } else {
+        ctx.strokeStyle = `rgba(0,0,0,${opacity.toFixed(2)})`;
+      }
+      ctx.arc( x+0.5*width,y+0.5*height, 1.5*width/2,-0.5*Math.PI, angle-0.5*Math.PI, false );
+      ctx.stroke();
+    })
+    .start();
+
   }
 }
 
