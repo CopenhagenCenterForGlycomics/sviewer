@@ -987,7 +987,7 @@ class SViewer extends WrapHTML {
     initialise_events.call(this);
 
     setTimeout(() => {
-      this.shadowRoot.querySelector('#palette_closer').click();
+      this.shadowRoot.querySelector('#palette').classList.remove('expanded');
     },1000);
 
   }
