@@ -863,7 +863,9 @@ let initialise_renderer = function() {
   let renderer_class = this.hasAttribute('sketch') ? RoughCanvasRenderer : SVGRenderer;
 
   if ( this.renderer ) {
-    this.shadowRoot.getElementById('output').removeChild(this.renderer.element.canvas);
+    while (this.shadowRoot.getElementById('output').firstChild) {
+      this.shadowRoot.getElementById('output').removeChild(this.shadowRoot.getElementById('output').firstChild);
+    }
     this.renderer = null;
   }
 
