@@ -1,4 +1,4 @@
-/* globals document,MouseEvent,window,Blob,XMLSerializer,Image */
+/* globals document,MouseEvent,window,Blob,XMLSerializer,Image,HTMLCanvasElement */
 
 let download = (uri,filename='image.png') => {
   var evt = new MouseEvent('click', {
@@ -19,6 +19,11 @@ const rect_tmpl = document.createElement('template');
 rect_tmpl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg"><rect  x="0" y="0" width="100" height="100" fill="#fff" opacity="0" /></svg>';
 
 let save = (widget,svg,format='png') => {
+  if (format === 'png' && (svg instanceof HTMLCanvasElement)) {
+    let uri = svg.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+    download(uri,'image.png');
+    return;
+  }
   let canvas = document.createElement('canvas');
   canvas.width=widget.getBoundingClientRect().width;
   canvas.height=widget.getBoundingClientRect().height;
