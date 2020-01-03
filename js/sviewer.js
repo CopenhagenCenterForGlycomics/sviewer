@@ -173,7 +173,7 @@ tmpl.innerHTML = `
   }
 
   :host .palette label {
-    transform: translate(calc(-1 * var(--palette-item-count) * (var(--palette-icon-size) + 12px) ),0px);
+    transform: translate(calc(-1 * (var(--palette-item-count) + 1) * (var(--palette-icon-size) + 12px) ),0px);
     transition: transform 0.5s ease-in-out;
   }
 
