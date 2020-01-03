@@ -27,6 +27,8 @@ const sequence_symbol = Symbol('sequence');
 
 const donors_symbol = Symbol('donors');
 
+const repeats_symbol = Symbol('repeats');
+
 const tmpl = document.createElement('template');
 
 tmpl.innerHTML = `
@@ -596,14 +598,6 @@ let enableDropResidue = function(renderer,residue) {
   });
 };
 
-const expand_repeats = (sugars,collapse=true) => {
-  for (let sugar of sugars) {
-    for (let repeat of sugar.repeats) {
-      repeat.mode = collapse ? Repeat.MODE_MINIMAL : Repeat.MODE_EXPAND;
-    }
-  }
-};
-
 let redraw_sugar = function() {
   if (this.renderer.sugars[0].sequence !== this.sequence) {
     this.renderer.sugars[0].sequence = this.sequence;
@@ -887,6 +881,12 @@ let initialise_renderer = function() {
   }
 };
 
+const update_repeats = function() {
+  let repeats = this.renderer.sugars[0].repeats;
+  this[repeats_symbol].length = 0;
+  this[repeats_symbol].push(...repeats.map( repeat => new ModifiableRepeat(repeat,this) ));
+};
+
 if (window.ShadyCSS) {
   ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
 }
@@ -899,6 +899,7 @@ class SViewer extends WrapHTML {
 
   constructor() {
     super();
+    this[repeats_symbol] = [];
     log('Initiating Sviewer element');
   }
 
@@ -940,12 +941,6 @@ class SViewer extends WrapHTML {
       if (this.renderer) {
         this.renderer.refresh();
         this.renderer.scaleToFit();
-      }
-    }
-    if (name === 'longrepeats') {
-      if (this.sequence) {
-        expand_repeats(this.renderer.sugars, ! this.hasAttribute('longrepeats'));
-        this.fullRefresh();
       }
     }
     if (name === 'sugars') {
@@ -1027,6 +1022,7 @@ class SViewer extends WrapHTML {
       let text = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.TEXT_NODE ))[0];
       text.textContent = seq;
       slot.dispatchEvent(new Event('slotchange'));
+      update_repeats.call(this);
     }
     return seq;
   }
@@ -1035,8 +1031,7 @@ class SViewer extends WrapHTML {
   }
 
   get repeats() {
-    let repeats = this.renderer.sugars[0].repeats;
-    return repeats.map( repeat => new ModifiableRepeat(repeat,this) );
+    return this[repeats_symbol];
   }
 
   highlightResidues(residues) {

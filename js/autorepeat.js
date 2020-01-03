@@ -67,6 +67,30 @@ class ModifiableRepeat {
     return this.repeat[repeat_pattern].title;
   }
 
+  get expanded() {
+    return this.repeat.mode === Repeat.MODE_EXPAND;
+  }
+
+  set expanded(value) {
+    if (value) {
+      this.expand();
+    } else {
+      this.collapse();
+    }
+  }
+
+  get collapsed() {
+    return ! this.expanded;
+  }
+
+  set collapsed(value) {
+    this.expanded = ! value;
+  }
+
+  toggleExpanded() {
+    this.expanded = ! this.expanded;
+  }
+
   expand() {
     if (this.repeat.mode !== Repeat.MODE_EXPAND) {
       this.repeat.mode = Repeat.MODE_EXPAND;
