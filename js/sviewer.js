@@ -3,7 +3,9 @@
 
 import * as debug from 'debug-any-level';
 
-import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, RoughCanvasRenderer, SVGRenderer, Repeat } from 'glycan.js';
+import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, SVGRenderer, Repeat } from 'glycan.js';
+
+import { RoughCanvasRenderer } from 'rough-glycan.js';
 
 import ImageSaver from './imagesaver';
 
