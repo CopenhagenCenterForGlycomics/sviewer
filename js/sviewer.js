@@ -173,7 +173,7 @@ tmpl.innerHTML = `
   }
 
   :host .palette label {
-    transform: translate(-2000%,0px);
+    transform: translate(calc(-1 * var(--palette-item-count) * (var(--palette-icon-size) + 12px) ),0px);
     transition: transform 0.5s ease-in-out;
   }
 
@@ -808,6 +808,7 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
       palette.appendChild(palette_entry);
       wire_palette_watcher(palette.lastElementChild);
     }
+    palette.style.setProperty( '--palette-item-count', palette.children.length);
   });
 };
 
