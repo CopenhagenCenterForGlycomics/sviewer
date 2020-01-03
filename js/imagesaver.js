@@ -18,10 +18,10 @@ const rect_tmpl = document.createElement('template');
 
 rect_tmpl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg"><rect  x="0" y="0" width="100" height="100" fill="#fff" opacity="0" /></svg>';
 
-let save = (widget,svg,format='png') => {
+let save = (widget,svg,format='png',filename='image') => {
   if (format === 'png' && (svg instanceof HTMLCanvasElement)) {
     let uri = svg.toDataURL('image/png').replace('image/png', 'image/octet-stream');
-    download(uri,'image.png');
+    download(uri,`${filename}.png`);
     return;
   }
   let canvas = document.createElement('canvas');
@@ -60,7 +60,7 @@ let save = (widget,svg,format='png') => {
     //add xml declaration
     data = '<?xml version="1.0" standalone="no"?>\r\n' + data;
 
-    return download('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data),'image.svg');
+    return download('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data),`${filename}.svg`);
   }
 
   var img = new Image();
@@ -74,7 +74,7 @@ let save = (widget,svg,format='png') => {
     let uri = canvas
         .toDataURL('image/png')
         .replace('image/png', 'image/octet-stream');
-    download(uri,'image.png');
+    download(uri,`${filename}.png`);
   };
 
   img.src = url;

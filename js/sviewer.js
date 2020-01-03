@@ -902,7 +902,7 @@ class SViewer extends WrapHTML {
 
 
   save(format='svg') {
-    ImageSaver(this,this.renderer.element.canvas,format);
+    ImageSaver(this,this.renderer.element.canvas,format,this.sequence);
   }
 
   get LayoutEngine() {
