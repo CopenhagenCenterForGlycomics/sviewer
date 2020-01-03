@@ -549,7 +549,7 @@ let enableDropResidue = function(renderer,residue) {
       parent.removeChild(parent.linkageOf(residue),residue);
       parent.balance();
       parent.renderer.refresh();
-
+      this.sequence = this.renderer.sugars[0].sequence;
       return;
     }
     if (form.donor.value) {
@@ -607,7 +607,6 @@ const expand_repeats = (sugars,collapse=true) => {
 let redraw_sugar = function() {
   if (this.renderer.sugars[0].sequence !== this.sequence) {
     this.renderer.sugars[0].sequence = this.sequence;
-    expand_repeats(this.renderer.sugars, ! this.hasAttribute('longrepeats'));
   }
   this.renderer.refresh().then( () => {
     if (this.hasAttribute('editable')) {
@@ -895,7 +894,7 @@ if (window.ShadyCSS) {
 class SViewer extends WrapHTML {
 
   static get observedAttributes() {
-    return ['links','horizontal','linkangles','sugars','sketch','longrepeats'];
+    return ['links','horizontal','linkangles','sugars','sketch'];
   }
 
   constructor() {

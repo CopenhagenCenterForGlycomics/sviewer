@@ -138,7 +138,7 @@ if (window.ShadyCSS) {
 
 class SugarBuilder extends WrapHTML {
   static get observedAttributes() {
-    return ['resizable','links','horizontal','strict','linkangles','sketch','longrepeats'];
+    return ['resizable','links','horizontal','strict','linkangles','sketch'];
   }
 
   constructor() {
@@ -160,7 +160,6 @@ class SugarBuilder extends WrapHTML {
     this.attributeChangedCallback('linkangles');
     this.attributeChangedCallback('links');
     this.attributeChangedCallback('sugars');
-    this.attributeChangedCallback('longrepeats');
 
     if (this.hasAttribute('reactions-src')) {
       fetch(this.getAttribute('reactions-src') || 'reactions.json')
@@ -182,7 +181,7 @@ class SugarBuilder extends WrapHTML {
     if ( ! this.shadowRoot ) {
       return;
     }
-    if (['links','horizontal','resizeable','linkangles','sketch','longrepeats'].indexOf(name) >= 0 ) {
+    if (['links','horizontal','resizeable','linkangles','sketch'].indexOf(name) >= 0 ) {
       if (this.hasAttribute(name)) {
         this.shadowRoot.getElementById('viewer').setAttribute(name,'');
       } else {

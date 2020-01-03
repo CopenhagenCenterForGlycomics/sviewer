@@ -30,7 +30,7 @@ const changed = (sugar) => {
         repeat.identifier = ''+repeat.max;
         continue;
       }
-      let repeat = Repeat.addToSugar(sugar,root,leaf,Repeat.MODE_MINIMAL,1,1);
+      let repeat = Repeat.addToSugar(sugar,root,leaf,Repeat.MODE_EXPAND,1,1);
       repeat[repeat_pattern] = pattern;
       repeat.identifier = ''+repeat.max;
     }
