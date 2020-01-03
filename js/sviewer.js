@@ -9,7 +9,7 @@ import { RoughCanvasRenderer } from 'rough-glycan.js';
 
 import ImageSaver from './imagesaver';
 
-import {default as repeatCallback} from './autorepeat';
+import { default as repeatCallback, ModifiableRepeat } from './autorepeat';
 
 import { DraggableForm, DragManager } from 'DragMenus';
 
@@ -903,6 +903,17 @@ class SViewer extends WrapHTML {
   }
 
 
+  fullRefresh() {
+    return this.renderer.refresh().then( () => {
+      if (this.hasAttribute('editable')) {
+        for (let residue of this.renderer.sugars[0].composition() ) {
+          enableDropResidue.call( this, this.renderer,residue );
+        }
+      }
+      this.renderer.scaleToFit();
+    });
+  }
+
   save(format='svg') {
     ImageSaver(this,this.renderer.element.canvas,format,this.sequence);
   }
@@ -934,14 +945,7 @@ class SViewer extends WrapHTML {
     if (name === 'longrepeats') {
       if (this.sequence) {
         expand_repeats(this.renderer.sugars, ! this.hasAttribute('longrepeats'));
-        this.renderer.refresh().then( () => {
-          if (this.hasAttribute('editable')) {
-            for (let residue of this.renderer.sugars[0].composition() ) {
-              enableDropResidue.call( this, this.renderer,residue );
-            }
-          }
-          this.renderer.scaleToFit();
-        });
+        this.fullRefresh();
       }
     }
     if (name === 'sugars') {
@@ -1028,6 +1032,11 @@ class SViewer extends WrapHTML {
   }
   get sequence() {
     return this[sequence_symbol];
+  }
+
+  get repeats() {
+    let repeats = this.renderer.sugars[0].repeats;
+    return repeats.map( repeat => new ModifiableRepeat(repeat,this) );
   }
 
   highlightResidues(residues) {

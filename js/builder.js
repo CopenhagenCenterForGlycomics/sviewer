@@ -228,6 +228,10 @@ class SugarBuilder extends WrapHTML {
     return this.shadowRoot.getElementById('viewer').renderer.sugars[0];
   }
 
+  get repeats() {
+    return this.shadowRoot.getElementById('viewer').repeats;
+  }
+
   set reactions(reactions) {
 
     this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(reactions,IupacSugar);
