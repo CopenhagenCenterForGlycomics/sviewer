@@ -32,10 +32,10 @@ const changed = (sugar) => {
       if ((root instanceof Repeat.Monosaccharide) || (leaf instanceof Repeat.Monosaccharide)) {
         continue;
       }
-      if (root.parent && (root.parent instanceof Repeat.Monosaccharide) && root.parent.repeat[repeat_pattern] === pattern) {
+      if (root.parent && (root.parent instanceof Repeat.Monosaccharide) && pattern.sequence.indexOf(root.parent.repeat.template.sequence) === 0 ) {
         let repeat = root.parent.repeat;
         root.parent.removeChild(root.parent.linkageOf(root),root);
-        repeat.max += 1;
+        repeat.max = parseInt(repeat.max)+1;
         repeat.identifier = ''+repeat.max;
         continue;
       }
@@ -64,7 +64,7 @@ class ModifiableRepeat {
   }
 
   get type() {
-    return this.repeat[repeat_pattern].title;
+    return this.repeat[repeat_pattern] ? this.repeat[repeat_pattern].title : 'NA';
   }
 
   get expanded() {
