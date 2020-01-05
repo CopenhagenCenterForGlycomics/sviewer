@@ -3,7 +3,7 @@
 
 import * as debug from 'debug-any-level';
 
-import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, SVGRenderer, Repeat } from 'glycan.js';
+import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, SVGRenderer, CanvasRenderer, Repeat } from 'glycan.js';
 
 import { RoughCanvasRenderer } from 'rough-glycan.js';
 
@@ -856,7 +856,7 @@ let initialise_events = function() {
 let initialise_renderer = function() {
   this.LayoutEngine.LINKS = this.hasAttribute('links') ? true : false;
 
-  let renderer_class = this.hasAttribute('sketch') ? RoughCanvasRenderer : SVGRenderer;
+  let renderer_class = this.hasAttribute('renderer') ? (this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) || SVGRenderer) : SVGRenderer;
 
   if ( this.renderer ) {
     while (this.shadowRoot.getElementById('output').firstChild) {
@@ -891,10 +891,20 @@ if (window.ShadyCSS) {
   ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
 }
 
+const renderers = new Map(Object.entries({
+  svg: SVGRenderer,
+  canvas: CanvasRenderer,
+  sketch: RoughCanvasRenderer
+}));
+
 class SViewer extends WrapHTML {
 
   static get observedAttributes() {
-    return ['links','horizontal','linkangles','sugars','sketch'];
+    return ['links','horizontal','linkangles','sugars','renderer'];
+  }
+
+  static get RegisteredRenderers() {
+    return renderers;
   }
 
   constructor() {
@@ -928,7 +938,7 @@ class SViewer extends WrapHTML {
   }
 
   attributeChangedCallback(name) {
-    if (name === 'sketch') {
+    if (name === 'renderer') {
       initialise_renderer.call(this);
       return;
     }
