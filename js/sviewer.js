@@ -297,6 +297,7 @@ tmpl.innerHTML = `
     :host([editable]) .widget_contents {
       margin-top: 0px;
       height: 100%;
+      overflow: hidden;
     }
 
     :host([editable]) .palette {
