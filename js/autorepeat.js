@@ -95,6 +95,7 @@ class ModifiableRepeat {
     if (this.repeat.mode !== Repeat.MODE_EXPAND) {
       this.repeat.mode = Repeat.MODE_EXPAND;
       this.viewer.fullRefresh();
+      this.viewer.sequence = this.viewer.renderer.sugars[0].sequence;
     }
   }
 
@@ -102,6 +103,7 @@ class ModifiableRepeat {
     if (this.repeat.mode !== Repeat.MODE_MINIMAL) {
       this.repeat.mode = Repeat.MODE_MINIMAL;
       this.viewer.fullRefresh();
+      this.viewer.sequence = this.viewer.renderer.sugars[0].sequence;
     }
   }
 

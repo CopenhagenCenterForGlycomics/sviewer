@@ -854,6 +854,9 @@ let initialise_events = function() {
 };
 
 let initialise_renderer = function() {
+  if ( ! this.shadowRoot ) {
+    return;
+  }
   this.LayoutEngine.LINKS = this.hasAttribute('links') ? true : false;
 
   let renderer_class = this.hasAttribute('renderer') ? (this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) || SVGRenderer) : SVGRenderer;
