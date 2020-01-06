@@ -885,6 +885,7 @@ let initialise_renderer = function() {
   this.renderer.addSugar(sug);
   if (this.sequence) {
     redraw_sugar.call(this);
+    repeatCallback(sug);
     update_repeats.call(this);
   }
 };
@@ -1034,6 +1035,7 @@ class SViewer extends WrapHTML {
       let text = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.TEXT_NODE ))[0];
       text.textContent = seq;
       slot.dispatchEvent(new Event('slotchange'));
+      repeatCallback(this.renderer.sugars[0]);
       update_repeats.call(this);
     }
     return seq;

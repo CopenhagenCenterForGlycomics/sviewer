@@ -44,6 +44,15 @@ const changed = (sugar) => {
       repeat.identifier = ''+repeat.max;
     }
   }
+  for (let repeat of sugar.repeats) {
+    if ( ! repeat[repeat_pattern] ) {
+      for (let pattern of patterns) {
+        if (pattern.sequence.indexOf(repeat.template.sequence) === 0) {
+          repeat[repeat_pattern] = pattern;
+        }
+      }
+    }
+  }
 };
 
 export default changed;
