@@ -1,4 +1,4 @@
-/* globals document,HTMLElement,HTMLLabelElement,MutationObserver,Event,customElements,window,requestAnimationFrame,cancelAnimationFrame,ShadyCSS,Node */
+/* globals document,HTMLElement,HTMLLabelElement,MutationObserver,Event,customElements,window,requestAnimationFrame,cancelAnimationFrame,ShadyCSS,Node,ResizeObserver */
 'use strict';
 
 import * as debug from 'debug-any-level';
@@ -122,12 +122,17 @@ tmpl.innerHTML = `
     display: none;
   }
 
+  :host([editable]) .widget_contents {
+    margin-top: var(--palette-height, 0px);
+    height: calc( 100% - var(--palette-height, 0px));
+  }
 
   :host([editable]) .palette {
     display: flex;
     flex-flow: row wrap;
     align-items: flex-start;
     justify-content: space-between;
+    margin-top: calc(-1 *  var(--palette-height, 0px));
   }
 
   :host([editable]) .palette:after {
@@ -288,6 +293,16 @@ tmpl.innerHTML = `
       width: 200px;
       height: 200px;
     }
+
+    :host([editable]) .widget_contents {
+      margin-top: 0px;
+      height: 100%;
+    }
+
+    :host([editable]) .palette {
+      margin-top: 0px;
+    }
+
   }
   :host .palette label svg {
     pointer-events: none;
@@ -854,6 +869,12 @@ let initialise_events = function() {
   wire_palette_pagezoom.call(this);
   wire_form_check_class.call(this);
   wire_form_action.call(this);
+  if (ResizeObserver) {
+    new ResizeObserver(() => {
+      const palette = this.shadowRoot.getElementById('palette');
+      this.style.setProperty( '--palette-height', (palette.offsetHeight - 32)+'px');
+    }).observe(this.shadowRoot.getElementById('palette'));
+  }
   log.info('Initialised global events');
 };
 
