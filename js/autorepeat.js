@@ -57,6 +57,7 @@ class ModifiableRepeat {
     this.repeat.max = n;
     this.repeat.identifier = ''+this.repeat.max;
     this.viewer.fullRefresh();
+    this.viewer.sequence = this.viewer.renderer.sugars[0].sequence;
   }
 
   get number() {

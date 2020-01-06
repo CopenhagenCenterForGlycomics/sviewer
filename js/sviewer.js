@@ -710,7 +710,11 @@ let wire_renderer_fisheye = function(arg) {
 
 };
 
-
+const update_repeats = function() {
+  let repeats = this.renderer.sugars[0].repeats;
+  this[repeats_symbol].length = 0;
+  this[repeats_symbol].push(...repeats.map( repeat => new ModifiableRepeat(repeat,this) ));
+};
 
 const update_icon_text_orientation = function() {
   let is_rotated = this.renderer.rotate;
@@ -881,13 +885,8 @@ let initialise_renderer = function() {
   this.renderer.addSugar(sug);
   if (this.sequence) {
     redraw_sugar.call(this);
+    update_repeats.call(this);
   }
-};
-
-const update_repeats = function() {
-  let repeats = this.renderer.sugars[0].repeats;
-  this[repeats_symbol].length = 0;
-  this[repeats_symbol].push(...repeats.map( repeat => new ModifiableRepeat(repeat,this) ));
 };
 
 if (window.ShadyCSS) {
