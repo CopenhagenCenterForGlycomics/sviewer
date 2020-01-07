@@ -810,7 +810,7 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
     palette.removeChild(palette.lastElementChild);
   }
   widget[donors_symbol] = donors;
-  Promise.resolve(SVGRenderer.SYMBOLS)
+  return Promise.resolve(SVGRenderer.SYMBOLS)
   .then( (xml) => icons.innerHTML = xml )
   .then( () => {
 
@@ -1047,8 +1047,12 @@ class SViewer extends WrapHTML {
     return Object.freeze([].concat(this[donors_symbol]));
   }
 
+  setDonors(donors) {
+    return populate_palette(this,this.shadowRoot.getElementById('palette'),[].concat(donors));
+  }
+
   set donors(donors) {
-    populate_palette(this,this.shadowRoot.getElementById('palette'),[].concat(donors));
+    this.setDonors(donors);
   }
 
   set sequence(seq) {

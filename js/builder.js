@@ -79,12 +79,12 @@ const adapt_form = function(elements,values) {
   return demote_items(4,elements,values);
 };
 
-const update_donors = function(donors) {
+const update_donors = async function(donors) {
   let reaction_donors = donors.reactions.map( reac => [].concat(reac.delta.composition()).reverse().shift().identifier )
                               .filter( (o,i,a) => a.indexOf(o) == i );
   const viewer = this.shadowRoot.getElementById('viewer');
   reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 );
-  viewer.donors = viewer.donors.concat( reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 ) );
+  return viewer.setDonors(viewer.donors.concat( reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 ) ));
 };
 
 const reset_form_disabled = function(widget,viewer) {
@@ -235,9 +235,9 @@ class SugarBuilder extends WrapHTML {
   set reactions(reactions) {
 
     this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(reactions,IupacSugar);
-    update_donors.call(this,this.reactiongroup);
-    reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
-
+    update_donors.call(this,this.reactiongroup).then( () => {
+      reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+    });
   }
 
   get reactions() {
