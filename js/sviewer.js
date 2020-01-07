@@ -876,24 +876,22 @@ let initialise_events = function() {
   wire_palette_pagezoom.call(this);
   wire_form_check_class.call(this);
   wire_form_action.call(this);
-  if (ResizeObserver) {
+  if ('ResizeObserver' in window) {
     new ResizeObserver(() => {
       const palette = this.shadowRoot.getElementById('palette');
       this.style.setProperty( '--palette-height', (palette.offsetHeight - 32)+'px');
     }).observe(this.shadowRoot.getElementById('palette'));
   }
   if (this.hasAttribute('editable')) {
-    this.shadowRoot.querySelector('#anomer_menu').addEventListener('click', (ev) => {
-      if (! ev.isTrusted ) {
-        // We want to respond to the event coming from the button
-        // and not the label that we clicked
-        return;
-      }
+    this.shadowRoot.querySelector('#anomer_menu').addEventListener('click', () => {
       setTimeout( () => {
-        const linkage_chooser = this.shadowRoot.querySelector('#linkage_menu');
+        const linkage_chooser = this.shadowRoot.querySelector('#linkage_menu[active]');
+        if (! linkage_chooser) {
+          return;
+        }
         if ([...linkage_chooser.querySelectorAll('label:not([data-disabled])')].length === 1) {
-          linkage_chooser.querySelector('label:not([data-disabled])').click();
           linkage_chooser.removeAttribute('active');
+          linkage_chooser.querySelector('label:not([data-disabled])').click();
         }
       },0);
     }, {capture: true});
