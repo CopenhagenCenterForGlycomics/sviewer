@@ -531,7 +531,13 @@ let show_anomer = function(residue,target) {
 
   anomer_chooser.style.transformOrigin = `${left_pos}px ${top_pos}px`;
   anomer_chooser.style.transform = `scale(1) translate(${left_pos}px,${top_pos}px)`;
-  anomer_chooser.setAttribute('active',true);
+  anomer_chooser.setAttribute('active',null);
+  setTimeout( () => {
+    if ([...anomer_chooser.querySelectorAll('label:not([data-disabled])')].length === 1) {
+      anomer_chooser.querySelector('label:not([data-disabled])').click();
+    }
+  },0);
+
   anomer_chooser.clear();
 };
 
@@ -875,6 +881,22 @@ let initialise_events = function() {
       const palette = this.shadowRoot.getElementById('palette');
       this.style.setProperty( '--palette-height', (palette.offsetHeight - 32)+'px');
     }).observe(this.shadowRoot.getElementById('palette'));
+  }
+  if (this.hasAttribute('editable')) {
+    this.shadowRoot.querySelector('#anomer_menu').addEventListener('click', (ev) => {
+      if (! ev.isTrusted ) {
+        // We want to respond to the event coming from the button
+        // and not the label that we clicked
+        return;
+      }
+      setTimeout( () => {
+        const linkage_chooser = this.shadowRoot.querySelector('#linkage_menu');
+        if ([...linkage_chooser.querySelectorAll('label:not([data-disabled])')].length === 1) {
+          linkage_chooser.querySelector('label:not([data-disabled])').click();
+          linkage_chooser.removeAttribute('active');
+        }
+      },0);
+    }, {capture: true});
   }
   log.info('Initialised global events');
 };

@@ -114,8 +114,12 @@ const wire_sviewer_events = function(viewer) {
     }
     let supported = reactions.supportsLinkageAt(sugar,donor_val,linkage_val,residue_val);
     if (supported.anomerlinks && this.anomer.value) {
+      let existing_linkages = [...this.residue.child_linkages.keys()];
       let anomer = this.anomer.value;
-      supported.linkage = supported.anomerlinks.filter( linkpair => linkpair.match(anomer) ).map( l => parseInt(l.substr(1)) );
+      supported.linkage = supported.anomerlinks
+                          .filter( linkpair => linkpair.match(anomer) )
+                          .map( l => parseInt(l.substr(1)) )
+                          .filter( l => existing_linkages.indexOf(l) < 0);
     }
     adapt_form.call(widget,viewer.form.anomer,supported.anomer);
     adapt_form.call(widget,viewer.form.linkage,supported.linkage.map( link => ''+link ));
