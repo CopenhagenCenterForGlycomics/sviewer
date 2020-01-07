@@ -931,7 +931,9 @@ let initialise_renderer = function() {
   this.renderer.addSugar(sug);
   if (this.sequence) {
     redraw_sugar.call(this);
-    repeatCallback(sug);
+    if (sug.repeats.length > 0) { 
+      repeatCallback(sug);
+    }
     update_repeats.call(this);
   }
 };

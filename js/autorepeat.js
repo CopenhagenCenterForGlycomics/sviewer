@@ -26,7 +26,8 @@ const changed = (sugar) => {
   const patterns = Object.values(REPEAT_PATTERNS);
   for (let pattern of patterns) {
     let matches = sugar.match_sugar_pattern(pattern, Reaction.Comparator);
-    for (let match of matches) {
+    while (matches.length > 0) {
+      let match = matches.shift();
       let root = match.root.children[0].original;
       let leaf = match.leaves()[0].original;
       if ((root instanceof Repeat.Monosaccharide) || (leaf instanceof Repeat.Monosaccharide)) {
@@ -42,6 +43,7 @@ const changed = (sugar) => {
       let repeat = Repeat.addToSugar(sugar,root,leaf,Repeat.MODE_EXPAND,1,1);
       repeat[repeat_pattern] = pattern;
       repeat.identifier = ''+repeat.max;
+      matches = sugar.match_sugar_pattern(pattern, Reaction.Comparator);
     }
   }
   for (let repeat of sugar.repeats) {
