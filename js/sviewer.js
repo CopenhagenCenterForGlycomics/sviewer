@@ -531,8 +531,8 @@ let show_anomer = function(residue,target) {
 
   anomer_chooser.style.transformOrigin = `${left_pos}px ${top_pos}px`;
   anomer_chooser.style.transform = `scale(1) translate(${left_pos}px,${top_pos}px)`;
-  anomer_chooser.setAttribute('active',null);
   setTimeout( () => {
+    anomer_chooser.setAttribute('active',null);
     if ([...anomer_chooser.querySelectorAll('label:not([data-disabled])')].length === 1) {
       anomer_chooser.querySelector('label:not([data-disabled])').click();
     }
@@ -836,6 +836,9 @@ let form_action = function(widget,ev) {
   ev.stopPropagation();
 
   let sug = new IupacSugar();
+  if ( ! this.donor.value ) {
+    return;
+  }
   sug.sequence = this.donor.value;
 
   let new_res = sug.root;
@@ -885,13 +888,14 @@ let initialise_events = function() {
   if (this.hasAttribute('editable')) {
     this.shadowRoot.querySelector('#anomer_menu').addEventListener('click', () => {
       setTimeout( () => {
-        const linkage_chooser = this.shadowRoot.querySelector('#linkage_menu[active]');
+        const linkage_chooser = this.shadowRoot.querySelector('#linkage_menu');
         if (! linkage_chooser) {
           return;
         }
         if ([...linkage_chooser.querySelectorAll('label:not([data-disabled])')].length === 1) {
-          linkage_chooser.removeAttribute('active');
+          this.form.clear();
           linkage_chooser.querySelector('label:not([data-disabled])').click();
+          this.form.reset();
         }
       },0);
     }, {capture: true});
