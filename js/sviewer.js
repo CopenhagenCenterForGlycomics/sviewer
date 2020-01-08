@@ -532,9 +532,12 @@ let show_anomer = function(residue,target) {
   anomer_chooser.style.transformOrigin = `${left_pos}px ${top_pos}px`;
   anomer_chooser.style.transform = `scale(1) translate(${left_pos}px,${top_pos}px)`;
   setTimeout( () => {
-    anomer_chooser.setAttribute('active',null);
     if ([...anomer_chooser.querySelectorAll('label:not([data-disabled])')].length === 1) {
       anomer_chooser.querySelector('label:not([data-disabled])').click();
+    } else {
+      setTimeout( () => {
+        anomer_chooser.setAttribute('active',null);
+      },100);
     }
   },0);
 
