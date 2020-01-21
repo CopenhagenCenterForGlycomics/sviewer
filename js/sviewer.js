@@ -40,7 +40,7 @@ tmpl.innerHTML = `
     --demoted-opacity: 0.5;
     --sugars-url:/sugars.svg;
     --palette-background-color: #eee;
-    --selection-color: #6052E2;
+    --selection-color: var(#6052E2,--selection-color);
   }
 
   :host([resizeable]) {

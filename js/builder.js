@@ -26,6 +26,7 @@ tmpl.innerHTML = `
     width: 100%;
     height: 100%;
     --demoted-opacity: 0.8;
+    --selection-color: var(#6052E2,--selection-color);
   }
   :host .widget_contents {
     width: 100%;
