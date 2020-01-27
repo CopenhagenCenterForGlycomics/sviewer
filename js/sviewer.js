@@ -624,6 +624,9 @@ let enableDropResidue = function(renderer,residue) {
 };
 
 let redraw_sugar = function() {
+  if ( ! this.renderer || ! this.renderer.sugars ) {
+    return;
+  }
   if (this.renderer.sugars[0].sequence !== this.sequence) {
     this.renderer.sugars[0].sequence = this.sequence;
   }
@@ -1059,11 +1062,11 @@ class SViewer extends WrapHTML {
       }
     });
 
-    populate_palette(this,this.shadowRoot.getElementById('palette'));
-
-
-    initialise_renderer.call(this);
-    initialise_events.call(this);
+    populate_palette(this,this.shadowRoot.getElementById('palette'))
+    .then( () => {
+      initialise_renderer.call(this);
+      initialise_events.call(this);
+    });
 
     setTimeout(() => {
       this.shadowRoot.querySelector('#palette').classList.remove('expanded');
