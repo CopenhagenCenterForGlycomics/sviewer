@@ -838,7 +838,7 @@ let form_action = function(widget,ev) {
   ev.stopPropagation();
 
   let sug = new IupacSugar();
-  if ( ! this.querySelector('input[name="donor"]:checked').value ) {
+  if ( ! (this.querySelector('input[name="donor"]:checked') || {}).value ) {
     return;
   }
   sug.sequence = this.querySelector('input[name="donor"]:checked').value;
