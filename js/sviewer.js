@@ -846,8 +846,21 @@ let form_action = function(widget,ev) {
   }
   sug.sequence = this.querySelector('input[name="donor"]:checked').value;
 
+  let anomers = [...this.querySelectorAll('input[name="anomer"]:not([disabled])')];
+  if ( ! this.querySelector('input[name="anomer"]:checked') && anomers.length === 1) {
+    anomers[0].checked = true;
+  }
+
+  let linkages = [...this.querySelectorAll('input[name="linkage"]:not([disabled])')];
+  if ( ! this.querySelector('input[name="linkage"]:checked') && linkages.length === 1) {
+    linkages[0].checked = true;
+  }
+
   let new_res = sug.root;
+
   new_res.anomer = this.querySelector('input[name="anomer"]:checked').value;
+
+
   new_res.parent_linkage = this.querySelector('input[name="donor"]:checked').value.match(/Neu(Gc|Ac)/) ? 2 : 1;
 
   if ( (this.residue instanceof Repeat.Monosaccharide) &&
