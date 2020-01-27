@@ -106,7 +106,7 @@ const wire_sviewer_events = function(viewer) {
     let reactions = widget.reactiongroup;
 
     let donor_val = (this.querySelector('input[name="donor"]:checked') || {}).value ? this.querySelector('input[name="donor"]:checked').value : undefined;
-    let linkage_val = this.linkage.value ? parseInt(this.linkage.value) : undefined;
+    let linkage_val = (this.querySelector('input[name="linkage"]:checked') || {}).value ? parseInt(this.querySelector('input[name="linkage"]:checked').value) : undefined;
     let residue_val = this.residue ? this.residue : undefined;
     let sugar = viewer.renderer.sugars[0].clone();
     sugar.freeze();
