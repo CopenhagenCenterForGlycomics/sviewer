@@ -92,11 +92,11 @@ const reset_form_disabled = function(widget,viewer) {
   let sugar = viewer.renderer.sugars[0].clone();
   sugar.freeze();
   let supported = widget.reactiongroup.supportsLinkageAt(sugar);
-  if (viewer.form.donor) {
-    adapt_form.call(widget,Array.from(viewer.form.donor).filter(el => el.value !== 'delete'),supported.donor);
+  if (viewer.form.querySelector('input[name="donor"]')) {
+    adapt_form.call(widget,Array.from(viewer.form.querySelectorAll('input[name="donor"]')).filter(el => el.value !== 'delete'),supported.donor);
   }
-  adapt_form.call(widget,viewer.form.anomer);
-  adapt_form.call(widget,viewer.form.linkage);
+  adapt_form.call(widget,[...viewer.form.querySelectorAll('input[name="anomer"]')]);
+  adapt_form.call(widget,[...viewer.form.querySelectorAll('input[name="linkage"]')]);
 };
 
 const wire_sviewer_events = function(viewer) {
@@ -105,7 +105,7 @@ const wire_sviewer_events = function(viewer) {
   viewer.form.addEventListener('change',function() {
     let reactions = widget.reactiongroup;
 
-    let donor_val = this.donor.value ? this.donor.value : undefined;
+    let donor_val = (this.querySelector('input[name="donor"]:checked') || {}).value ? this.querySelector('input[name="donor"]:checked').value : undefined;
     let linkage_val = this.linkage.value ? parseInt(this.linkage.value) : undefined;
     let residue_val = this.residue ? this.residue : undefined;
     let sugar = viewer.renderer.sugars[0].clone();
@@ -114,16 +114,16 @@ const wire_sviewer_events = function(viewer) {
       residue_val = sugar.locate_monosaccharide(viewer.renderer.sugars[0].location_for_monosaccharide(residue_val));
     }
     let supported = reactions.supportsLinkageAt(sugar,donor_val,linkage_val,residue_val);
-    if (supported.anomerlinks && this.anomer.value) {
+    if (supported.anomerlinks && (this.querySelector('input[name="anomer"]:checked') || {}).value) {
       let existing_linkages = [...this.residue.child_linkages.keys()];
-      let anomer = this.anomer.value;
+      let anomer = (this.querySelector('input[name="anomer"]:checked') || {}).value;
       supported.linkage = supported.anomerlinks
                           .filter( linkpair => linkpair.match(anomer) )
                           .map( l => parseInt(l.substr(1)) )
                           .filter( l => existing_linkages.indexOf(l) < 0);
     }
-    adapt_form.call(widget,viewer.form.anomer,supported.anomer);
-    adapt_form.call(widget,viewer.form.linkage,supported.linkage.map( link => ''+link ));
+    adapt_form.call(widget,[...viewer.form.querySelectorAll('input[name="anomer"]')],supported.anomer);
+    adapt_form.call(widget,[...viewer.form.querySelectorAll('input[name="linkage"]')],supported.linkage.map( link => ''+link ));
     changed = true;
   });
   viewer.form.addEventListener('reset',function() {

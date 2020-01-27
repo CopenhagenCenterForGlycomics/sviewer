@@ -844,7 +844,7 @@ let form_action = function(widget,ev) {
   sug.sequence = this.querySelector('input[name="donor"]:checked').value;
 
   let new_res = sug.root;
-  new_res.anomer = this.anomer.value;
+  new_res.anomer = this.querySelector('input[name="anomer"]:checked').value;
   new_res.parent_linkage = this.querySelector('input[name="donor"]:checked').value.match(/Neu(Gc|Ac)/) ? 2 : 1;
 
   if ( (this.residue instanceof Repeat.Monosaccharide) &&
@@ -852,9 +852,9 @@ let form_action = function(widget,ev) {
        (! this.residue.endsRepeat || this.residue.repeat.root.identifier !== new_res.identifier) &&
        (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0)
       ) {
-    this.residue.original.addChild(parseInt(this.linkage.value),new_res);
+    this.residue.original.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
   } else {
-    this.residue.addChild(parseInt(this.linkage.value),new_res);
+    this.residue.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
   }
   this.residue.balance();
 
