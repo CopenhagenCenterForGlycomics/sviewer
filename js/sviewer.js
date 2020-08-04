@@ -571,7 +571,7 @@ let enableDropResidue = function(renderer,residue) {
   });
 
   target.addEventListener('click', (ev) => {
-    if (form.donor.value === 'delete') {
+    if (form.querySelector('input[name="donor"]:checked').value === 'delete') {
       let parent = residue.parent;
       parent.removeChild(parent.linkageOf(residue),residue);
       parent.balance();
@@ -579,7 +579,7 @@ let enableDropResidue = function(renderer,residue) {
       this.sequence = this.renderer.sugars[0].sequence;
       return;
     }
-    if (form.donor.value) {
+    if (form.querySelector('input[name="donor"]:checked').value) {
       show_anomer.bind(this,residue)(ev.target);
     }
   });
@@ -624,6 +624,9 @@ let enableDropResidue = function(renderer,residue) {
 };
 
 let redraw_sugar = function() {
+  if ( ! this.renderer || ! this.renderer.sugars ) {
+    return;
+  }
   if (this.renderer.sugars[0].sequence !== this.sequence) {
     this.renderer.sugars[0].sequence = this.sequence;
   }
@@ -764,7 +767,7 @@ let wire_form_check_class = function() {
       if (targ.name !== 'donor') {
         return;
       }
-      for (let sib of this[targ.name]) {
+      for (let sib of this.querySelectorAll(`input[name="${targ.name}"]`)) {
         if (sib === targ) {
           sib.parentNode.classList.add('checked');
         } else {
@@ -775,8 +778,7 @@ let wire_form_check_class = function() {
   });
   this.form.addEventListener('reset', function() {
     delete this.residue;
-
-    for (let sib of this.donor) {
+    for (let sib of this.querySelectorAll('input[name="donor"]')) {
       sib.parentNode.classList.remove('checked');
     }
   });
@@ -839,23 +841,36 @@ let form_action = function(widget,ev) {
   ev.stopPropagation();
 
   let sug = new IupacSugar();
-  if ( ! this.donor.value ) {
+  if ( ! (this.querySelector('input[name="donor"]:checked') || {}).value ) {
     return;
   }
-  sug.sequence = this.donor.value;
+  sug.sequence = this.querySelector('input[name="donor"]:checked').value;
+
+  let anomers = [...this.querySelectorAll('input[name="anomer"]:not([disabled])')];
+  if ( ! this.querySelector('input[name="anomer"]:checked') && anomers.length === 1) {
+    anomers[0].checked = true;
+  }
+
+  let linkages = [...this.querySelectorAll('input[name="linkage"]:not([disabled])')];
+  if ( ! this.querySelector('input[name="linkage"]:checked') && linkages.length === 1) {
+    linkages[0].checked = true;
+  }
 
   let new_res = sug.root;
-  new_res.anomer = this.anomer.value;
-  new_res.parent_linkage = this.donor.value.match(/Neu(Gc|Ac)/) ? 2 : 1;
+
+  new_res.anomer = this.querySelector('input[name="anomer"]:checked').value;
+
+
+  new_res.parent_linkage = this.querySelector('input[name="donor"]:checked').value.match(/Neu(Gc|Ac)/) ? 2 : 1;
 
   if ( (this.residue instanceof Repeat.Monosaccharide) &&
        this.residue.repeat.mode === Repeat.MODE_MINIMAL &&
        (! this.residue.endsRepeat || this.residue.repeat.root.identifier !== new_res.identifier) &&
        (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0)
       ) {
-    this.residue.original.addChild(parseInt(this.linkage.value),new_res);
+    this.residue.original.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
   } else {
-    this.residue.addChild(parseInt(this.linkage.value),new_res);
+    this.residue.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
   }
   this.residue.balance();
 
@@ -1060,11 +1075,11 @@ class SViewer extends WrapHTML {
       }
     });
 
-    populate_palette(this,this.shadowRoot.getElementById('palette'));
-
-
-    initialise_renderer.call(this);
-    initialise_events.call(this);
+    populate_palette(this,this.shadowRoot.getElementById('palette'))
+    .then( () => {
+      initialise_renderer.call(this);
+      initialise_events.call(this);
+    });
 
     setTimeout(() => {
       this.shadowRoot.querySelector('#palette').classList.remove('expanded');
