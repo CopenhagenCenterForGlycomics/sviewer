@@ -3,7 +3,7 @@
 
 import * as debug from 'debug-any-level';
 
-import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, SVGRenderer, CanvasRenderer, Repeat } from 'glycan.js';
+import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, SVGRenderer, CanvasRenderer, Repeat, Reaction } from 'glycan.js';
 
 import { RoughCanvasRenderer } from 'rough-glycan.js';
 
@@ -20,6 +20,8 @@ const log = debug(module_string);
 const Iupac = CondensedIupac.IO;
 
 const IupacSugar = Mass(Iupac(Sugar));
+
+class IupacReaction extends Iupac(Reaction) {}
 
 import { Tween, autoPlay } from 'es6-tween';
 
@@ -824,14 +826,20 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
   return Promise.resolve(SVGRenderer.SYMBOLS)
   .then( (xml) => icons.innerHTML = xml )
   .then( () => {
-
+    let exportparts = 'donor-button';
     for (let sug of widget.donors) {
       let palette_entry = palette_template.content.cloneNode(true);
       palette_entry.querySelector('use').setAttribute('xlink:href',`#${sug.toLowerCase()}`);
       palette_entry.querySelector('input').setAttribute('value',sug);
+      palette_entry.querySelector('label').setAttribute('data-donor',sug.toLowerCase());
+      palette_entry.querySelector('label').setAttribute('part',`donor-button, donor-${sug.toLowerCase()}`);
+      exportparts += `, donor-${sug.toLowerCase()}`;
+
       palette.appendChild(palette_entry);
       wire_palette_watcher(palette.lastElementChild);
     }
+    widget.setAttribute('exportparts',exportparts);
+
     palette.style.setProperty( '--palette-item-count', palette.children.length);
   });
 };
@@ -863,18 +871,32 @@ let form_action = function(widget,ev) {
 
   new_res.parent_linkage = this.querySelector('input[name="donor"]:checked').value.match(/Neu(Gc|Ac)/) ? 2 : 1;
 
+  let delta = `${new_res.identifier}(${new_res.anomer}${new_res.parent_linkage}-${this.querySelector('input[name="linkage"]:checked').value})`;
+
+  // delta='HSO3(u?-N)GlcN';
+
+  let reaction_string = `${this.residue.identifier}(u?-?)*+"{${delta}@y2a}"`;
+
+  let reaction = new IupacReaction();
+  reaction.sequence = reaction_string;
+
+  let renderer = this.residue.renderer;
+
   if ( (this.residue instanceof Repeat.Monosaccharide) &&
-       this.residue.repeat.mode === Repeat.MODE_MINIMAL &&
-       (! this.residue.endsRepeat || this.residue.repeat.root.identifier !== new_res.identifier) &&
-       (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0)
-      ) {
-    this.residue.original.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
+       (this.residue.repeat.mode === Repeat.MODE_MINIMAL) ) {
+
+    if ( (! this.residue.endsRepeat || this.residue.repeat.root.identifier !== new_res.identifier) &&
+         (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0) ) {
+      this.residue.original.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
+    } else {
+      this.residue.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
+    }
+
   } else {
-    this.residue.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
+    reaction.execute(renderer.sugars[0],this.residue);
   }
   this.residue.balance();
 
-  let renderer = this.residue.renderer;
   repeatCallback(renderer.sugars[0]);
 
   renderer.refresh().then( () => {

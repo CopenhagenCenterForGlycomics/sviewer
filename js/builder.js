@@ -81,7 +81,9 @@ const adapt_form = function(elements,values) {
 };
 
 const update_donors = async function(donors) {
-  let reaction_donors = donors.reactions.map( reac => [].concat(reac.delta.composition()).reverse().shift().identifier )
+  let reaction_donors = donors.reactions
+                              .filter( reac => reac.delta.composition().length == 2 )
+                              .map( reac => [].concat(reac.delta.composition()).reverse().shift().identifier )
                               .filter( (o,i,a) => a.indexOf(o) == i );
   const viewer = this.shadowRoot.getElementById('viewer');
   reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 );
