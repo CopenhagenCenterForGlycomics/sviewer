@@ -84,10 +84,29 @@ const update_donors = async function(donors) {
   let reaction_donors = donors.reactions
                               .filter( reac => reac.delta.composition().length == 2 )
                               .map( reac => [].concat(reac.delta.composition()).reverse().shift().identifier )
-                              .filter( (o,i,a) => a.indexOf(o) == i );
+                              .filter( (o,i,a) => a.indexOf(o) === i );
   const viewer = this.shadowRoot.getElementById('viewer');
-  reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 );
-  return viewer.setDonors(viewer.donors.concat( reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 ) ));
+  let single_residue_donors = viewer.donors.concat( reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 ) );
+  let chain_donors = donors.reactions
+                              .filter( reac => reac.delta.composition().length > 2 );
+
+  let chain_map = new Map();
+
+  for (let reactionset of chain_donors) {
+    for (let reaction of reactionset.positive) {
+      let reaction_sequence = reaction.delta.sequence;
+      chain_map.set(reaction_sequence,reaction);
+      single_residue_donors.push( reaction_sequence );
+    }
+  }
+  let unique_donors = single_residue_donors.filter( (o,i,a) => a.indexOf(o) === i  )
+                      .map( donor => {
+                        if (chain_map.get(donor)) {
+                          return { donor, reaction: chain_map.get(donor) };
+                        }
+                        return donor;
+                      })
+  return viewer.setDonors(unique_donors);
 };
 
 const reset_form_disabled = function(widget,viewer) {
@@ -245,6 +264,8 @@ class SugarBuilder extends WrapHTML {
     update_donors.call(this,this.reactiongroup).then( () => {
       reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
     });
+    let epimerases = this.reactiongroup.reactions.filter( reac => reac.delta.root.identifier != 'Root' );
+    console.log(epimerases);
   }
 
   get reactions() {

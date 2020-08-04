@@ -817,23 +817,76 @@ const wire_palette_watcher = (label) => {
   // observer.disconnect();
 };
 
+const active_palette_population_symbol = Symbol('ACTIVE_POPULATION');
+
+let ensure_sugar_icon = (defs_block,sequence) => {
+  let safe_seq = sequence.toLowerCase().replace(/[()]/g,'_');
+  if (defs_block.querySelector(`#${safe_seq}`)) {
+    return;
+  }
+  SugarAwareLayoutFishEye.LINKS = false;
+  let sugar_renderer = new SVGRenderer(defs_block,SugarAwareLayoutFishEye);
+  let sug = new IupacSugar();
+  sug.sequence = sequence;
+  sugar_renderer.element.canvas.setAttribute('id',safe_seq);
+  sugar_renderer.rotate = true;
+  sugar_renderer.addSugar(sug);
+  sugar_renderer.refresh().then( () => {
+    let a_use = document.createElementNS('http://www.w3.org/2000/svg','use');
+    a_use.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+safe_seq);
+    a_use.style.visibility = 'hidden';
+    defs_block.parentNode.parentNode.style.display = 'block';
+    defs_block.parentNode.appendChild(a_use);
+    sugar_renderer.element.canvas.getBBox = () => {
+      return a_use.getBBox();
+    };
+    sugar_renderer.scaleToFit({side: 0.25, top: 0.5});
+    a_use.parentNode.removeChild(a_use);
+    defs_block.parentNode.parentNode.style.display = 'none';
+    sugar_renderer.element.canvas.setAttribute('preserveAspectRatio','xMidYMid meet');
+  });
+};
+
 let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc','GlcNAc','NeuAc','NeuGc','GlcA','IdoA','Xyl','Fuc']) {
   let icons = widget.shadowRoot.getElementById('icons');
+
   while (palette.lastElementChild && palette.lastElementChild.getAttribute('id') !== 'palette_delete') {
     palette.removeChild(palette.lastElementChild);
   }
+
+  let process_token = Symbol('ACTIVE');
+
+  widget[active_palette_population_symbol] = process_token;
+
   widget[donors_symbol] = donors;
   return Promise.resolve(SVGRenderer.SYMBOLS)
   .then( (xml) => icons.innerHTML = xml )
   .then( () => {
+    if (widget[active_palette_population_symbol] !== process_token) {
+      return;
+    }
+    delete widget[active_palette_population_symbol];
+
     let exportparts = 'donor-button';
     for (let sug of widget.donors) {
+
+      let sug_seq = sug.reaction ? sug.donor: sug;
+      sug_seq = sug_seq.replace(/\([abu]\d+-\d+\)$/,'');
+
+      let safe_seq = sug_seq.toLowerCase().replace(/[()]/g,'_');
+
+      if (sug.reaction) {
+        ensure_sugar_icon(icons.querySelector('defs'),sug_seq);
+      }
       let palette_entry = palette_template.content.cloneNode(true);
-      palette_entry.querySelector('use').setAttribute('xlink:href',`#${sug.toLowerCase()}`);
-      palette_entry.querySelector('input').setAttribute('value',sug);
-      palette_entry.querySelector('label').setAttribute('data-donor',sug.toLowerCase());
-      palette_entry.querySelector('label').setAttribute('part',`donor-button, donor-${sug.toLowerCase()}`);
-      exportparts += `, donor-${sug.toLowerCase()}`;
+      palette_entry.querySelector('use').setAttribute('xlink:href',`#${safe_seq}`);
+      palette_entry.querySelector('input').setAttribute('value',sug_seq);
+      if (sug.reaction) {
+        palette_entry.querySelector('input').reaction = sug.reaction;
+      }
+      palette_entry.querySelector('label').setAttribute('data-donor',sug_seq.toLowerCase());
+      palette_entry.querySelector('label').setAttribute('part',`donor-button, donor-${sug_seq.toLowerCase()}`);
+      exportparts += `, donor-${sug_seq.toLowerCase()}`;
 
       palette.appendChild(palette_entry);
       wire_palette_watcher(palette.lastElementChild);
@@ -879,6 +932,10 @@ let form_action = function(widget,ev) {
 
   let reaction = new IupacReaction();
   reaction.sequence = reaction_string;
+
+  if (this.querySelector('input[name="donor"]:checked').reaction) {
+    reaction = this.querySelector('input[name="donor"]:checked').reaction;
+  }
 
   let renderer = this.residue.renderer;
 
@@ -1114,6 +1171,7 @@ class SViewer extends WrapHTML {
   }
 
   setDonors(donors) {
+    console.log('setDONORS');
     return populate_palette(this,this.shadowRoot.getElementById('palette'),[].concat(donors));
   }
 
