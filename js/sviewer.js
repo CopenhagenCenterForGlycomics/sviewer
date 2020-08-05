@@ -401,6 +401,7 @@ tmpl.innerHTML = `
         <label><span>N</span><input name="linkage" value="${Monosaccharide.LINKAGES.N}" type="radio"></label>
         <label><span>O</span><input name="linkage" value="${Monosaccharide.LINKAGES.O}" type="radio"></label>
         <label><span>?</span><input name="linkage" value="0" type="radio"></label>
+        <label><span>1</span><input name="linkage" value="1" type="radio"></label>
         <label><span>2</span><input name="linkage" value="2" type="radio"></label>
         <label><span>3</span><input name="linkage" value="3" type="radio"></label>
         <label><span>4</span><input name="linkage" value="4" type="radio"></label>
@@ -822,7 +823,7 @@ const active_palette_population_symbol = Symbol('ACTIVE_POPULATION');
 let ensure_sugar_icon = (defs_block,sequence) => {
   let safe_seq = sequence.toLowerCase().replace(/[()]/g,'_');
   if (defs_block.querySelector(`#${safe_seq}`)) {
-    return;
+    return Promise.resolve();
   }
   SugarAwareLayoutFishEye.LINKS = false;
   let sugar_renderer = new SVGRenderer(defs_block,SugarAwareLayoutFishEye);
@@ -831,7 +832,7 @@ let ensure_sugar_icon = (defs_block,sequence) => {
   sugar_renderer.element.canvas.setAttribute('id',safe_seq);
   sugar_renderer.rotate = true;
   sugar_renderer.addSugar(sug);
-  sugar_renderer.refresh().then( () => {
+  return sugar_renderer.refresh().then( () => {
     let a_use = document.createElementNS('http://www.w3.org/2000/svg','use');
     a_use.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+safe_seq);
     a_use.style.visibility = 'hidden';
@@ -861,7 +862,7 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
   widget[donors_symbol] = donors;
   return Promise.resolve(SVGRenderer.SYMBOLS)
   .then( (xml) => icons.innerHTML = xml )
-  .then( () => {
+  .then( async () => {
     if (widget[active_palette_population_symbol] !== process_token) {
       return;
     }
@@ -870,23 +871,16 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
     let exportparts = 'donor-button';
     for (let sug of widget.donors) {
 
-      let sug_seq = sug.reaction ? sug.donor: sug;
-      sug_seq = sug_seq.replace(/\([abu]\d+-\d+\)$/,'');
+      let safe_seq = sug.toLowerCase().replace(/[()]/g,'_');
 
-      let safe_seq = sug_seq.toLowerCase().replace(/[()]/g,'_');
+      await ensure_sugar_icon(icons.querySelector('defs'),sug);
 
-      if (sug.reaction) {
-        ensure_sugar_icon(icons.querySelector('defs'),sug_seq);
-      }
       let palette_entry = palette_template.content.cloneNode(true);
       palette_entry.querySelector('use').setAttribute('xlink:href',`#${safe_seq}`);
-      palette_entry.querySelector('input').setAttribute('value',sug_seq);
-      if (sug.reaction) {
-        palette_entry.querySelector('input').reaction = sug.reaction;
-      }
-      palette_entry.querySelector('label').setAttribute('data-donor',sug_seq.toLowerCase());
-      palette_entry.querySelector('label').setAttribute('part',`donor-button, donor-${sug_seq.toLowerCase()}`);
-      exportparts += `, donor-${sug_seq.toLowerCase()}`;
+      palette_entry.querySelector('input').setAttribute('value',sug);
+      palette_entry.querySelector('label').setAttribute('data-donor',sug.toLowerCase());
+      palette_entry.querySelector('label').setAttribute('part',`donor-button, donor-${sug.toLowerCase()}`);
+      exportparts += `, donor-${sug.toLowerCase()}`;
 
       palette.appendChild(palette_entry);
       wire_palette_watcher(palette.lastElementChild);
@@ -897,67 +891,85 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
   });
 };
 
-let form_action = function(widget,ev) {
-  ev.preventDefault();
-  ev.stopPropagation();
+let extend_sugar = function(residue,donor_value,anomer_value,linkage_value) {
 
   let sug = new IupacSugar();
-  if ( ! (this.querySelector('input[name="donor"]:checked') || {}).value ) {
-    return;
-  }
-  sug.sequence = this.querySelector('input[name="donor"]:checked').value;
 
-  let anomers = [...this.querySelectorAll('input[name="anomer"]:not([disabled])')];
-  if ( ! this.querySelector('input[name="anomer"]:checked') && anomers.length === 1) {
-    anomers[0].checked = true;
-  }
-
-  let linkages = [...this.querySelectorAll('input[name="linkage"]:not([disabled])')];
-  if ( ! this.querySelector('input[name="linkage"]:checked') && linkages.length === 1) {
-    linkages[0].checked = true;
-  }
+  sug.sequence = donor_value;
 
   let new_res = sug.root;
 
-  new_res.anomer = this.querySelector('input[name="anomer"]:checked').value;
+  new_res.anomer = anomer_value;
 
+  new_res.parent_linkage = donor_value.match(/Neu(Gc|Ac)/) ? 2 : 1;
 
-  new_res.parent_linkage = this.querySelector('input[name="donor"]:checked').value.match(/Neu(Gc|Ac)/) ? 2 : 1;
+  let delta = `${sug.sequence}(${new_res.anomer}${new_res.parent_linkage}-${linkage_value})`;
 
-  let delta = `${new_res.identifier}(${new_res.anomer}${new_res.parent_linkage}-${this.querySelector('input[name="linkage"]:checked').value})`;
+  let reaction_string = `${residue.identifier}(u?-?)*+"{${delta}@y2a}"`;
 
-  // delta='HSO3(u?-N)GlcN';
-
-  let reaction_string = `${this.residue.identifier}(u?-?)*+"{${delta}@y2a}"`;
 
   let reaction = new IupacReaction();
   reaction.sequence = reaction_string;
 
-  if (this.querySelector('input[name="donor"]:checked').reaction) {
-    reaction = this.querySelector('input[name="donor"]:checked').reaction;
+  // if (this.querySelector('input[name="donor"]:checked').reaction) {
+  //   reaction = this.querySelector('input[name="donor"]:checked').reaction;
+  // }
+
+  let renderer = residue.renderer;
+
+  if ( (residue instanceof Repeat.Monosaccharide) &&
+       (residue.repeat.mode === Repeat.MODE_MINIMAL) ) {
+
+    if ( (! residue.endsRepeat || residue.repeat.root.identifier !== new_res.identifier) &&
+         (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0) ) {
+      residue.original.addChild(parseInt(linkage_value),new_res);
+    } else {
+      residue.addChild(parseInt(linkage_value),new_res);
+    }
+    return [ ...sug.composition() ];
+  } else {
+    return reaction.execute(renderer.sugars[0],residue);
   }
+}
+
+let form_action = function(widget,ev) {
+  ev.preventDefault();
+  ev.stopPropagation();
+
+  let donor_value = (this.querySelector('input[name="donor"]:checked') || {}).value;
+
+  if ( ! donor_value ) {
+    return;
+  }
+
+  let possible_anomers = [...this.querySelectorAll('input[name="anomer"]:not([disabled])')];
+
+  if ( ! this.querySelector('input[name="anomer"]:checked') && possible_anomers.length === 1) {
+    possible_anomers[0].checked = true;
+  }
+
+  let possible_linkages = [...this.querySelectorAll('input[name="linkage"]:not([disabled])')];
+  if ( ! this.querySelector('input[name="linkage"]:checked') && possible_linkages.length === 1) {
+    possible_linkages[0].checked = true;
+  }
+
+
+  let anomer_value = this.querySelector('input[name="anomer"]:checked').value;
+
+  let linkage_value = this.querySelector('input[name="linkage"]:checked').value;
+
+  let added = widget.extendSugar(this.residue,donor_value,anomer_value,linkage_value);
+
+  this.residue.balance();
 
   let renderer = this.residue.renderer;
-
-  if ( (this.residue instanceof Repeat.Monosaccharide) &&
-       (this.residue.repeat.mode === Repeat.MODE_MINIMAL) ) {
-
-    if ( (! this.residue.endsRepeat || this.residue.repeat.root.identifier !== new_res.identifier) &&
-         (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0) ) {
-      this.residue.original.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
-    } else {
-      this.residue.addChild(parseInt(this.querySelector('input[name="linkage"]:checked').value),new_res);
-    }
-
-  } else {
-    reaction.execute(renderer.sugars[0],this.residue);
-  }
-  this.residue.balance();
 
   repeatCallback(renderer.sugars[0]);
 
   renderer.refresh().then( () => {
-    enableDropResidue.call( widget, renderer,new_res);
+    for (let new_res of added ) {
+      enableDropResidue.call( widget, renderer,new_res);
+    }
     renderer.scaleToFit();
     widget.highlightResidues([]);
   });
@@ -1171,7 +1183,6 @@ class SViewer extends WrapHTML {
   }
 
   setDonors(donors) {
-    console.log('setDONORS');
     return populate_palette(this,this.shadowRoot.getElementById('palette'),[].concat(donors));
   }
 
@@ -1196,6 +1207,10 @@ class SViewer extends WrapHTML {
 
   get repeats() {
     return this[repeats_symbol];
+  }
+
+  extendSugar(residue,donor_value,anomer_value,linkage_value) {
+    return extend_sugar.call(this,residue,donor_value,anomer_value,linkage_value);
   }
 
   highlightResidues(residues) {
