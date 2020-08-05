@@ -120,6 +120,11 @@ tmpl.innerHTML = `
     width: 100%;
   }
 
+  :host([editable]) .widget_contents > div {
+    top: var(--palette-height);
+    height: calc( 100% - var(--palette-height));
+  }
+
   :host .palette {
     display: none;
   }
