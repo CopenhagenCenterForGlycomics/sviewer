@@ -4,7 +4,11 @@
 import * as debug from 'debug-any-level';
 
 import * as Glycan from 'glycan.js';
-import { IupacSugar } from './sviewer';
+import { default as SViewer, IupacSugar } from './sviewer';
+
+const Iupac = Glycan.CondensedIupac.IO;
+
+class IupacReaction extends Iupac(Glycan.Reaction) {}
 
 const module_string='sviewer:builder';
 
@@ -14,6 +18,16 @@ function WrapHTML() { return Reflect.construct(HTMLElement, [], Object.getProtot
 Object.setPrototypeOf(WrapHTML.prototype, HTMLElement.prototype);
 Object.setPrototypeOf(WrapHTML, HTMLElement);
 
+const donor_map_symbol = Symbol('donor_map');
+
+class Builder extends SViewer {
+  extendSugar(residue,donor_value,anomer_value,linkage_value) {
+    return extend_sugar.call(this,residue,donor_value,anomer_value,linkage_value);
+  }
+}
+
+customElements.define('x-builder',Builder);
+
 const tmpl = document.createElement('template');
 
 tmpl.innerHTML = `
@@ -22,7 +36,7 @@ tmpl.innerHTML = `
     display: block;
     position: relative;
   }
-  :host x-sviewer {
+  :host x-builder {
     width: 100%;
     height: 100%;
     --demoted-opacity: 0.8;
@@ -35,7 +49,7 @@ tmpl.innerHTML = `
   }
 </style>
 <div class="widget_contents" >
-  <x-sviewer editable resizable links id="viewer"><slot></slot></x-sviewer>
+  <x-builder editable resizable links id="viewer"><slot></slot></x-builder>
 </div>
 `;
 
@@ -81,12 +95,85 @@ const adapt_form = function(elements,values) {
 };
 
 const update_donors = async function(donors) {
-  let reaction_donors = donors.reactions.map( reac => [].concat(reac.delta.composition()).reverse().shift().identifier )
-                              .filter( (o,i,a) => a.indexOf(o) == i );
+  let reaction_donors = donors.reactions
+                              .filter( reac => reac.delta.composition().length == 2 )
+                              .map( reac => [].concat(reac.delta.composition()).reverse().shift().identifier )
+                              .filter( (o,i,a) => a.indexOf(o) === i );
   const viewer = this.shadowRoot.getElementById('viewer');
-  reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 );
-  return viewer.setDonors(viewer.donors.concat( reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 ) ));
+  let donor_descriptors = viewer.donors.concat( reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 ) );
+  let chain_donors = donors.reactions
+                              .filter( reac => reac.delta.composition().length > 2 );
+
+  let donor_reaction_map = new Map();
+
+  for (let reactionset of chain_donors) {
+    for (let reaction of reactionset.positive) {
+      let reaction_sequence = reaction.delta.sequence.replace(/\([abu]\d+-\d+\)$/,'');
+      if ( ! donor_reaction_map.has(reaction_sequence) ) {
+        donor_reaction_map.set( reaction_sequence, new Map());
+      }
+      donor_reaction_map.get(reaction_sequence).set(reaction.delta.sequence,reaction);
+      donor_descriptors.push( reaction_sequence );
+    }
+  }
+
+  viewer[donor_map_symbol] = donor_reaction_map;
+
+  let unique_donors = donor_descriptors.filter( (o,i,a) => a.indexOf(o) === i  );
+  return viewer.setDonors(unique_donors);
 };
+
+function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
+  let sug = new IupacSugar();
+
+  sug.sequence = donor_value;
+
+  let new_res = sug.root;
+
+  new_res.anomer = anomer_value;
+
+  new_res.parent_linkage = donor_value.match(/Neu(Gc|Ac)/) ? 2 : 1;
+
+  let delta = `${sug.sequence}(${new_res.anomer}${new_res.parent_linkage}-${linkage_value})`;
+
+  let reaction_string = `${residue.identifier}(u?-?)*+"{${delta}@y2a}"`;
+
+  let reaction = new IupacReaction();
+  reaction.sequence = reaction_string;
+
+  let donor_map = this[donor_map_symbol];
+  if (donor_map.has(donor_value)) {
+    let donor_reactions = donor_map.get(donor_value);
+    for (let donor_reaction of donor_reactions.values()) {
+      if (donor_reaction.delta.root.identifier !== 'Root') {
+        reaction = donor_reaction;
+        continue;
+      }
+      let child = donor_reaction.delta.root.children[0];
+      let child_linkage = donor_reaction.delta.root.linkageOf(child);
+      if (child.anomer == anomer_value && child_linkage == linkage_value) {
+        reaction = donor_reaction;
+      }
+    }
+  }
+
+  let renderer = residue.renderer;
+
+  if ( (residue instanceof Glycan.Repeat.Monosaccharide) &&
+       (residue.repeat.mode === Glycan.Repeat.MODE_MINIMAL) ) {
+
+    if ( (! residue.endsRepeat || residue.repeat.root.identifier !== new_res.identifier) &&
+         (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0) ) {
+      residue.original.addChild(parseInt(linkage_value),new_res);
+    } else {
+      residue.addChild(parseInt(linkage_value),new_res);
+    }
+    return [ ...sug.composition() ];
+  } else {
+    return reaction.execute(renderer.sugars[0],residue);
+  }
+
+}
 
 const reset_form_disabled = function(widget,viewer) {
   let sugar = viewer.renderer.sugars[0].clone();
@@ -157,7 +244,7 @@ class SugarBuilder extends WrapHTML {
     }
     let shadowRoot = this.attachShadow({mode: 'open'});
     let template_content = tmpl.content.cloneNode(true);
-    template_content.querySelector('x-sviewer').setAttribute('sugars',this.getAttribute('sugars'));
+    template_content.querySelector('x-builder').setAttribute('sugars',this.getAttribute('sugars'));
     shadowRoot.appendChild(template_content);
     wire_sviewer_events.call(this,shadowRoot.getElementById('viewer'));
     this.attributeChangedCallback('horizontal');
@@ -243,6 +330,8 @@ class SugarBuilder extends WrapHTML {
     update_donors.call(this,this.reactiongroup).then( () => {
       reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
     });
+    let epimerases = this.reactiongroup.reactions.filter( reac => reac.delta.root.identifier != 'Root' );
+    console.log(epimerases);
   }
 
   get reactions() {
