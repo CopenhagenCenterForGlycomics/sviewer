@@ -1225,6 +1225,10 @@ class SViewer extends WrapHTML {
     let layout = this.renderer.layoutFor(residues[0]);
     let canv = this.shadowRoot.querySelector('#highlights');
     const ctx = canv.getContext('2d');
+    const zoom = Math.ceil(1 / parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2)));
+
+    const scale_factor = Math.max(1,zoom);
+
     ctx.clearRect(0, 0, canv.width, canv.height);
     if (this.anim_tween) {
       this.anim_tween.stop();
@@ -1234,8 +1238,9 @@ class SViewer extends WrapHTML {
       return;
     }
     let boundingrect = canv.getBoundingClientRect();
-    canv.width = boundingrect.width;
-    canv.height = boundingrect.height;
+    canv.width = scale_factor*boundingrect.width;
+    canv.height = scale_factor*boundingrect.height;
+    ctx.scale(scale_factor,scale_factor);
     let {x,y,width,height} = this.renderer.screenCoordinatesFromLayout(layout);
     x = x-boundingrect.left;
     y = y-boundingrect.top;
