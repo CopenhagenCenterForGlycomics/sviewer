@@ -801,11 +801,18 @@ const wire_palette_watcher = (label) => {
             return;
           }
           if (mutation.type == 'attributes') {
+              let current_parts = new Set((label.getAttribute('part') || '').split(', '));
+              if (current_parts.has('donor-disabled')) {
+                current_parts.delete('donor-disabled');
+              }
               if (label.querySelector('input[disabled]')) {
                 label.setAttribute('data-disabled','');
+                current_parts.add('donor-disabled');
               } else {
                 label.removeAttribute('data-disabled');
               }
+              label.setAttribute('part', [...current_parts].join(', '));
+
               if (label.querySelector('input[data-weight]')) {
                 label.setAttribute('data-weight',label.querySelector('input[data-weight]').getAttribute('data-weight'));
               } else {
@@ -873,7 +880,7 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
     }
     delete widget[active_palette_population_symbol];
 
-    let exportparts = 'donor-button';
+    let exportparts = 'donor-button, donor-disabled';
     for (let sug of widget.donors) {
 
       let safe_seq = sug.toLowerCase().replace(/[()]/g,'_');
@@ -884,8 +891,7 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
       palette_entry.querySelector('use').setAttribute('xlink:href',`#${safe_seq}`);
       palette_entry.querySelector('input').setAttribute('value',sug);
       palette_entry.querySelector('label').setAttribute('data-donor',sug.toLowerCase());
-      palette_entry.querySelector('label').setAttribute('part',`donor-button, donor-${sug.toLowerCase()}`);
-      exportparts += `, donor-${sug.toLowerCase()}`;
+      palette_entry.querySelector('label').setAttribute('part',`donor-button`);
 
       palette.appendChild(palette_entry);
       wire_palette_watcher(palette.lastElementChild);
