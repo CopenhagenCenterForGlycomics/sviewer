@@ -11,7 +11,7 @@ import ImageSaver from './imagesaver';
 
 import { default as repeatCallback, ModifiableRepeat } from './autorepeat';
 
-import { DraggableForm, DragManager } from 'DragMenus';
+import { DraggableForm, DragManager, ShadowDragDropTouch } from 'DragMenus';
 
 const module_string='sviewer:sviewer';
 
@@ -1152,6 +1152,9 @@ class SViewer extends WrapHTML {
       ShadyCSS.styleElement(this);
     }
     let shadowRoot = this.attachShadow({mode: 'open'});
+
+    new ShadowDragDropTouch(this);
+
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
 
     this.form = this.shadowRoot.getElementById('new_linkage');
