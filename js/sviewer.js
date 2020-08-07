@@ -1235,11 +1235,13 @@ class SViewer extends WrapHTML {
 
     const scale_factor = Math.max(1,zoom);
 
-    ctx.clearRect(0, 0, canv.width, canv.height);
     if (this.anim_tween) {
       this.anim_tween.stop();
       delete this.anim_tween;
     }
+
+    ctx.clearRect(0, 0, canv.width, canv.height);
+
     if ( ! layout ) {
       return;
     }
