@@ -9,6 +9,8 @@ import { RoughCanvasRenderer } from 'rough-glycan.js';
 
 import ImageSaver from './imagesaver';
 
+import Highlighter from './highlighter';
+
 import { default as repeatCallback, ModifiableRepeat } from './autorepeat';
 
 import { DraggableForm, DragManager, ShadowDragDropTouch } from 'DragMenus';
@@ -23,13 +25,15 @@ const IupacSugar = Mass(Iupac(Sugar));
 
 class IupacReaction extends Iupac(Reaction) {}
 
-import { Tween, autoPlay } from 'es6-tween';
-
 const sequence_symbol = Symbol('sequence');
 
 const donors_symbol = Symbol('donors');
 
 const repeats_symbol = Symbol('repeats');
+
+const highlighter_symbol = Symbol('highlighter');
+
+const RESIDUE_SELECTION_TIMEOUT = 500;
 
 const tmpl = document.createElement('template');
 
@@ -58,11 +62,6 @@ tmpl.innerHTML = `
   :host #output {
     display: flex;
     justify-content: center;
-  }
-
-  :host #highlights {
-    width: 100%;
-    height: 100%;
   }
 
   :host .widget_contents > div > svg {
@@ -377,7 +376,6 @@ tmpl.innerHTML = `
 
 </style>
 <div class="widget_contents" >
-  <canvas id="highlights"></canvas>
   <div id="icons"></div>
   <div id="output"></div>
   <form id="new_linkage">
@@ -514,7 +512,7 @@ let show_anomer = function(residue,target) {
   }
   log.info('Setting target to',residue.identifier);
   delete form.active_residue;
-  this.highlightResidues([]);
+  this.highlightResidues();
   form.residue = residue;
   let event = new Event('change',{bubbles: true});
   form.dispatchEvent(event);
@@ -575,7 +573,7 @@ let enableDropResidue = function(renderer,residue) {
     if ( ! form.active_center ) {
       form.clear();
     }
-    this.highlightResidues([]);
+    this.highlightResidues();
   });
 
   target.addEventListener('click', (ev) => {
@@ -627,7 +625,7 @@ let enableDropResidue = function(renderer,residue) {
       clearTimeout(form.menu_timeout);
     }
 
-    form.menu_timeout = setTimeout(show_anomer.bind(this,residue,ev.target),500);
+    form.menu_timeout = setTimeout(show_anomer.bind(this,residue,ev.target),RESIDUE_SELECTION_TIMEOUT);
   });
 };
 
@@ -681,7 +679,7 @@ let wire_renderer_canvas_events = function() {
       if (this.form.menu_timeout) {
         clearTimeout(this.form.menu_timeout);
       }
-      this.highlightResidues([]);
+      this.highlightResidues();
 
       return;
     }
@@ -689,7 +687,7 @@ let wire_renderer_canvas_events = function() {
 
   this.addEventListener('dragend', () => {
     this.classList.remove('dragging');
-    this.highlightResidues([]);
+    this.highlightResidues();
     setTimeout(() =>{
       this.form.reset();
     },100);
@@ -982,7 +980,7 @@ let form_action = function(widget,ev) {
       enableDropResidue.call( widget, renderer,new_res);
     }
     renderer.scaleToFit();
-    widget.highlightResidues([]);
+    widget.highlightResidues();
   });
   widget.sequence = renderer.sugars[0].sequence;
   this.reset();
@@ -1190,6 +1188,22 @@ class SViewer extends WrapHTML {
       this.shadowRoot.querySelector('#palette').classList.remove('expanded');
     },1000);
 
+    let selection_highlighter = new Highlighter(this,'selection');
+    selection_highlighter.setStates({angle:0, opacity:0}, { angle: 2*Math.PI, opacity: 1 });
+    selection_highlighter.duration = RESIDUE_SELECTION_TIMEOUT - 50;
+    selection_highlighter.draw = ({ angle, opacity },{x, y, width, height},ctx) => {
+      ctx.clearRect(x-0.5*width,y-0.5*height,2*width,2*height);
+      ctx.beginPath();
+      ctx.lineWidth = 10;
+      if (opacity >= 0.9) {
+        ctx.strokeStyle = window.getComputedStyle(this).getPropertyValue('--selection-color');
+      } else {
+        ctx.strokeStyle = `rgba(0,0,0,${opacity.toFixed(2)})`;
+      }
+      ctx.arc( x+0.5*width,y+0.5*height, 1.5*width/2,-0.5*Math.PI, angle-0.5*Math.PI, false );
+      ctx.stroke();
+    };
+    this[highlighter_symbol] = selection_highlighter;
   }
 
   get donors() {
@@ -1227,50 +1241,10 @@ class SViewer extends WrapHTML {
     return extend_sugar.call(this,residue,donor_value,anomer_value,linkage_value);
   }
 
-  highlightResidues(residues) {
-    let layout = this.renderer.layoutFor(residues[0]);
-    let canv = this.shadowRoot.querySelector('#highlights');
-    const ctx = canv.getContext('2d');
-    const zoom = Math.ceil(1 / parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2)));
-
-    const scale_factor = Math.max(1,zoom);
-
-    if (this.anim_tween) {
-      this.anim_tween.stop();
-      delete this.anim_tween;
-    }
-
-    ctx.clearRect(0, 0, canv.width, canv.height);
-
-    if ( ! layout ) {
-      return;
-    }
-    let boundingrect = canv.getBoundingClientRect();
-    canv.width = scale_factor*boundingrect.width;
-    canv.height = scale_factor*boundingrect.height;
-    ctx.scale(scale_factor,scale_factor);
-    let {x,y,width,height} = this.renderer.screenCoordinatesFromLayout(layout);
-    x = x-boundingrect.left;
-    y = y-boundingrect.top;
-    autoPlay(true);
-
-    this.anim_tween = new Tween({angle: 0, opacity: 0})
-    .to({ angle: 2*Math.PI, opacity: 1 }, 450)
-    .on('update', ({ angle, opacity }) => {
-      ctx.clearRect(x-0.5*width,y-0.5*height,2*width,2*height);
-      ctx.beginPath();
-      ctx.lineWidth = 10;
-      if (opacity >= 0.9) {
-        ctx.strokeStyle = window.getComputedStyle(this).getPropertyValue('--selection-color');
-      } else {
-        ctx.strokeStyle = `rgba(0,0,0,${opacity.toFixed(2)})`;
-      }
-      ctx.arc( x+0.5*width,y+0.5*height, 1.5*width/2,-0.5*Math.PI, angle-0.5*Math.PI, false );
-      ctx.stroke();
-    })
-    .start();
-
+  highlightResidues(residues=[]) {
+    this[highlighter_symbol].highlight(residues);
   }
+
 }
 
 customElements.define('x-sviewer',SViewer);
