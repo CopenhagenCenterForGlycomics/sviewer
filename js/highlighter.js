@@ -25,7 +25,7 @@ const active_tweens = new WeakMap();
 function performHighlight(residues=[]) {
   let canv = this.canvas;
   const ctx = canv.getContext('2d');
-  const zoom = Math.ceil(1 / parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2)));
+  const zoom = Math.ceil(parseFloat(( window.document.documentElement.clientWidth / window.innerWidth).toFixed(2)));
 
   const scale_factor = Math.max(1,zoom);
 
@@ -59,7 +59,7 @@ function performHighlight(residues=[]) {
     y = y-boundingrect.top;
 
     tween.on('update', (state) => {
-      this.draw(state,{x, y, width, height},ctx);
+      this.draw(state,{x, y, width, height, zoom },ctx);
     });
   }
 

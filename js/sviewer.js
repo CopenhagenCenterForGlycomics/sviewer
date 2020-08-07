@@ -1191,10 +1191,10 @@ class SViewer extends WrapHTML {
     let selection_highlighter = new Highlighter(this,'selection');
     selection_highlighter.setStates({angle:0, opacity:0}, { angle: 2*Math.PI, opacity: 1 });
     selection_highlighter.duration = RESIDUE_SELECTION_TIMEOUT - 50;
-    selection_highlighter.draw = ({ angle, opacity },{x, y, width, height},ctx) => {
+    selection_highlighter.draw = ({ angle, opacity },{x, y, width, height, zoom},ctx) => {
       ctx.clearRect(x-0.5*width,y-0.5*height,2*width,2*height);
       ctx.beginPath();
-      ctx.lineWidth = 10;
+      ctx.lineWidth = parseFloat((10 / Math.max(zoom,1)).toFixed(2));
       if (opacity >= 0.9) {
         ctx.strokeStyle = window.getComputedStyle(this).getPropertyValue('--selection-color');
       } else {
