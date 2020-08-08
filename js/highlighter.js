@@ -3,7 +3,7 @@ import { Tween, autoPlay } from 'es6-tween';
 const canvas_template = document.createElement('template');
 
 canvas_template.innerHTML = `
-<canvas class="highlight_canvas" style="width: 100%; height: 100%;">
+<canvas class="highlight_canvas" style="width: 100%; height: 100%; position: absolute; top: 0px; left: 0px;">
 </canvas>
 `;
 
@@ -18,6 +18,15 @@ function create_canvas(viewer,identifier) {
      viewer.shadowRoot.insertBefore(new_canvas,viewer.shadowRoot.firstElementChild);
   }
   return new_canvas;
+}
+
+
+function create_offscreen(target,scale_factor) {
+    var offScreenCanvas = document.createElement('canvas');
+    offScreenCanvas.width = target.width;
+    offScreenCanvas.height = target.height;
+    offScreenCanvas.getContext('2d').scale(scale_factor,scale_factor);
+    return offScreenCanvas;
 }
 
 const active_tweens = new WeakMap();
@@ -41,12 +50,20 @@ function performHighlight(residues=[]) {
   canv.height = scale_factor*boundingrect.height;
   ctx.scale(scale_factor,scale_factor);
 
+  let offscreen = create_offscreen(canv,scale_factor);
+
+  let offscreen_ctx = offscreen.getContext('2d');
+
   let renderer = this.viewer.renderer;
 
   let {start,end} = this.states;
 
   let tween = new Tween({...start})
-  .to({...end}, this.duration)
+  .to({...end}, this.duration);
+
+  tween.on('update', () => {
+    offscreen_ctx.clearRect(0, 0, canv.width, canv.height);
+  });
 
   for (let layout of residues.map( res => renderer.layoutFor(res) )) {
     if ( ! layout ) {
@@ -59,13 +76,28 @@ function performHighlight(residues=[]) {
     y = y-boundingrect.top;
 
     tween.on('update', (state) => {
-      this.draw(state,{x, y, width, height, zoom },ctx);
+      this.draw(state,{x, y, width, height, zoom },offscreen_ctx);
     });
   }
 
   autoPlay(true);
   active_tweens.set(this,tween);
+  let tween_done = false;
+  tween.on('complete', () => {
+    tween_done = true;
+  });
+
+  let updater = () => {
+    ctx.clearRect(0, 0, canv.width, canv.height);
+    ctx.drawImage(offscreen, 0, 0);
+    if ( ! tween_done ) {
+      window.requestAnimationFrame(updater);
+    }
+  };
+  window.requestAnimationFrame(updater);
+
   tween.start();
+
 }
 
 const canvas_symbol = Symbol('canvas');

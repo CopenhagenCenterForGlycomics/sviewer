@@ -6,6 +6,9 @@ import * as debug from 'debug-any-level';
 import * as Glycan from 'glycan.js';
 import { default as SViewer, IupacSugar } from './sviewer';
 
+import Highlighter from './highlighter';
+
+
 const Iupac = Glycan.CondensedIupac.IO;
 
 class IupacReaction extends Iupac(Glycan.Reaction) {}
@@ -178,6 +181,7 @@ function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
 const reset_form_disabled = function(widget,viewer) {
   let sugar = viewer.renderer.sugars[0].clone();
   sugar.freeze();
+  viewer.available.highlight();
   let supported = widget.reactiongroup.supportsLinkageAt(sugar);
   if (viewer.form.querySelector('input[name="donor"]')) {
     adapt_form.call(widget,Array.from(viewer.form.querySelectorAll('input[name="donor"]')).filter(el => el.value !== 'delete'),supported.donor);
@@ -190,6 +194,7 @@ const wire_sviewer_events = function(viewer) {
   const widget = this;
   let changed = false;
   viewer.form.addEventListener('change',function() {
+    viewer.available.highlight();
     let reactions = widget.reactiongroup;
 
     let donor_val = (this.querySelector('input[name="donor"]:checked') || {}).value ? this.querySelector('input[name="donor"]:checked').value : undefined;
@@ -201,6 +206,9 @@ const wire_sviewer_events = function(viewer) {
       residue_val = sugar.locate_monosaccharide(viewer.renderer.sugars[0].location_for_monosaccharide(residue_val));
     }
     let supported = reactions.supportsLinkageAt(sugar,donor_val,linkage_val,residue_val);
+    if (supported.substrate) {      
+      viewer.available.highlight(supported.substrate.map( res => sugar.location_for_monosaccharide(res) ).map( loc => viewer.renderer.sugars[0].locate_monosaccharide(loc) ));
+    }
     if (supported.anomerlinks && (this.querySelector('input[name="anomer"]:checked') || {}).value) {
       let existing_linkages = [...this.residue.child_linkages.keys()];
       let anomer = (this.querySelector('input[name="anomer"]:checked') || {}).value;
@@ -214,6 +222,7 @@ const wire_sviewer_events = function(viewer) {
     changed = true;
   });
   viewer.form.addEventListener('reset',function() {
+    viewer.available.highlight();
     if (! changed) {
       return;
     }
@@ -267,6 +276,20 @@ class SugarBuilder extends WrapHTML {
       update_donors.call(this,this.reactiongroup);
       // reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
     }
+
+    let selection_highlighter = new Highlighter(shadowRoot.getElementById('viewer'),'available');
+    selection_highlighter.setStates({opacity:0}, { opacity: 1 });
+    selection_highlighter.duration = 10;
+    selection_highlighter.draw = ({ angle, opacity },{x, y, width, height, zoom},ctx) => {
+      ctx.beginPath();
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = parseFloat((2 / Math.max(zoom,1)).toFixed(2));
+      ctx.strokeStyle = `rgba(0,0,0,0.5)`;
+      ctx.arc( x+0.5*width,y+0.5*height, 1.2*width/2,-0.5*Math.PI, 2*Math.PI, false );
+      ctx.stroke();
+    };
+    shadowRoot.getElementById('viewer').available = selection_highlighter;
+
   }
 
   attributeChangedCallback(name) {
