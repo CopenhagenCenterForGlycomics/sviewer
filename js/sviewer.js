@@ -119,6 +119,14 @@ tmpl.innerHTML = `
     width: 100%;
   }
 
+  :host([editable]) .highlight_canvas {
+    position: absolute;
+    left: 0px;
+    width: 100%;
+    top: var(--palette-height);
+    height: calc( 100% - var(--palette-height));
+  }
+
   :host([editable]) .widget_contents > div {
     top: var(--palette-height);
     height: calc( 100% - var(--palette-height));

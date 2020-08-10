@@ -3,7 +3,7 @@ import { Tween, autoPlay } from 'es6-tween';
 const canvas_template = document.createElement('template');
 
 canvas_template.innerHTML = `
-<canvas class="highlight_canvas" style="width: 100%; height: 100%; position: absolute; top: 0px; left: 0px;">
+<canvas class="highlight_canvas">
 </canvas>
 `;
 
@@ -25,7 +25,6 @@ function create_offscreen(target,scale_factor) {
     var offScreenCanvas = document.createElement('canvas');
     offScreenCanvas.width = target.width;
     offScreenCanvas.height = target.height;
-    offScreenCanvas.getContext('2d').scale(scale_factor,scale_factor);
     return offScreenCanvas;
 }
 
