@@ -16,8 +16,6 @@
     "DragMenus": "hirenj/DragMenus",
     "babel-loader": "^8.0.5",
     "glycan.js": "hirenj/glycan.js",
-    "jshint": "^2.11.0",
-    "precommit-hook": "^3.0.0",
     "raw-loader": "^2.0.0",
     "rough-glycan.js": "hirenj/rough-glycan.js",
     "svgdom": "^0.1.8",
@@ -25,14 +23,12 @@
     "webpack-cli": "^3.3.0"
   },
   "scripts": {
-    "jshint-pre-commit": "./scripts/jshint-pre-commit.sh",
     "build": "./node_modules/babel-cli/bin/babel.js js -d dist",
     "build-watch": "./node_modules/babel-cli/bin/babel.js lib js --watch -d dist",
     "build-web": "./node_modules/.bin/webpack -d",
     "build-watch-web": "./node_modules/.bin/webpack -d --watch",
     "server": "python ./scripts/simplehttpserver",
     "start": "npm run-script build-watch-web & npm run-script server",
-    "lint": "jshint .",
     "validate": "npm ls"
   },
   "browserify": {
@@ -45,8 +41,5 @@
     "url": "git@github.com:hirenj/sviewer.git"
   },
   "author": "",
-  "license": "TBD",
-  "pre-commit": [
-    "jshint-pre-commit"
-  ]
+  "license": "TBD"
 }
