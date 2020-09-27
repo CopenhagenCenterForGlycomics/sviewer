@@ -3,12 +3,14 @@
   "version": "0.0.1",
   "description": "Webcomponent for drawing glycans",
   "main": "./js/index.js",
+  "module": "./js/main.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
     "debug-any-level": "^0.3.0",
-    "es6-tween": "^5.5.10"
+    "es6-tween": "^5.5.10",
+    "esm": "^3.2.25"
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",
