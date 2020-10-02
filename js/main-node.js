@@ -85,16 +85,38 @@ const IupacSugar = Mass(Iupac(Sugar));
 
 
 async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser',options={linkage:false,oxford:false}) {
-  let sugar = new IupacSugar();
-  sugar.sequence = sequence;
+  let is_array_input = Array.isArray(sequence);
+  if (! Array.isArray(sequence)) {
+    sequence = [sequence];
+  }
+  let sugars = sequence.map( seq => {
+    let sugar = new IupacSugar();
+    sugar.sequence = seq;
+    return sugar;
+  });
   let renderer = new BrowserShimmedSVGRenderer(options.oxford ? LinkageLayout : SugarAwareLayout);
-  renderer.addSugar(sugar);
+  for (let sugar of sugars) {
+    renderer.addSugar(sugar);
+  }
   renderer.LayoutEngine.LINKS = options.linkage ? true : false;
   renderer.rotate = false;
   renderer.refresh();
   renderer.scaleToFit();
   return BrowserShimmedSVGRenderer.AppendSymbols(renderer.element.canvas.querySelector('defs')).then( () => {
-    return renderer.element.canvas.outerHTML;
+    
+    let result = sugars.map( sugar => {
+      let target = renderer.element.canvas.cloneNode()
+      target.appendChild(renderer.element.canvas.querySelector('defs').cloneNode(true));
+      target.appendChild(renderer.rendered.get(sugar).element);
+      return target.outerHTML;
+    });
+
+    if ( ! is_array_input ) {
+      return result[0];
+    } else {
+      return result;
+    }
+
   });
 };
 
