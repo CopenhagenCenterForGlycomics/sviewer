@@ -47,6 +47,8 @@ tmpl.innerHTML = `
     --sugars-url:/sugars.svg;
     --palette-background-color: #eee;
     --selection-color: var(#6052E2,--selection-color);
+    --button-default-background-color: var(#eee,--button-default-background-color);
+    --button-color: var(#000,--button-color);
   }
 
   :host([resizeable]) {
@@ -173,14 +175,24 @@ tmpl.innerHTML = `
     filter: drop-shadow(3px 2px 2px rgba(50, 50, 0, 0.5));
   }
 
+  :host #palette_closer:hover {
+    background-color: var(--selection-color);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: rgba(0,0,0,1); fill: none;%7D line %7B stroke: rgba(255,255,255,1) %7D %3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
+  }
+
   :host #palette_closer {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: %23000; fill: rgba(240,240,240,1);%7D%3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
+    background-color: var(--button-default-background-color);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: rgba(0,0,0,1); fill: none;%7D line %7B stroke: rgba(255,255,255,1) %7D %3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
+
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
+
     width: var(--palette-icon-size);
     height: var(--palette-icon-size);
     -moz-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
-    transition: all 0.5s ease-in-out;
+    transition: transform 0.5s ease-in-out;
     background-repeat: no-repeat;
     position: relative;
     cursor: pointer;
