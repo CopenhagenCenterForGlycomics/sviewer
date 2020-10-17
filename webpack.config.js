@@ -1,10 +1,22 @@
+const path = require('path');
+
 module.exports = {
   entry: {
-    'sviewer': [ './js/sugarviewers.js' ],
+    'sviewer-browser': [ './js/sugarviewers.js' ],
+    'sviewer-headless' : [ './js/headless.js' ]
   },
   output: {
     filename: '[name].bundle.js',
     path: __dirname + '/dist'
+  },
+  resolve: {
+    alias: {
+      'fontkit' : path.resolve('./shim.js'),
+      'glycan.js' : path.resolve('./node_modules/glycan.js')
+    }
+  },
+  node: {
+    fs: "empty"
   },
   module: {
     rules: [

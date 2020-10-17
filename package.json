@@ -3,12 +3,14 @@
   "version": "0.0.1",
   "description": "Webcomponent for drawing glycans",
   "main": "./js/index.js",
+  "module": "./js/main.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
     "debug-any-level": "^0.3.0",
-    "es6-tween": "^5.5.10"
+    "es6-tween": "^5.5.10",
+    "esm": "^3.2.25"
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",
@@ -16,22 +18,19 @@
     "DragMenus": "hirenj/DragMenus",
     "babel-loader": "^8.0.5",
     "glycan.js": "hirenj/glycan.js",
-    "jshint": "^2.11.0",
-    "precommit-hook": "^3.0.0",
     "raw-loader": "^2.0.0",
     "rough-glycan.js": "hirenj/rough-glycan.js",
+    "svgdom": "^0.1.8",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
   },
   "scripts": {
-    "jshint-pre-commit": "./scripts/jshint-pre-commit.sh",
     "build": "./node_modules/babel-cli/bin/babel.js js -d dist",
     "build-watch": "./node_modules/babel-cli/bin/babel.js lib js --watch -d dist",
     "build-web": "./node_modules/.bin/webpack -d",
     "build-watch-web": "./node_modules/.bin/webpack -d --watch",
     "server": "python ./scripts/simplehttpserver",
     "start": "npm run-script build-watch-web & npm run-script server",
-    "lint": "jshint .",
     "validate": "npm ls"
   },
   "browserify": {
@@ -44,8 +43,5 @@
     "url": "git@github.com:hirenj/sviewer.git"
   },
   "author": "",
-  "license": "TBD",
-  "pre-commit": [
-    "jshint-pre-commit"
-  ]
+  "license": "TBD"
 }
