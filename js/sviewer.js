@@ -1126,7 +1126,6 @@ class SViewer extends WrapHTML {
     if ( padding_top && typeof padding_top !== 'undefined' ) {
       padding.top = parseFloat(padding_top);
     }
-    console.log(padding);
     return this.renderer.scaleToFit(padding);
   }
 
