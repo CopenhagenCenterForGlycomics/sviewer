@@ -663,7 +663,7 @@ let redraw_sugar = function() {
         enableDropResidue.call( this, this.renderer,residue );
       }
     }
-    this.renderer.scaleToFit();
+    this.scaleToFit();
   });
 };
 
@@ -1000,7 +1000,7 @@ let form_action = function(widget,ev) {
     for (let new_res of added ) {
       enableDropResidue.call( widget, renderer,new_res);
     }
-    renderer.scaleToFit();
+    widget.scaleToFit();
     widget.highlightResidues();
   });
   widget.sequence = renderer.sugars[0].sequence;
@@ -1111,8 +1111,23 @@ class SViewer extends WrapHTML {
           enableDropResidue.call( this, this.renderer,residue );
         }
       }
-      this.renderer.scaleToFit();
+      this.scaleToFit();
     });
+  }
+
+  scaleToFit() {
+    let padding = this.renderer.constructor.DEFAULT_PADDING || { top: 0, side: 0 };
+    let padding_side = window.getComputedStyle(this).getPropertyValue('--sugar-padding-side');
+    let padding_top = window.getComputedStyle(this).getPropertyValue('--sugar-padding-top');
+
+    if ( padding_side && typeof padding_side !== 'undefined' ) {
+      padding.side = parseFloat(padding_side);
+    }
+    if ( padding_top && typeof padding_top !== 'undefined' ) {
+      padding.top = parseFloat(padding_top);
+    }
+    console.log(padding);
+    return this.renderer.scaleToFit(padding);
   }
 
   async toDataURL(format='image/svg') {
@@ -1151,7 +1166,7 @@ class SViewer extends WrapHTML {
       }
       if (this.renderer) {
         this.renderer.refresh();
-        this.renderer.scaleToFit();
+        this.scaleToFit();
       }
     }
     if (name === 'sugars') {
@@ -1173,13 +1188,13 @@ class SViewer extends WrapHTML {
       update_icon_text_orientation.call(this);
 
       this.renderer.refresh();
-      setTimeout(() => this.renderer.scaleToFit(),500);
+      setTimeout(() => this.scaleToFit(),500);
     }
     if (name === 'linkangles') {
       this.LayoutEngine.LINKS = this.renderer.LayoutEngine.LINKS;
       this.renderer.LayoutEngine = this.LayoutEngine;
       this.renderer.refresh();
-      this.renderer.scaleToFit();
+      this.scaleToFit();
     }
   }
 
