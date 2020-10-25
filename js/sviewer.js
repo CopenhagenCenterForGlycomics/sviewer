@@ -7,7 +7,7 @@ import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, Sugar
 
 import { RoughCanvasRenderer } from 'rough-glycan.js';
 
-import ImageSaver from './imagesaver';
+import { default as ImageSaver, prepare as prepareImage } from './imagesaver';
 
 import Highlighter from './highlighter';
 
@@ -1115,6 +1115,17 @@ class SViewer extends WrapHTML {
     });
   }
 
+  async toDataURL(format='image/svg') {
+    if (format == 'image/svg') {
+      format = 'svg'
+    }
+    if (format == 'image/png') {
+      format = 'png'
+    }
+    let data = await prepareImage(this,this.renderer.element.canvas,format);
+    return data;
+  }
+
   save(format='svg') {
     ImageSaver(this,this.renderer.element.canvas,format,this.sequence);
   }
@@ -1248,6 +1259,8 @@ class SViewer extends WrapHTML {
       slot.dispatchEvent(new Event('slotchange'));
       repeatCallback(this.renderer.sugars[0]);
       update_repeats.call(this);
+      let event = new Event('change',{bubbles: true});
+      this.dispatchEvent(event);
     }
     return seq;
   }

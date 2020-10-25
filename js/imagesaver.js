@@ -18,11 +18,15 @@ const rect_tmpl = document.createElement('template');
 
 rect_tmpl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg"><rect  x="0" y="0" width="100" height="100" fill="#fff" opacity="0" /></svg>';
 
-let save = (widget,svg,format='png',filename='image') => {
+let save = async (widget,svg,format='png',filename='image') => {
+  let data = await prepare(widget,svg,format);
+  download(data,`${filename}.${format}`);
+}
+
+let prepare = (widget,svg,format='png') => {
   if (format === 'png' && (svg instanceof HTMLCanvasElement)) {
     let uri = svg.toDataURL('image/png').replace('image/png', 'image/octet-stream');
-    download(uri,`${filename}.png`);
-    return;
+    return Promise.resolve(uri);
   }
   let canvas = document.createElement('canvas');
   canvas.width=widget.getBoundingClientRect().width;
@@ -58,24 +62,28 @@ let save = (widget,svg,format='png',filename='image') => {
     //add xml declaration
     data = '<?xml version="1.0" standalone="no"?>\r\n' + data;
 
-    return download('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data),`${filename}.svg`);
+    return Promise.resolve('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data));
   }
 
   var img = new Image();
   var svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
   var url = window.URL.createObjectURL(svgBlob);
 
-  img.onload = function () {
-    ctx.drawImage(img, 0, 0);
-    window.URL.revokeObjectURL(url);
 
-    let uri = canvas
-        .toDataURL('image/png')
-        .replace('image/png', 'image/octet-stream');
-    download(uri,`${filename}.png`);
-  };
+  return new Promise( resolve => {
+    img.onload = function () {
+      ctx.drawImage(img, 0, 0);
+      window.URL.revokeObjectURL(url);
 
-  img.src = url;
+      let uri = canvas
+          .toDataURL('image/png')
+          .replace('image/png', 'image/octet-stream');
+      resolve(uri);
+    };
+    img.src = url;
+  });
+
 };
 
 export default save;
+export { prepare, download };

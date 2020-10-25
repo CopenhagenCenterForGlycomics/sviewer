@@ -290,6 +290,11 @@ class SugarBuilder extends WrapHTML {
     };
     shadowRoot.getElementById('viewer').available = selection_highlighter;
 
+    shadowRoot.getElementById('viewer').addEventListener('change', (ev) => {
+      let event = new Event('change',{bubbles: true});
+      this.dispatchEvent(event);
+    });
+
   }
 
   attributeChangedCallback(name) {
@@ -326,6 +331,9 @@ class SugarBuilder extends WrapHTML {
     this.shadowRoot.getElementById('viewer').save('svg');
   }
 
+  async toDataURL(format) {
+    return this.shadowRoot.getElementById('viewer').toDataURL(format);
+  }
 
   set sequence(sequence) {
     this.shadowRoot.getElementById('viewer').sequence = sequence;
