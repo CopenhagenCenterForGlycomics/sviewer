@@ -1116,7 +1116,7 @@ class SViewer extends WrapHTML {
   }
 
   scaleToFit() {
-    let padding = this.renderer.constructor.DEFAULT_PADDING || { top: 0, side: 0 };
+    let padding = Object.assign({}, this.renderer.constructor.DEFAULT_PADDING || { top: 0, side: 0 });
     let padding_side = window.getComputedStyle(this).getPropertyValue('--sugar-padding-side');
     let padding_top = window.getComputedStyle(this).getPropertyValue('--sugar-padding-top');
 
