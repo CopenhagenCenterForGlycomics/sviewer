@@ -105,13 +105,20 @@ const update_donors = async function(donors) {
   const viewer = this.shadowRoot.getElementById('viewer');
   let donor_descriptors = viewer.donors.concat( reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 ) );
   let chain_donors = donors.reactions
-                              .filter( reac => reac.delta.composition().length > 2 );
+                              .filter( reac => reac.delta.composition().length > 2 || reac.delta.root.identifier !== 'Root' );
 
   let donor_reaction_map = new Map();
 
   for (let reactionset of chain_donors) {
     for (let reaction of reactionset.positive) {
       let reaction_sequence = reaction.delta.sequence.replace(/\([abu]\d+-\d+\)$/,'');
+      if (reaction.delta.root.identifier !== 'Root') {
+        let donor_res = reaction.delta.root.children[0];
+        if ( ! donor_res ) {
+          continue;
+        }
+        reaction_sequence = donor_res.toSugar(reaction.delta.constructor).sequence;
+      }
       if ( ! donor_reaction_map.has(reaction_sequence) ) {
         donor_reaction_map.set( reaction_sequence, new Map());
       }
@@ -148,10 +155,6 @@ function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
   if (donor_map.has(donor_value)) {
     let donor_reactions = donor_map.get(donor_value);
     for (let donor_reaction of donor_reactions.values()) {
-      if (donor_reaction.delta.root.identifier !== 'Root') {
-        reaction = donor_reaction;
-        continue;
-      }
       let child = donor_reaction.delta.root.children[0];
       let child_linkage = donor_reaction.delta.root.linkageOf(child);
       if (child.anomer == anomer_value && child_linkage == linkage_value) {
@@ -361,8 +364,6 @@ class SugarBuilder extends WrapHTML {
     update_donors.call(this,this.reactiongroup).then( () => {
       reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
     });
-    let epimerases = this.reactiongroup.reactions.filter( reac => reac.delta.root.identifier != 'Root' );
-    console.log(epimerases);
   }
 
   get reactions() {
