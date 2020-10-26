@@ -853,7 +853,14 @@ const active_palette_population_symbol = Symbol('ACTIVE_POPULATION');
 
 let ensure_sugar_icon = (defs_block,sequence) => {
   let safe_seq = sequence.toLowerCase().replace(/[()]/g,'_');
-  if (defs_block.querySelector(`#${safe_seq}`)) {
+  let existing;
+  try {
+    existing = defs_block.querySelector(`#${safe_seq}`);
+  } catch(error) {
+    console.log(error)
+    return Promise.resolve();
+  }
+  if (existing) {
     return Promise.resolve();
   }
   SugarAwareLayoutFishEye.LINKS = false;

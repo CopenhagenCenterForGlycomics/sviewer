@@ -36,6 +36,9 @@ let prepare = (widget,svg,format='png') => {
   if (widget.shadowRoot.getElementById('icons')) {
     let defs = widget.shadowRoot.getElementById('icons').querySelector('defs');
     new_svg.appendChild(defs.cloneNode(true));
+    for (let extra_svg of [...new_svg.querySelectorAll('defs > svg')]) {
+      extra_svg.parentNode.removeChild(extra_svg);
+    }
     for (let symbol of new_svg.querySelectorAll('defs symbol')) {
       symbol.insertBefore(rect_tmpl.content.cloneNode(true).firstChild.firstChild, symbol.firstChild);
     }
