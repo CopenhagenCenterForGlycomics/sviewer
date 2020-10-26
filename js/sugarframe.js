@@ -228,10 +228,7 @@ class SugarFrame extends WrapHTML {
     this.renderer.groupTag = tag_symbol;
     this.renderer.sugars.forEach( sug => {
       this.reactions.supportLinkages(sug,this.reactions.reactions,tag_symbol);
-      let matches = sug.match_sugar_pattern(NLINKED_CORE, Reaction.Comparator );
-      if (matches.length > 0) {
-        matches[0].composition().forEach( traced => traced.original.setTag(tag_symbol) );
-      }
+
       sug.root.setTag(tag_symbol);
 
       for (let residue of sug.breadth_first_traversal()) {
