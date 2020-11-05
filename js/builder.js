@@ -164,15 +164,11 @@ function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
   }
 
   let renderer = residue.renderer;
-
   if ( (residue instanceof Glycan.Repeat.Monosaccharide) &&
        (residue.repeat.mode === Glycan.Repeat.MODE_MINIMAL) ) {
-
     if ( (! residue.endsRepeat || residue.repeat.root.identifier !== new_res.identifier) &&
          (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0) ) {
-      residue.original.addChild(parseInt(linkage_value),new_res);
-    } else {
-      residue.addChild(parseInt(linkage_value),new_res);
+      reaction.execute(renderer.sugars[0],residue);
     }
     return [ ...sug.composition() ];
   } else {
