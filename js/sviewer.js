@@ -995,11 +995,20 @@ let form_action = function(widget,ev) {
 
   let linkage_value = this.querySelector('input[name="linkage"]:checked').value;
 
+  let renderer = this.residue.renderer;
+
+  let original_location = renderer.sugars[0].location_for_monosaccharide(this.residue);
+
   let added = widget.extendSugar(this.residue,donor_value,anomer_value,linkage_value);
 
-  this.residue.balance();
+  // If the editing procedure removes the residue from the tree
+  // we should get the original residue back again.
+  // FIXME - This might be a source of pain if the linkages are ambiguous
+  // and the addition of a child makes the branch ordering flip around
 
-  let renderer = this.residue.renderer;
+  this.residue = renderer.sugars[0].locate_monosaccharide(original_location);
+
+  this.residue.balance();
 
   repeatCallback(renderer.sugars[0]);
 
