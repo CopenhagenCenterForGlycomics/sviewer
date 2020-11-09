@@ -53,5 +53,3 @@ jobs:
         asset_path: ./dist/sviewer-headless.bundle.js
         asset_name: sviewer-headless.js
         asset_content_type: text/javascript
-    - env:
-      CI: true
