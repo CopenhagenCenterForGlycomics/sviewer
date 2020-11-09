@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "debug-any-level": "^0.3.0",
-    "es6-tween": "^5.5.10",
+    "es6-tween": "^5.5.11",
     "esm": "^3.2.25"
   },
   "devDependencies": {
@@ -25,8 +25,7 @@
     "webpack-cli": "^3.3.0"
   },
   "scripts": {
-    "build": "./node_modules/babel-cli/bin/babel.js js -d dist",
-    "build-watch": "./node_modules/babel-cli/bin/babel.js lib js --watch -d dist",
+    "build": "./node_modules/.bin/webpack",
     "build-web": "./node_modules/.bin/webpack -d",
     "build-watch-web": "./node_modules/.bin/webpack -d --watch",
     "server": "python ./scripts/simplehttpserver",

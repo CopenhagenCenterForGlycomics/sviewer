@@ -3,15 +3,15 @@
 
 import * as debug from 'debug-any-level';
 
-import * as Glycan from 'glycan.js';
+import { CondensedIupac, Reaction, ReactionGroup, Repeat } from 'glycan.js';
 import { default as SViewer, IupacSugar } from './sviewer';
 
 import Highlighter from './highlighter';
 
 
-const Iupac = Glycan.CondensedIupac.IO;
+const Iupac = CondensedIupac.IO;
 
-class IupacReaction extends Iupac(Glycan.Reaction) {}
+class IupacReaction extends Iupac(Reaction) {}
 
 const module_string='sviewer:builder';
 
@@ -164,8 +164,8 @@ function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
   }
 
   let renderer = residue.renderer;
-  if ( (residue instanceof Glycan.Repeat.Monosaccharide) &&
-       (residue.repeat.mode === Glycan.Repeat.MODE_MINIMAL) ) {
+  if ( (residue instanceof Repeat.Monosaccharide) &&
+       (residue.repeat.mode === Repeat.MODE_MINIMAL) ) {
     if ( (! residue.endsRepeat || residue.repeat.root.identifier !== new_res.identifier) &&
          (['Fuc','HSO3'].indexOf(new_res.identifier) >= 0) ) {
       reaction.execute(renderer.sugars[0],residue);
@@ -268,7 +268,7 @@ class SugarBuilder extends WrapHTML {
       .then( () => reset_form_disabled(this,this.shadowRoot.getElementById('viewer')) );
     }
 
-    this.reactiongroup = Glycan.ReactionGroup.groupFromJSON({},IupacSugar);
+    this.reactiongroup = ReactionGroup.groupFromJSON({},IupacSugar);
 
 
     if ( this.reactiongroup ) {
@@ -356,7 +356,7 @@ class SugarBuilder extends WrapHTML {
 
   set reactions(reactions) {
 
-    this.reactiongroup = Glycan.ReactionGroup.groupFromJSON(reactions,IupacSugar);
+    this.reactiongroup = ReactionGroup.groupFromJSON(reactions,IupacSugar);
     update_donors.call(this,this.reactiongroup).then( () => {
       reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
     });

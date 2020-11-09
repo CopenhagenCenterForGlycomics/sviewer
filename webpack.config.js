@@ -12,7 +12,9 @@ module.exports = {
   resolve: {
     alias: {
       'fontkit' : path.resolve('./shim.js'),
-      'glycan.js' : path.resolve('./node_modules/glycan.js')
+      'glycan.js' : path.resolve('./node_modules/glycan.js'),
+      'es6-tween' : path.resolve('./node_modules/glycan.js/node_modules/es6-tween'),
+      'debug' : path.resolve('./node_modules/glycan.js/node_modules/debug')
     }
   },
   node: {
