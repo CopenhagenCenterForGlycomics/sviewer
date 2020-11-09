@@ -25,7 +25,7 @@
     "webpack-cli": "^3.3.0"
   },
   "scripts": {
-    "build": "./node_modules/.bin/webpack",
+    "build": "./node_modules/.bin/webpack --mode=production",
     "build-web": "./node_modules/.bin/webpack -d",
     "build-watch-web": "./node_modules/.bin/webpack -d --watch",
     "server": "python ./scripts/simplehttpserver",
