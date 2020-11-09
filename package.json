@@ -17,9 +17,9 @@
     "@babel/preset-env": "^7.0.0",
     "DragMenus": "hirenj/DragMenus",
     "babel-loader": "^8.0.5",
-    "glycan.js": "hirenj/glycan.js",
+    "glycan.js": "CopenhagenCenterForGlycomics/glycan.js",
     "raw-loader": "^2.0.0",
-    "rough-glycan.js": "hirenj/rough-glycan.js",
+    "rough-glycan.js": "CopenhagenCenterForGlycomics/rough-glycan.js",
     "svgdom": "^0.1.8",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
@@ -40,8 +40,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:hirenj/sviewer.git"
+    "url": "git@github.com:CopenhagenCenterForGlycomics/sviewer.git"
   },
-  "author": "",
-  "license": "TBD"
+  "author": "joshi@sund.ku.dk",
+  "license": "MIT"
 }
