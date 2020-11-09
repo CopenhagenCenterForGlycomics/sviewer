@@ -39,16 +39,18 @@ const tmpl = document.createElement('template');
 
 tmpl.innerHTML = `
 <style>
+  :root {
+    --selection-color: #ff0000;
+    --button-default-background-color: #eee;
+    --button-color: #000;
+  }
   :host {
     display: block;
     position: relative;
+    --palette-background-color: #eee;
     --palette-icon-size: 32px;
     --demoted-opacity: 0.5;
     --sugars-url:/sugars.svg;
-    --palette-background-color: #eee;
-    --selection-color: var(#6052E2,--selection-color);
-    --button-default-background-color: var(#eee,--button-default-background-color);
-    --button-color: var(#000,--button-color);
   }
 
   :host([resizeable]) {

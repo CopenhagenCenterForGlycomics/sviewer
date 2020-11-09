@@ -36,15 +36,20 @@ const tmpl = document.createElement('template');
 tmpl.innerHTML = `
 <style>
   :host {
+    --selection-color: #333;
+    --button-default-background-color: #555;
+    --demoted-opacity: 0.8;
+  }
+  :host {
     display: block;
     position: relative;
   }
+
   :host x-builder {
     width: 100%;
     height: 100%;
-    --demoted-opacity: 0.8;
-    --selection-color: var(#6052E2,--selection-color);
   }
+
   :host .widget_contents {
     width: 100%;
     height: 100%;
