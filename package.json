@@ -1,6 +1,6 @@
 {
   "name": "sviewer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Webcomponent for drawing glycans",
   "main": "./js/index.js",
   "module": "./js/main.js",
