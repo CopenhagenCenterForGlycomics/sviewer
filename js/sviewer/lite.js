@@ -1215,6 +1215,7 @@ class SViewer extends WrapHTML {
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
 
     this.form = this.shadowRoot.getElementById('new_linkage');
+    this.form.style.display = 'none';
 
     let slot = this.shadowRoot.getElementById('textcontent');
 

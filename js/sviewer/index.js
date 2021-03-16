@@ -33,6 +33,7 @@ class SViewer extends SViewerLite {
     new ShadowDragDropTouch(this);
 
     wire_drag_functions.call(this);
+    this.form.style.display = 'block';
 
   }
 }
