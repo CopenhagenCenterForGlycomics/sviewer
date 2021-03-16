@@ -5,15 +5,11 @@ import * as debug from 'debug-any-level';
 
 import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, SVGRenderer, CanvasRenderer, Repeat, Reaction } from 'glycan.js';
 
-import { RoughCanvasRenderer } from 'rough-glycan.js';
+import { default as ImageSaver, prepare as prepareImage } from '../imagesaver';
 
-import { default as ImageSaver, prepare as prepareImage } from './imagesaver';
+import Highlighter from '../highlighter';
 
-import Highlighter from './highlighter';
-
-import { default as repeatCallback, ModifiableRepeat } from './autorepeat';
-
-import { DraggableForm, DragManager, ShadowDragDropTouch } from 'DragMenus';
+import { default as repeatCallback, ModifiableRepeat } from '../autorepeat';
 
 const module_string='sviewer:sviewer';
 
@@ -784,10 +780,7 @@ const update_icon_text_orientation = function() {
   }
 };
 
-let wire_drag_functions = function() {
-  new DragManager(this);
-  new DraggableForm(this.form);
-};
+
 
 let wire_form_check_class = function() {
   this.form.addEventListener('change', function(ev) {
@@ -1032,7 +1025,6 @@ let wire_form_action = function(){
 
 let initialise_events = function() {
   log.info('Initialising global events');
-  wire_drag_functions.call(this);
   wire_palette_pagezoom.call(this);
   wire_form_check_class.call(this);
   wire_form_action.call(this);
@@ -1101,8 +1093,7 @@ if (window.ShadyCSS) {
 
 const renderers = new Map(Object.entries({
   svg: SVGRenderer,
-  canvas: CanvasRenderer,
-  sketch: RoughCanvasRenderer
+  canvas: CanvasRenderer
 }));
 
 class SViewer extends WrapHTML {
@@ -1221,8 +1212,6 @@ class SViewer extends WrapHTML {
     }
     let shadowRoot = this.attachShadow({mode: 'open'});
 
-    new ShadowDragDropTouch(this);
-
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
 
     this.form = this.shadowRoot.getElementById('new_linkage');
@@ -1314,7 +1303,7 @@ class SViewer extends WrapHTML {
 
 }
 
-customElements.define('x-sviewer',SViewer);
+customElements.define('x-sviewer-lite',SViewer);
 
 export default SViewer;
 export { IupacSugar };
