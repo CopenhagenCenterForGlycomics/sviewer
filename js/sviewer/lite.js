@@ -1069,6 +1069,7 @@ let initialise_renderer = function() {
 
   this.renderer = new renderer_class(this.shadowRoot.getElementById('output'),this.LayoutEngine);
   this.renderer.rotate = this.hasAttribute('horizontal');
+  this.renderer.leftToRight = false;
 
   update_icon_text_orientation.call(this);
 
