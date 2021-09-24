@@ -123,7 +123,7 @@ async function serialise_rendered(sugars,renderer,is_array_input=false) {
   }
 }
 
-async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser',options={linkage:false,oxford:false,rotate:false}) {
+async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser',options={linkage:false,oxford:false,rotate:false,leftToRight:false}) {
 
   let sugars = parse_sequences(sequence);
 
@@ -131,6 +131,7 @@ async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc
 
   renderer.LayoutEngine.LINKS = options.linkage ? true : false;
   renderer.rotate = options.rotate;
+  renderer.leftToRight = options.leftToRight;
   renderer.refresh();
   renderer.scaleToFit();
 
@@ -138,7 +139,7 @@ async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc
 
 };
 
-async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser+"from(y2a)"',options={linkage:false,oxford:false,rotate:false}) {
+async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser+"from(y2a)"',options={linkage:false,oxford:false,rotate:false,leftToRight: false}) {
 
   let is_array_input = Array.isArray(sequence);
 
@@ -154,6 +155,7 @@ async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1
 
   renderer.LayoutEngine.LINKS = options.linkage ? true : false;
   renderer.rotate = options.rotate;
+  renderer.leftToRight = options.leftToRight;
   renderer.refresh();
 
   for (const [idx,identifier] of sequences.map( seq => seq.replace(/[^"]*\"/,'').replace('"','') ).entries()) {
@@ -194,7 +196,7 @@ async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1
 
   renderer.scaleToFit();
 
-  return await serialise_rendered(sugars,renderer,Array.isArray(sequence));
+  return await serialise_rendered(sugars,renderer,Array.isArray(sequence),sequences);
 
 
 }
