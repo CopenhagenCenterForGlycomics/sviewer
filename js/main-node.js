@@ -13,7 +13,7 @@ class BrowserShimmedSVGRenderer extends SVGRenderer {
     let defs = a_document.createElementNS('http://www.w3.org/2000/svg','defs');
     this.element.canvas.appendChild(defs);
     this.element.canvas.setAttribute('xmlns','http://www.w3.org/2000/svg');
-
+    this.element.canvas.setAttribute('xmlns:sviewer','https://glycocode.com/sviewer');
   }
 
   static get SYMBOLS() {
@@ -86,6 +86,20 @@ const Iupac = CondensedIupac.IO;
 
 const IupacSugar = Mass(Iupac(Sugar));
 
+const SPACINGS = Object.freeze({"compact":0.5, "tight":0.75, "normal":1, "loose": 1.5 });
+
+function AdjustSpacing(layout,spacing="normal") {
+  return class AdjustedLayout extends layout {
+    static get DELTA_X() {
+      return super.DELTA_X*(SPACINGS[spacing] || 1);
+    }
+
+    static get DELTA_Y() {
+      return super.DELTA_Y*(SPACINGS[spacing] || 1);
+    }    
+  } 
+}
+
 
 function parse_sequences(sequence) {
   let is_array_input = Array.isArray(sequence);
@@ -100,8 +114,8 @@ function parse_sequences(sequence) {
   return sugars;
 }
 
-function create_renderer_for_sugars(sugars, layout=SugarAwareLayout) {
-  let renderer = new BrowserShimmedSVGRenderer(layout);
+function create_renderer_for_sugars(sugars, layout=SugarAwareLayout, spacing="normal") {
+  let renderer = new BrowserShimmedSVGRenderer(AdjustSpacing(layout,spacing));
   for (let sugar of sugars) {
     renderer.addSugar(sugar);
   }
@@ -123,11 +137,11 @@ async function serialise_rendered(sugars,renderer,is_array_input=false) {
   }
 }
 
-async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser',options={linkage:false,oxford:false,rotate:false,leftToRight:false}) {
+async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser',options={linkage:false,oxford:false,rotate:false,leftToRight:false,spacing:"normal"}) {
 
   let sugars = parse_sequences(sequence);
 
-  let renderer = create_renderer_for_sugars(sugars,options.oxford ? LinkageLayout : SugarAwareLayout);
+  let renderer = create_renderer_for_sugars(sugars,options.oxford ? LinkageLayout : SugarAwareLayout,options.spacing);
 
   renderer.LayoutEngine.LINKS = options.linkage ? true : false;
   renderer.rotate = options.rotate;
@@ -139,7 +153,7 @@ async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc
 
 };
 
-async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser+"from(y2a)"',options={linkage:false,oxford:false,rotate:false,leftToRight: false}) {
+async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser+"from(y2a)"',options={linkage:false,oxford:false,rotate:false,leftToRight: false, title:"Sugar",spacing:"normal"}) {
 
   let is_array_input = Array.isArray(sequence);
 
@@ -151,7 +165,7 @@ async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1
 
   let sugars = parse_sequences(sequences.map( seq => seq.replace(/\+\".*/,'') ));
 
-  let renderer = create_renderer_for_sugars(sugars,options.oxford ? LinkageLayout : SugarAwareLayout);
+  let renderer = create_renderer_for_sugars(sugars,options.oxford ? LinkageLayout : SugarAwareLayout,options.spacing);
 
   renderer.LayoutEngine.LINKS = options.linkage ? true : false;
   renderer.rotate = options.rotate;
@@ -192,11 +206,16 @@ async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1
 
       }
     }
+    renderer.rendered.get(sugar).element.setAttribute('sviewer:seq',sequences[idx]);
+    if (options.title) {
+      renderer.rendered.get(sugar).element.setAttribute('sviewer:title',options.title);
+    }
+
   } 
 
   renderer.scaleToFit();
 
-  return await serialise_rendered(sugars,renderer,Array.isArray(sequence),sequences);
+  return await serialise_rendered(sugars,renderer,Array.isArray(sequence));
 
 
 }

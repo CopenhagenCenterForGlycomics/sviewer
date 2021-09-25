@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+const { program, Option } = require('commander');
+
+const { render_iupac_sugar_fragment, render_iupac_sugar } = require('../..');
+
+program.version('0.0.1');
+
+program
+	.option('--sequence <sequence>', 'Render sequence', 'Gal(b1-4)GlcNAc')
+	.option('--from <from>', 'Render only a fragment from the given location')
+	.option('--linkages','Render linkages')
+  .option('-t, --title <title>', 'Title for sugar','Sugar')
+	.option('--horizontal', 'Render horizontal sequence')
+	.option('--lefttoright', 'Render Left-to-right when horizontal')
+	.addOption(new Option('--spacing <spacing>', 'Residue spacing', 'normal').choices(['compact', 'tight', 'normal', 'loose']))
+
+program.parse(process.argv);
+
+const options = program.opts();
+
+const sugar_options = {
+  linkage:options.linkages,
+  oxford:false,
+  rotate:options.horizontal,
+  leftToRight: options.lefttoright,
+  title: options.title,
+  spacing: options.spacing
+};
+
+let sugar_promise;
+
+if (options.from) {
+	sugar_promise = render_iupac_sugar_fragment(`${options.sequence}+"from(${options.from})"`,sugar_options);
+} else {
+	sugar_promise = render_iupac_sugar_fragment(options.sequence,sugar_options);
+}
+
+sugar_promise.then(result => console.log(result) );
