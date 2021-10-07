@@ -139,7 +139,15 @@ async function serialise_rendered(sugars,renderer,is_array_input=false) {
 
 async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser',options={linkage:false,oxford:false,rotate:false,leftToRight:false,spacing:"normal"}) {
 
-  let sugars = parse_sequences(sequence);
+  let is_array_input = Array.isArray(sequence);
+
+  let sequences = sequence;
+
+  if (! Array.isArray(sequence)) {
+    sequences = [sequence];
+  }
+
+  let sugars = parse_sequences(sequences);
 
   let renderer = create_renderer_for_sugars(sugars,options.oxford ? LinkageLayout : SugarAwareLayout,options.spacing);
 
@@ -149,6 +157,12 @@ async function render_iupac_sugar(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc
   renderer.refresh();
   renderer.scaleToFit();
 
+  for (const [idx,identifier] of sequences.entries()) {
+    renderer.rendered.get(sugars[idx]).element.setAttribute('sviewer:seq',sequences[idx]);
+    if (options.title) {
+      renderer.rendered.get(sugars[idx]).element.setAttribute('sviewer:title',options.title);
+    }
+  }
   return await serialise_rendered(sugars,renderer,Array.isArray(sequence));
 
 };
@@ -206,12 +220,15 @@ async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1
 
       }
     }
-    renderer.rendered.get(sugar).element.setAttribute('sviewer:seq',sequences[idx]);
-    if (options.title) {
-      renderer.rendered.get(sugar).element.setAttribute('sviewer:title',options.title);
-    }
+  }
 
-  } 
+  for (const [idx,identifier] of sequences.entries()) {
+    renderer.rendered.get(sugars[idx]).element.setAttribute('sviewer:seq',sequences[idx]);
+    if (options.title) {
+      renderer.rendered.get(sugars[idx]).element.setAttribute('sviewer:title',options.title);
+    }
+  }
+
 
   renderer.scaleToFit();
 
