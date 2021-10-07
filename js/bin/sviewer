@@ -33,7 +33,7 @@ let sugar_promise;
 if (options.from) {
 	sugar_promise = render_iupac_sugar_fragment(`${options.sequence}+"from(${options.from})"`,sugar_options);
 } else {
-	sugar_promise = render_iupac_sugar_fragment(options.sequence,sugar_options);
+	sugar_promise = render_iupac_sugar(options.sequence,sugar_options);
 }
 
 sugar_promise.then(result => console.log(result) );
