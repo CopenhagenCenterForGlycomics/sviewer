@@ -11,6 +11,7 @@ program
 	.option('--from <from>', 'Render only a fragment from the given location')
 	.option('--linkages','Render linkages')
   .option('-t, --title <title>', 'Title for sugar','Sugar')
+  .option('--oxford', 'Render linkages in Oxford style')
 	.option('--horizontal', 'Render horizontal sequence')
 	.option('--lefttoright', 'Render Left-to-right when horizontal')
 	.addOption(new Option('--spacing <spacing>', 'Residue spacing', 'normal').choices(['compact', 'tight', 'normal', 'loose']))
@@ -21,7 +22,7 @@ const options = program.opts();
 
 const sugar_options = {
   linkage:options.linkages,
-  oxford:false,
+  oxford:options.oxford || false,
   rotate:options.horizontal,
   leftToRight: options.lefttoright,
   title: options.title,
