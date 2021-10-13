@@ -221,13 +221,13 @@ class SugarFrame extends WrapHTML {
     ImageSaver(this,this.renderer.element.canvas,format);
   }
 
-  tagSupported(tag_symbol=Symbol('supported')) {
+  tagSupported(tag_symbol=Symbol('supported'),cacheKey=null) {
     if ( ! this.reactions ) {
       return;
     }
     this.renderer.groupTag = tag_symbol;
     this.renderer.sugars.forEach( sug => {
-      this.reactions.supportLinkages(sug,this.reactions.reactions,tag_symbol);
+      this.reactions.supportLinkages(sug,this.reactions.reactions,tag_symbol,cacheKey);
 
       sug.root.setTag(tag_symbol);
 
