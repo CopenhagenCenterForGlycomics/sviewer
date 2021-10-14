@@ -37,7 +37,7 @@ tmpl.innerHTML = `
     --highlight-fill: #fff;
   }
 
-  :host div {
+  :host div#styles {
     display: none;
   }
 
@@ -54,10 +54,17 @@ tmpl.innerHTML = `
     width: 100%;
     height: 100%;
   }
+  #output {
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+  }
 </style>
 
 <div id="styles">
 <slot></slot>
+</div>
+<div id="output">
 </div>
 `;
 
@@ -151,6 +158,10 @@ const bind_load_event = function(el) {
       }));
       return;
     }
+    const [,,width,height] = (el.contentDocument.documentElement.getAttribute('viewBox') || '').split(' ');
+    if (width && height) {
+      this.style.aspectRatio = `${width} / ${height}`;
+    }
     copy_styles.call(this);
     this.renderer = SVGRenderer.fromSVGElement(el.contentDocument.documentElement,this.constructor.SugarClass);
     for (let sugar of this.renderer.sugars) {
@@ -168,7 +179,7 @@ const add_target_svg = function() {
   if (current_target) {
     current_target.parentNode.removeChild(current_target);
   }
-  this.shadowRoot.appendChild(targetsvg_tmpl.content.cloneNode(true));
+  this.shadowRoot.querySelector('#output').appendChild(targetsvg_tmpl.content.cloneNode(true));
   current_target = this.shadowRoot.getElementById('targetsvg');
   bind_load_event.call(this,current_target);
   current_target.setAttribute('data',this.getAttribute('src'));
