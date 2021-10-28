@@ -161,6 +161,11 @@ const bind_load_event = function(el) {
     const [,,width,height] = (el.contentDocument.documentElement.getAttribute('viewBox') || '').split(' ');
     if (width && height) {
       this.style.aspectRatio = `${width} / ${height}`;
+      if ((parseFloat(width) / parseFloat(height)) > 1) {
+        this.setAttribute('aspect','landscape');
+      } else {
+        this.setAttribute('aspect','portrait');
+      }
     }
     copy_styles.call(this);
     this.renderer = SVGRenderer.fromSVGElement(el.contentDocument.documentElement,this.constructor.SugarClass);
