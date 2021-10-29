@@ -96,6 +96,16 @@ const FILTER_TEXT = `
   <feComposite in2="outline" in="SourceGraphic"/>
 `;
 
+
+const sugar_glow_filter_tmpl = `
+   <feOffset in="SourceAlpha" dx="0" dy="0" result="offset" />
+  <feFlood flood-color="rgba(255,255,255,0.3)" result="white"/>
+  <feComposite in2="offset" in="white" operator="in" result="matrix"/>
+<feGaussianBlur in="matrix" stdDeviation="4" result="blur"/>
+<feComposite in2="SourceGraphic" in="blur" operator="over"/>
+<feComposite in2="SourceGraphic" operator="in"/>
+`;
+
 const hex_to_component = (hex) => {
   // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
   var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -139,6 +149,13 @@ const make_filter = function(svg) {
 
   this[highlight_filter] = filter;
   svg.documentElement.appendChild(filter);
+
+  const glow_filter = svg.createElementNS('http://www.w3.org/2000/svg','filter');
+  glow_filter.innerHTML = sugar_glow_filter_tmpl;
+  glow_filter.setAttribute('id','sugar_glow');
+
+  svg.documentElement.appendChild(glow_filter);
+  
   update_highlight_colours.call(this);
 };
 
