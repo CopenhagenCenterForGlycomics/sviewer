@@ -1,84 +1,6 @@
-const {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayout, SugarAwareLayout, SVGRenderer, Repeat, Reaction } = require('glycan.js');
+const {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayout, SugarAwareLayout, SVGRenderer, SVGCanvas, Repeat, Reaction, ReactionGroup } = require('glycan.js');
 
-const { createSVGWindow } = require('svgdom');
-
-const a_window = createSVGWindow();
-const a_document = a_window.document;
-
-const isNodejs = () => { return typeof process === 'object' && typeof process.versions === 'object' && typeof process.versions.node !== 'undefined'; };
-
-class BrowserShimmedSVGRenderer extends SVGRenderer {
-  constructor(layout) {
-    super(a_document.documentElement,layout);
-    let defs = a_document.createElementNS('http://www.w3.org/2000/svg','defs');
-    this.element.canvas.appendChild(defs);
-    this.element.canvas.setAttribute('xmlns','http://www.w3.org/2000/svg');
-    this.element.canvas.setAttribute('xmlns:sviewer','https://glycocode.com/sviewer');
-  }
-
-  static get SYMBOLS() {
-    return (! SVGRenderer.SYMBOLS && isNodejs()) ? require('fs').readFileSync('node_modules/glycan.js/sugars.svg') : SVGRenderer.SYMBOLS; 
-  }
-
-  static AppendSymbols(element) {
-
-    const icons_elements = Promise.resolve(this.SYMBOLS).then( SYMBOLS_DEF => {
-      let newdoc = createSVGWindow().document;
-      newdoc.documentElement.innerHTML = SYMBOLS_DEF;
-      return newdoc.documentElement;
-    }).then( el => {
-      return el.querySelectorAll('svg defs symbol');
-    });
-
-    return icons_elements.then( symbols => {
-      for (let symbol of symbols ) {
-        element.appendChild(symbol.cloneNode(true));
-      }
-    });
-  }
-
-  scaleToFit() {
-    let min = {x: null, y: null};
-    let max = {x: null, y: null};
-    for (let sugar of this.sugars) {
-
-      for (let res of sugar.composition()) {
-        let element = this.rendered.get(res).residue.element;
-        if (element.hidden) {
-          continue;
-        }
-        let transform = element.getAttribute('transform').replace(/rotate\([^\)]*\)/,'').trim();
-        let [translate,scale] = transform.split(/\s+/).map( el => el.replace(/[^\d\.\-,]/g,'').split(',').map(parseFloat));
-        if (min.x == null || (translate[0] < min.x)) {
-          min.x = translate[0];
-        }
-        if (max.x == null || ((translate[0] + scale[0]) > max.x) ) {
-          max.x = translate[0] + scale[0];
-        }
-
-        if (min.y == null || (translate[1] < min.y)) {
-          min.y = translate[1];
-        }
-        if (max.y == null || ((translate[1] + scale[1]) > max.y) ) {
-          max.y = translate[1] + scale[1];
-        }
-      }
-    }
-
-    let bb = { x: min.x, y: min.y, width: max.x - min.x, height: max.y - min.y };
-
-    let bbx=bb.x;
-    let bby=bb.y;
-    let bbw=bb.width;
-    let bbh=bb.height;
-    let vb=[bbx,bby,bbw,bbh];
-    for (let svg of a_document.documentElement.childNodes) {
-      svg.setAttribute('viewBox', vb.join(' ') );
-      svg.setAttribute('preserveAspectRatio','xMidYMid meet');
-    }
-  }
-
-}
+const { BrowserShimmedSVGRenderer, BrowserShimmedStaticSVGRenderer } = require('./browsershims');
 
 const Glycan = {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayout, SugarAwareLayout, SVGRenderer: BrowserShimmedSVGRenderer, Repeat, Reaction };
 
@@ -237,7 +159,31 @@ async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1
 
 }
 
+function tagSupported(renderer,reactions={},tag_symbol=Symbol('supported'),cacheKey=null) {
+  let reactions_group = ReactionGroup.groupFromJSON(reactions,IupacSugar);
+  renderer.groupTag = tag_symbol;
+  renderer.sugars.forEach( sug => {
+    reactions_group.supportLinkages(sug,reactions_group.reactions,tag_symbol,cacheKey);
 
-export { Glycan, render_iupac_sugar, render_iupac_sugar_fragment };
+    sug.root.setTag(tag_symbol);
+
+    for (let residue of sug.breadth_first_traversal()) {
+      if ( ! residue.parent ) {
+        continue;
+      }
+      if (! residue.parent.getTag(tag_symbol)) {
+        residue.setTag(tag_symbol,null);
+      }
+    }
+  });
+  return renderer;
+}
+
+
+function load_sugar_svg(svg_string,sugar_class=IupacSugar) {
+  return BrowserShimmedStaticSVGRenderer.fromSVGString(svg_string,sugar_class);
+}
+
+export { Glycan, render_iupac_sugar, render_iupac_sugar_fragment, load_sugar_svg, tagSupported };
 
 
