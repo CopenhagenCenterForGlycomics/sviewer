@@ -2,6 +2,8 @@ const {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayout, SugarAwareLay
 
 const { BrowserShimmedSVGRenderer, BrowserShimmedStaticSVGRenderer } = require('./browsershims');
 
+const { tag_supported: sviewer_tag_supported } = require('./glycotopiary');
+
 const Glycan = {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayout, SugarAwareLayout, SVGRenderer: BrowserShimmedSVGRenderer, Repeat, Reaction };
 
 const Iupac = CondensedIupac.IO;
@@ -159,23 +161,9 @@ async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1
 
 }
 
-function tagSupported(renderer,reactions={},tag_symbol=Symbol('supported'),cacheKey=null) {
-  let reactions_group = ReactionGroup.groupFromJSON(reactions,IupacSugar);
+function tag_supported(renderer,reactions={},tag_symbol=Symbol('supported')) {
   renderer.groupTag = tag_symbol;
-  renderer.sugars.forEach( sug => {
-    reactions_group.supportLinkages(sug,reactions_group.reactions,tag_symbol,cacheKey);
-
-    sug.root.setTag(tag_symbol);
-
-    for (let residue of sug.breadth_first_traversal()) {
-      if ( ! residue.parent ) {
-        continue;
-      }
-      if (! residue.parent.getTag(tag_symbol)) {
-        residue.setTag(tag_symbol,null);
-      }
-    }
-  });
+  sviewer_tag_supported(tag_symbol,renderer.sugars,reactions,IupacSugar);
   return renderer;
 }
 
@@ -184,6 +172,6 @@ function load_sugar_svg(svg_string,sugar_class=IupacSugar) {
   return BrowserShimmedStaticSVGRenderer.fromSVGString(svg_string,sugar_class);
 }
 
-export { Glycan, render_iupac_sugar, render_iupac_sugar_fragment, load_sugar_svg, tagSupported };
+export { Glycan, render_iupac_sugar, render_iupac_sugar_fragment, load_sugar_svg, tag_supported };
 
 
