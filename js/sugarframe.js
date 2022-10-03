@@ -41,11 +41,6 @@ tmpl.innerHTML = `
     display: none;
   }
 
-  :host .widget_contents {
-    width: 100%;
-    height: 100%;
-    position: relative;
-  }
 
   #styles {
     display: none;
@@ -55,7 +50,13 @@ tmpl.innerHTML = `
     height: 100%;
   }
   #output {
-    display: inline-block;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
     height: 100%;
     width: 100%;
   }
