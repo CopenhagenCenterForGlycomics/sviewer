@@ -10,17 +10,17 @@
   "dependencies": {
     "debug-any-level": "^0.3.0",
     "es6-tween": "^5.5.11",
+    "DragMenus": "github:hirenj/DragMenus",
+    "rough-glycan.js": "github:CopenhagenCenterForGlycomics/rough-glycan.js",
     "esm": "^3.2.25"
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",
     "@babel/preset-env": "^7.0.0",
-    "DragMenus": "github:hirenj/DragMenus",
     "babel-loader": "^8.0.5",
     "commander": "^8.2.0",
     "glycan.js": "github:CopenhagenCenterForGlycomics/glycan.js",
     "raw-loader": "^2.0.0",
-    "rough-glycan.js": "github:CopenhagenCenterForGlycomics/rough-glycan.js",
     "svgdom": "^0.1.8",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
