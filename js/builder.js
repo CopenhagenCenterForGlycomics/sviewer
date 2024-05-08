@@ -3,7 +3,7 @@
 
 import * as debug from 'debug-any-level';
 
-import { CondensedIupac, Reaction, ReactionGroup, Repeat } from 'glycan.js';
+import { CondensedIupac, Reaction, ReactionGroup, Repeat, Monosaccharide } from 'glycan.js';
 import { default as SViewer, IupacSugar } from './sviewer';
 
 import Highlighter from './highlighter';
@@ -138,6 +138,20 @@ const update_donors = async function(donors) {
   return viewer.setDonors(unique_donors);
 };
 
+let write_link = link => {
+  let int_link = parseInt(link);
+
+  if (int_link < 0) {
+    if (int_link === Monosaccharide.LINKAGES.O) {
+      return 'O';
+    }
+    if( int_link === Monosaccharide.LINKAGES.N) {
+      return 'N';
+    }
+  }
+  return int_link <= 0 ? '?' : ''+link;
+};
+
 function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
   let sug = new IupacSugar();
 
@@ -149,7 +163,7 @@ function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
 
   new_res.parent_linkage = donor_value.match(/Neu(Gc|Ac)/) ? 2 : 1;
 
-  let delta = `${sug.sequence}(${new_res.anomer}${new_res.parent_linkage}-${linkage_value})`;
+  let delta = `${sug.sequence}(${new_res.anomer}${new_res.parent_linkage}-${write_link(linkage_value)})`;
 
   let reaction_string = `${residue.identifier}(u?-?)*+"{${delta}@y2a}"`;
 
