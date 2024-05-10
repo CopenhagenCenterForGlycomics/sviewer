@@ -500,6 +500,18 @@ let rescale_widget_chrome = function(state) {
   state.ticking = false;
 };
 
+const layout_engine_stores = new Map();
+
+const get_layout_engine = (instance,layout_class) => {
+  if ( ! layout_engine_stores.has(layout_class)) {
+    layout_engine_stores.set(layout_class, new WeakMap());
+  }
+  if ( ! layout_engine_stores.get(layout_class).has(instance)) {
+    layout_engine_stores.get(layout_class).set(instance, class extends layout_class {});
+  }
+  return layout_engine_stores.get(layout_class).get(instance);
+};
+
 
 let window_scroll_listener = (state) => {
   if (! state.ticking) {
@@ -847,7 +859,7 @@ const wire_palette_watcher = (label) => {
 const active_palette_population_symbol = Symbol('ACTIVE_POPULATION');
 
 let ensure_sugar_icon = (defs_block,sequence) => {
-  let safe_seq = sequence.toLowerCase().replace(/[()]/g,'_');
+  let safe_seq = sequence.toLowerCase().replace(/[()\[\]]/g,'_');
   let existing;
   try {
     existing = defs_block.querySelector(`#${safe_seq}`);
@@ -858,8 +870,9 @@ let ensure_sugar_icon = (defs_block,sequence) => {
   if (existing) {
     return Promise.resolve();
   }
-  SugarAwareLayoutFishEye.LINKS = false;
-  let sugar_renderer = new SVGRenderer(defs_block,SugarAwareLayoutFishEye);
+  const templayout = class extends SugarAwareLayoutFishEye {};
+  templayout.LINKS = false;
+  let sugar_renderer = new SVGRenderer(defs_block,templayout);
   let sug = new IupacSugar();
   sug.sequence = sequence;
   sugar_renderer.element.canvas.setAttribute('id',safe_seq);
@@ -904,7 +917,7 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
     let exportparts = 'donor-button, donor-disabled';
     for (let sug of widget.donors) {
 
-      let safe_seq = sug.toLowerCase().replace(/[()]/g,'_');
+      let safe_seq = sug.toLowerCase().replace(/[()\[\]]/g,'_');
 
       await ensure_sugar_icon(icons.querySelector('defs'),sug);
 
@@ -1088,6 +1101,17 @@ let initialise_renderer = function() {
   }
 };
 
+let update_sugar_seq = function(watched_text_nodes) {
+  let newseq = watched_text_nodes.map( n => n.textContent).join('');
+  newseq = newseq.replace(/^\s+/,'').replace(/\s+$/,'');
+  if (newseq !== this.sequence) {
+    this[sequence_symbol] = newseq;
+  }
+  if (this.sequence) {
+    redraw_sugar.call(this);
+  }
+};
+
 if (window.ShadyCSS) {
   ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
 }
@@ -1155,10 +1179,15 @@ class SViewer extends WrapHTML {
   }
 
   get LayoutEngine() {
-    if (this.hasAttribute('linkangles')) {
-      return LinkageLayoutFishEye;
+    if (this.renderer instanceof CanvasRenderer) {
+      if (this.hasAttribute('linkangles')) {
+        return LinkageLayoutFishEye;
+      } else {
+        return SugarAwareLayoutFishEye;
+      }
     } else {
-      return SugarAwareLayoutFishEye;
+      let proto_engine = this.hasAttribute('linkangles') ? LinkageLayoutFishEye : SugarAwareLayoutFishEye;
+      return get_layout_engine(this,proto_engine);
     }
   }
 
@@ -1222,15 +1251,15 @@ class SViewer extends WrapHTML {
 
     this[sequence_symbol] = slot.assignedNodes({flatten: true})[0].textContent;
 
+    let watched_text_nodes;
+
     slot.addEventListener('slotchange', () => {
-      let newseq = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.TEXT_NODE )).map( n => n.textContent).join('');
-      newseq = newseq.replace(/^\s+/,'').replace(/\s+$/,'');
-      if (newseq !== this.sequence) {
-        this[sequence_symbol] = newseq;
+      let watched_text_nodes = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.TEXT_NODE ));
+      let update_func = update_sugar_seq.bind(this,watched_text_nodes);
+      for (let node of watched_text_nodes) {
+        node.addEventListener('DOMCharacterDataModified', update_func,false);
       }
-      if (this.sequence) {
-        redraw_sugar.call(this);
-      }
+      update_sugar_seq.call(this,watched_text_nodes);
     });
 
     populate_palette(this,this.shadowRoot.getElementById('palette'))
