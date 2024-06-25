@@ -660,14 +660,20 @@ let enableDropResidue = function(renderer,residue) {
   });
 };
 
-let redraw_sugar = function() {
+let update_sequence = function() {
   if ( ! this.renderer || ! this.renderer.sugars ) {
     return;
   }
   if (this.renderer.sugars[0].sequence !== this.sequence) {
     this.renderer.sugars[0].sequence = this.sequence;
+  }  
+};
+
+let redraw_sugar = function() {
+  if ( ! this.renderer || ! this.renderer.sugars ) {
+    return;
   }
-  this.renderer.refresh().then( () => {
+  return this.renderer.refresh().then( () => {
     if (this.hasAttribute('editable')) {
       for (let residue of this.renderer.sugars[0].composition() ) {
         enableDropResidue.call( this, this.renderer,residue );
@@ -1093,7 +1099,8 @@ let initialise_renderer = function() {
   let sug = new IupacSugar();
   this.renderer.addSugar(sug);
   if (this.sequence) {
-    redraw_sugar.call(this);
+    update_sequence.call(this);
+    this._redraw_sugar();
     if (sug.repeats.length > 0) { 
       repeatCallback(sug);
     }
@@ -1108,7 +1115,8 @@ let update_sugar_seq = function(watched_text_nodes) {
     this[sequence_symbol] = newseq;
   }
   if (this.sequence) {
-    redraw_sugar.call(this);
+    update_sequence.call(this);
+    this._redraw_sugar();
   }
 };
 
@@ -1139,14 +1147,11 @@ class SViewer extends WrapHTML {
 
 
   fullRefresh() {
-    return this.renderer.refresh().then( () => {
-      if (this.hasAttribute('editable')) {
-        for (let residue of this.renderer.sugars[0].composition() ) {
-          enableDropResidue.call( this, this.renderer,residue );
-        }
-      }
-      this.scaleToFit();
-    });
+    return this._redraw_sugar();
+  }
+
+  _redraw_sugar() {
+    return redraw_sugar.call(this);
   }
 
   scaleToFit() {
