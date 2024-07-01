@@ -305,6 +305,12 @@ tmpl.innerHTML = `
     display: none;
   }
 
+  @supports (pointer-events: bounding-box) {
+    :host {
+      --bounding-box-events: true;
+    }
+  }
+
   @media only screen
     and (min-device-width: 320px)
     and (max-device-width: 480px)
@@ -592,10 +598,13 @@ let enableDropResidue = function(renderer,residue) {
   if ( ! target ) {
     return;
   }
-  if (target.style.pointerEvents === 'all') {
+
+  let supports_bounding_box = window.getComputedStyle(target).getPropertyValue('--bounding-box-events') === 'true';
+
+  if (target.style.pointerEvents === (supports_bounding_box ? 'bounding-box' : 'all')) {
     return;
   }
-  target.style.pointerEvents = 'all';
+  target.style.pointerEvents = (supports_bounding_box ? 'bounding-box' : 'all');
   let form = this.form;
 
   target.addEventListener('dragleave', () => {
