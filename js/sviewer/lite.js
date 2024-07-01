@@ -39,6 +39,9 @@ tmpl.innerHTML = `
     --selection-color: #ff0000;
     --button-default-background-color: #eee;
     --button-color: #000;
+    --drop-shadow-color: rgba(50, 50, 0, 0.5);
+    --drop-shadow-offset: 2px;
+    --drop-shadow-size: 1px;
   }
   :host {
     display: block;
@@ -170,7 +173,7 @@ tmpl.innerHTML = `
   }
 
   :host #palette_closer_wrap {
-    filter: drop-shadow(3px 2px 2px rgba(50, 50, 0, 0.5));
+    filter: drop-shadow(var(--drop-shadow-offset) var(--drop-shadow-offset) var(--drop-shadow-size) var(--drop-shadow-color));
   }
 
   :host #palette_closer:hover {
