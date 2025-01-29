@@ -4,8 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes,shrink-to-fit=no"/>
 	<title>Sviewer</title>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.2.0/webcomponents-lite.js" shadydom></script>
-	<script type="module" src="dist/sviewer.bundle.js"></script>
+	<script type="module" src="dist/sviewer-browser.bundle.js"></script>
  <style type="text/css">
 
 body {
@@ -25,6 +24,10 @@ x-sugarframe {
 	--highlight-stroke: #0a0;
 	--highlight-stroke-opacity: 0.5;
 }
+x-sviewer::part(linkage_y2a) {
+	--stroke-width: 10;
+	--stroke-color: red;
+}
 </style>
 </head>
 <body>
@@ -33,7 +36,7 @@ x-sugarframe {
 	<!--GlcNAc(b1-2)Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-N)Asn-->
 <!-- <x-sviewer editable resizeable links>Man(a1-3)Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-O)Ser</x-sviewer>
  -->
- <x-sugarbuilder resizeable linkangles sugars="/sugars.svg">Gal(b1-3)GalNAc(a1-O)Ser</x-sugarbuilder>
+ <x-sviewer horizontal linkangles sugars="/sugars.svg">Man(b1-3)Glc</x-viewer>
  <button type="button" onclick="document.querySelector('x-sugarbuilder').saveSVG();">Save</button>
 <!--  <div style="overflow: auto;">
  <x-sugarframe src="human.svg">

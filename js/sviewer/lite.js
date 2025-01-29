@@ -49,7 +49,7 @@ tmpl.innerHTML = `
     --palette-background-color: #eee;
     --palette-icon-size: 32px;
     --demoted-opacity: 0.5;
-    --sugars-url:/sugars.svg;
+    --sugars-url: inherit;
   }
 
   :host([resizeable]) {
@@ -924,7 +924,7 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
   widget[active_palette_population_symbol] = process_token;
 
   widget[donors_symbol] = donors;
-  return Promise.resolve(SVGRenderer.SYMBOLS)
+  return Promise.resolve(widget.renderer.constructor.SYMBOLS)
   .then( (xml) => icons.innerHTML = xml )
   .then( async () => {
     if (widget[active_palette_population_symbol] !== process_token) {
@@ -1083,13 +1083,28 @@ let initialise_events = function() {
   log.info('Initialised global events');
 };
 
-let initialise_renderer = function() {
+
+let initialise_renderer_object = function() {
   if ( ! this.shadowRoot ) {
     return;
   }
-  this.LayoutEngine.LINKS = this.hasAttribute('links') ? true : false;
 
   let renderer_class = this.hasAttribute('renderer') ? (this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) || SVGRenderer) : SVGRenderer;
+
+  let get_sugars_url = () => {
+    return window.getComputedStyle(this).getPropertyValue('--sugars-url');
+  };
+
+  let overriding_renderer = class extends renderer_class {
+    static get SYMBOLS() {
+      const sugars_url = get_sugars_url();
+      if (sugars_url !== null && sugars_url !== "null" && sugars_url) {
+        return fetch(sugars_url).then( body => body.text());
+      } else {
+        return renderer_class.SYMBOLS;
+      }
+    }
+  }
 
   if ( this.renderer ) {
     while (this.shadowRoot.getElementById('output').firstChild) {
@@ -1098,7 +1113,16 @@ let initialise_renderer = function() {
     this.renderer = null;
   }
 
-  this.renderer = new renderer_class(this.shadowRoot.getElementById('output'),this.LayoutEngine);
+  this.renderer = new overriding_renderer(this.shadowRoot.getElementById('output'),this.LayoutEngine);
+
+}
+
+let initialise_renderer = function() {
+  if ( ! this.shadowRoot ) {
+    return;
+  }
+  this.LayoutEngine.LINKS = this.hasAttribute('links') ? true : false;
+
   this.renderer.rotate = this.hasAttribute('horizontal');
   this.renderer.leftToRight = false;
 
@@ -1253,7 +1277,7 @@ class SViewer extends WrapHTML {
     }
   }
 
-  connectedCallback() {
+  async connectedCallback() {
     if (window.ShadyCSS) {
       ShadyCSS.styleElement(this);
     }
@@ -1278,6 +1302,10 @@ class SViewer extends WrapHTML {
       }
       update_sugar_seq.call(this,watched_text_nodes);
     });
+
+    initialise_renderer_object.call(this);
+
+    await this.renderer.constructor.SYMBOLS;
 
     populate_palette(this,this.shadowRoot.getElementById('palette'))
     .then( () => {

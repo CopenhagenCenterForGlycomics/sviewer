@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "debug-any-level": "^0.3.0",
-    "es6-tween": "^5.5.11",
     "DragMenus": "github:hirenj/DragMenus",
-    "rough-glycan.js": "github:CopenhagenCenterForGlycomics/rough-glycan.js",
-    "esm": "^3.2.25"
+    "es6-tween": "^5.5.11",
+    "esm": "^3.2.25",
+    "rough-glycan.js": "github:CopenhagenCenterForGlycomics/rough-glycan.js"
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",
