@@ -675,16 +675,16 @@ let enableDropResidue = function(renderer,residue) {
 };
 
 let update_sequence = function() {
-  if ( ! this.renderer || ! this.renderer.sugars ) {
+  if ( ! this.renderer || ! this.renderer.sugars || this.renderer.sugars.length < 1 ) {
     return;
   }
   if (this.renderer.sugars[0].sequence !== this.sequence) {
     this.renderer.sugars[0].sequence = this.sequence;
-  }  
+  }
 };
 
 let redraw_sugar = function() {
-  if ( ! this.renderer || ! this.renderer.sugars ) {
+  if ( ! this.renderer || ! this.renderer.sugars || this.renderer.sugars.length < 1 ) {
     return;
   }
   return this.renderer.refresh().then( () => {
@@ -1255,8 +1255,13 @@ class SViewer extends WrapHTML {
     }
   }
 
-  attributeChangedCallback(name) {
+  async attributeChangedCallback(name) {
     if (name === 'renderer') {
+      if ( ! this.shadowRoot ) {
+        return;
+      }
+      initialise_renderer_object.call(this);
+      await this.renderer.constructor.SYMBOLS;
       initialise_renderer.call(this);
       return;
     }
