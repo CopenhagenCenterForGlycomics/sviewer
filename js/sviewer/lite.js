@@ -29,6 +29,8 @@ const repeats_symbol = Symbol('repeats');
 
 const highlighter_symbol = Symbol('highlighter');
 
+const scale_timeout_symbol = Symbol('scale_timeout');
+
 const RESIDUE_SELECTION_TIMEOUT = 500;
 
 const tmpl = document.createElement('template');
@@ -1045,7 +1047,15 @@ let form_action = function(widget,ev) {
     widget.scaleToFit();
     widget.highlightResidues();
   });
-  widget.sequence = renderer.sugars[0].sequence;
+
+  if ('requestAnimationFrame' in window) {
+    requestAnimationFrame( () => {
+      widget.sequence = renderer.sugars[0].sequence;
+    });
+  } else {
+    widget.sequence = renderer.sugars[0].sequence;
+  }
+
   this.reset();
   return false;
 };
@@ -1165,6 +1175,20 @@ const renderers = new Map(Object.entries({
   canvas: CanvasRenderer
 }));
 
+const scale_to_fit = function() {
+  let padding = Object.assign({}, this.renderer.constructor.DEFAULT_PADDING || { top: 0, side: 0 });
+  let padding_side = window.getComputedStyle(this).getPropertyValue('--sugar-padding-side');
+  let padding_top = window.getComputedStyle(this).getPropertyValue('--sugar-padding-top');
+
+  if ( padding_side && typeof padding_side !== 'undefined' ) {
+    padding.side = parseFloat(padding_side);
+  }
+  if ( padding_top && typeof padding_top !== 'undefined' ) {
+    padding.top = parseFloat(padding_top);
+  }
+  return this.renderer.scaleToFit(padding);
+};
+
 class SViewer extends WrapHTML {
 
   static get observedAttributes() {
@@ -1191,17 +1215,16 @@ class SViewer extends WrapHTML {
   }
 
   scaleToFit() {
-    let padding = Object.assign({}, this.renderer.constructor.DEFAULT_PADDING || { top: 0, side: 0 });
-    let padding_side = window.getComputedStyle(this).getPropertyValue('--sugar-padding-side');
-    let padding_top = window.getComputedStyle(this).getPropertyValue('--sugar-padding-top');
-
-    if ( padding_side && typeof padding_side !== 'undefined' ) {
-      padding.side = parseFloat(padding_side);
+    if ('requestAnimationFrame' in window) {
+      if (this[scale_timeout_symbol]) {
+        window.cancelAnimationFrame(this[scale_timeout_symbol]);
+      }
+      this[scale_timeout_symbol] = window.requestAnimationFrame(() => {
+        scale_to_fit.call(this);
+      });
+    } else {
+      return scale_to_fit.call(this);
     }
-    if ( padding_top && typeof padding_top !== 'undefined' ) {
-      padding.top = parseFloat(padding_top);
-    }
-    return this.renderer.scaleToFit(padding);
   }
 
   async toDataURL(format='image/svg') {
