@@ -1102,7 +1102,7 @@ let initialise_renderer_object = function() {
   let renderer_class = this.hasAttribute('renderer') ? (this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) || SVGRenderer) : SVGRenderer;
 
   let get_sugars_url = () => {
-    return window.getComputedStyle(this).getPropertyValue('--sugars-url');
+    return window.getComputedStyle(this).getPropertyValue('--sugars-url') || this.getAttribute('sugars');
   };
 
   let overriding_renderer = class extends renderer_class {
@@ -1330,6 +1330,10 @@ class SViewer extends WrapHTML {
       }
       update_sugar_seq.call(this,watched_text_nodes);
     });
+
+    if (this.hasAttribute('sugars')) {
+      this.style.setProperty( '--sugars-url', this.getAttribute('sugars'));
+    }
 
     initialise_renderer_object.call(this);
 

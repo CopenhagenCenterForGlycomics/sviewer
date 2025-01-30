@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to x-sviewer</title>
+    <style>
+        x-sviewer-lite, x-sviewer {
+            width: 10em;
+            height: 10em;
+        }
+        #output {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        head {
+            display: block;
+        }
+        #icons {
+            width: 0px;
+            height: 0px;
+            overflow: hidden;
+        }
+        #monosaccharides section {
+            height: 3em;
+            max-width: 10em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: monospace;
+        }
+        #monosaccharides {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        style[contenteditable] {
+          font-family: monospace;
+          white-space: pre;
+          display: block;
+        }
+    </style>
+    <h3>Override styles</h3>
+    <style contenteditable>
+        ::part(linkage_y3a) {
+            --stroke-width: 10;
+            --stroke-color: red;
+        }
+    </style>
+    <script src="./dist/sviewer-browser.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.js"></script>
+</head>
+<body>
+
+    <h3> Override monosaccharide symbols </h3>
+    <label>Monosaccharide SVG symbols<input type="file" id="fileInput"></label>
+    <div id="icons"></div>
+    <div id="monosaccharides"></div>
+
+    <h3>Sugars to draw</h3>
+
+    <textarea id="inputText" rows="10" cols="50" placeholder="Enter text here...">
+Gal(b1-3)GlcNAc(u?-?)R
+aDGalp36An_2S(b1-3)Glc(u?-?)R
+bDManpA_UNS(b1-3)Glc(u?-?)R
+aDGalp_2S6S(b1-3)Glc(u?-?)R
+HSO3(u1-2)[HSO3(u1-6)]Gal(b1-3)Glc(u?-?)R
+HSO3(u1-2)[HSO3(u1-6)]GalNAc(b1-3)Glc(u?-?)R
+HSO3(u1-2)[HSO3(u1-3)][HSO3(u1-4)][HSO3(u1-6)]Gal(b1-3)Glc(u?-?)R
+    </textarea>
+    <label>Horizontal<input id="horizontal" type="checkbox" checked/></label>
+    <label>Oxford linkages<input id="linkangles" type="checkbox"/></label>
+    <label>Label linkages<input id="links" type="checkbox"/></label>
+
+    <button onclick="processText()">Process</button>
+    <h3>Save sugars as zip file of SVGs</h3>
+    <button onclick="saveAll()">Save All</button>
+    <div id="output"></div>
+
+    <script>
+
+        const sugar_tag = 'x-sviewer';
+
+        let fileDataUri = "";
+
+        const palette_template = document.createElement('template');
+
+        palette_template.innerHTML = `
+            <section>
+          <svg width="100%" height="100%" viewBox="0 0 100 100">
+            <use x="0.0" y="0.0" width="100" height="100" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#neuac"></use>
+          </svg>
+            <div>Label</div>
+            </section>
+        `;
+
+        document.getElementById("fileInput").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fileDataUri = e.target.result; // Store Data URI in variable
+                    var svg = atob(fileDataUri.replace(/data:image\/svg\+xml;base64,/, ''));
+                    document.getElementById('icons').innerHTML = svg;
+                    for (let symbol of document.querySelectorAll('#icons svg defs symbol')) {
+                      let palette_entry = palette_template.content.cloneNode(true);
+                      palette_entry.querySelector('use').setAttribute('xlink:href',`#${symbol.getAttribute('id')}`);
+                      palette_entry.querySelector('div').textContent = `${symbol.getAttribute('id')}`;
+
+                      document.getElementById('monosaccharides').appendChild(palette_entry);
+                    }
+
+                    document.getElementById("output").textContent = "Sugar icons have been read in";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+
+        function processText() {
+            const text = document.getElementById("inputText").value;
+            const lines = text.split('\n');
+            const output = document.getElementById("output");
+            output.innerHTML = "";
+
+            lines.forEach(line => {
+                if (line.trim()) {
+                    const element = document.createElement(sugar_tag);
+                    if (fileDataUri) {
+                        element.setAttribute('sugars',fileDataUri);
+                    }
+                    if (document.getElementById('horizontal').checked) {
+                        element.setAttribute('horizontal','');
+                    }
+                    if (document.getElementById('linkangles').checked) {
+                        element.setAttribute('linkangles','');
+                    }
+                    if (document.getElementById('links').checked) {
+                        element.setAttribute('links','');
+                    }
+
+                    element.textContent = line;
+                    output.appendChild(element);
+                }
+            });
+        }
+
+        function computedStyleToInlineStyle( element,  options = { recursive: true } ) {
+            if (!element) {
+                throw new Error('No element specified.');
+            }
+
+            if (options?.recursive) {
+                Array.prototype.forEach.call(element.children, (child) => {
+                  computedStyleToInlineStyle(child, options);
+                });
+            }
+
+            const computedStyle = getComputedStyle(element);
+            Array.prototype.forEach.call( options?.properties || computedStyle, (property) => {
+              element.style[property] = computedStyle.getPropertyValue(property);
+            });
+        }
+
+        async function saveAll() {
+            const zipData = {};
+            const elements = document.querySelectorAll(sugar_tag);
+
+            for (let i = 0; i < elements.length; i++) {
+                const element = elements[i];
+                for (el of element.shadowRoot.querySelectorAll('svg [part]')) {
+                    computedStyleToInlineStyle(el)
+                }
+                // let link_res = element.renderer.sugars[0].locate_monosaccharide('y3a');
+                // debugger;
+                // if (link_res) {
+                //     let link = element.renderer.rendered.get(link_res).linkage.element.querySelector('line');
+                //     link.setAttribute('stroke-width',10);
+                //     link.setAttribute('stroke','red');
+                //     link.setAttribute('style','');
+                // }
+                const filename = `${element.sequence}.svg`;
+                const dataUrl = await element.toDataURL('image/svg');
+                zipData[filename] = dataUrlToBlob(svgDataUriToBase64(dataUrl));
+            }
+
+            downloadZip(zipData);
+        }
+
+        function svgDataUriToBase64(dataUri) {
+            const [header, svgData] = dataUri.split(',');
+            const base64Data = btoa(decodeURIComponent(svgData)); // Encode to Base64
+            return `${header};base64,${base64Data}`; // Reconstruct Data URI with Base64
+        }
+
+        function dataUrlToBlob(dataUrl) {
+            const parts = dataUrl.split(',');
+            const byteString = atob(parts[1]);
+            const mimeString = parts[0].split(':')[1].split(';')[0];
+            const arrayBuffer = new ArrayBuffer(byteString.length);
+            const uint8Array = new Uint8Array(arrayBuffer);
+            for (let i = 0; i < byteString.length; i++) {
+                uint8Array[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([arrayBuffer], { type: mimeString });
+        }
+
+        async function downloadZip(files) {
+            var zip = new JSZip();
+            for (const [name, blob] of Object.entries(files)) {
+                zip.file(`${name}`, blob);
+            }
+            zip.generateAsync({type:"blob"})
+            .then(function(content) {
+                // see FileSaver.js
+                saveZip(content, "sugars.zip");
+            });
+        }
+
+        async function saveZip(zipFile,filename) {
+            // const zipFile = await createZip(files);
+            const link = document.createElement("a");
+            console.log(zipFile);
+            link.href = URL.createObjectURL(zipFile);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+    </script>
+</body>
+</html>
