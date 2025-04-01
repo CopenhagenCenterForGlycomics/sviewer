@@ -1317,8 +1317,9 @@ class SViewer extends WrapHTML {
     this.form.style.display = 'none';
 
     let slot = this.shadowRoot.getElementById('textcontent');
-
-    this[sequence_symbol] = slot.assignedNodes({flatten: true})[0].textContent;
+    if (slot.assignedNodes({flatten: true})[0]) {
+      this[sequence_symbol] = slot.assignedNodes({flatten: true})[0].textContent;
+    }
 
     let watched_text_nodes;
 
