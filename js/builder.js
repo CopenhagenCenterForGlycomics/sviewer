@@ -36,8 +36,6 @@ const tmpl = document.createElement('template');
 tmpl.innerHTML = `
 <style>
   :host {
-    --selection-color: #333;
-    --button-default-background-color: #555;
     --demoted-opacity: 0.8;
   }
   :host {

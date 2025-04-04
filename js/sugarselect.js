@@ -30,9 +30,23 @@ tmpl.innerHTML = `
 <style>
   :host {
     display: block;
-    min-width: 1em;
-    min-height: 1em;
+    min-width: calc(22em + 30px);
+    min-height: calc(15em + 30px);
     --max-select-display: -1;
+    --selection-color: #000;
+    --button-default-background-color: rgba(255,255,255,0.8);
+    --button-color: #000;
+    --drop-shadow-color: rgba(50, 50, 0, 0.5);
+    --drop-shadow-offset: 2px;
+    --drop-shadow-size: 1px;
+
+  }
+
+  :host, :host * {
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE 10+ */
   }
 
   #output {
@@ -49,7 +63,16 @@ tmpl.innerHTML = `
     display: block;
     width: 50%;
     height: 100%;
-    flex: 0 0 auto;
+    flex: 1 0 20em;
+  }
+
+  #options {
+    pointer-events: none;
+  }
+
+  #options label {
+    pointer-events: auto;
+    box-shadow: var(--drop-shadow-offset) var(--drop-shadow-offset) var(--drop-shadow-size) var(--drop-shadow-color);
   }
 
   #options label:not(:has(x-sviewer)) {
@@ -63,7 +86,7 @@ tmpl.innerHTML = `
     display: none;
   }
   #options label:has(input[type="radio"]:checked) {
-    border: solid black 1px;
+    background: var(--selection-color);
   }
   #options {
     margin-top: 10px;
@@ -79,7 +102,7 @@ tmpl.innerHTML = `
   }
 
   #options label:hover {
-    background: #ddd;
+    background: var(--selection-color);
   }
   #options label {
     cursor: pointer;
@@ -90,11 +113,11 @@ tmpl.innerHTML = `
   }
   #options label {
     aspect-ratio: 1 / 1;
-    flex: 1 1 calc(33.33% - 10px);
-    width: min(calc(33.33% - 20px),5em);
-    max-width: 5em;
+    flex: 1 1 min(calc(33.33% - 10px),10em);
+    max-width: min(calc(33.33% - 20px),10em);
+    min-width: 3em;
     border-radius: 10px;
-    background: #efefef;
+    background: var(--button-default-background-color);
   }
   #options label input {
     position: fixed;
@@ -187,6 +210,8 @@ const wire_events = function() {
   });
   this.shadowRoot.getElementById('builder').addEventListener('change', () => {
     this.updateDisabled();
+    let event = new Event('change',{bubbles: true});
+    this.dispatchEvent(event);
   });
 };
 
@@ -221,6 +246,10 @@ class SugarSelect extends WrapHTML {
 
   }
 
+  get value() {
+    return this.shadowRoot.querySelector('#options').glycan.value;
+  }
+
   reset() {
     this.shadowRoot.querySelector('#builder').sequence = '';
   }
@@ -243,8 +272,8 @@ class SugarSelect extends WrapHTML {
       let oligo_match = [...sug.composition()].length > 1;
       if (pattern_match && oligo_match) {
         option.setAttribute('disabled','');
-        if (option.selected) {
-          option.selected = false;
+        if (option.querySelector('input').checked) {
+          option.querySelector('input').checked = false;
         }
       } else {
         enabled_count += 1;
