@@ -197,6 +197,10 @@ function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
 }
 
 const reset_form_disabled = function(widget,viewer) {
+  if (viewer.renderer.sugars.length < 1) {
+    adapt_form.call(widget, [...viewer.form.querySelectorAll('input[name="donor"]')]);
+    return
+  }
   let sugar = viewer.renderer.sugars[0].clone();
   sugar.freeze();
   viewer.available.highlight();
@@ -291,8 +295,13 @@ class SugarBuilder extends WrapHTML {
 
 
     if ( this.reactiongroup ) {
-      update_donors.call(this,this.reactiongroup);
-      // reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+      update_donors.call(this,this.reactiongroup).then( () => {
+        if( this.shadowRoot.getElementById('viewer').palette_ready_promise ) {
+          this.shadowRoot.getElementById('viewer').palette_ready_promise.then( () => {
+            reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+          });
+        }
+      });
     }
 
     let selection_highlighter = new Highlighter(shadowRoot.getElementById('viewer'),'available');

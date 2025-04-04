@@ -1144,7 +1144,7 @@ let initialise_renderer = function() {
   log.info('Wired canvas events');
   let sug = new IupacSugar();
   this.renderer.addSugar(sug);
-  if (this.sequence) {
+  if (this.sequence || (this.sequence == '' && this.renderer.sugars[0].sequence != this.sequence)) {
     update_sequence.call(this);
     this._redraw_sugar();
     if (sug.repeats.length > 0) { 
@@ -1160,10 +1160,11 @@ let update_sugar_seq = function(watched_text_nodes) {
   if (newseq !== this.sequence) {
     this[sequence_symbol] = newseq;
   }
-  if (this.sequence) {
+  if (this.sequence || this.sequence == '') {
     update_sequence.call(this);
-    this._redraw_sugar();
   }
+  this._redraw_sugar();
+
 };
 
 if (window.ShadyCSS) {
@@ -1340,7 +1341,7 @@ class SViewer extends WrapHTML {
 
     await this.renderer.constructor.SYMBOLS;
 
-    populate_palette(this,this.shadowRoot.getElementById('palette'))
+    this.palette_ready_promise = populate_palette(this,this.shadowRoot.getElementById('palette'))
     .then( () => {
       initialise_renderer.call(this);
       initialise_events.call(this);
