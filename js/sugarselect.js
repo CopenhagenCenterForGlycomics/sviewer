@@ -32,6 +32,7 @@ tmpl.innerHTML = `
     display: block;
     min-width: 1em;
     min-height: 1em;
+    --max-select-display: -1;
   }
 
   #output {
@@ -65,12 +66,16 @@ tmpl.innerHTML = `
     border: solid black 1px;
   }
   #options {
+    margin-top: 10px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    max-width: 50%;
+    align-content: flex-start;
+    max-width: calc(50% - 20px);
+    max-height: calc(100% - 20px);
     gap: 10px;
     overflow-y: auto;
+    overflow-x: hidden;
   }
 
   #options label:hover {
@@ -86,7 +91,8 @@ tmpl.innerHTML = `
   #options label {
     aspect-ratio: 1 / 1;
     flex: 1 1 calc(33.33% - 10px);
-    max-width: calc(33.33% - 10px);
+    width: min(calc(33.33% - 20px),5em);
+    max-width: 5em;
     border-radius: 10px;
     background: #efefef;
   }
@@ -248,7 +254,11 @@ class SugarSelect extends WrapHTML {
         option.removeAttribute('disabled');
       }
       if ( ! option.hasAttribute('disabled') ) {
-        if (enabled_count > 11) {
+        let max_display = window.getComputedStyle(this).getPropertyValue('--max-select-display');
+        if (max_display < 0) {
+          max_display = Infinity;
+        }
+        if (enabled_count > max_display) {
           option.setAttribute('hide','')
         } else {
           option.querySelector('x-sviewer').fullRefresh();
