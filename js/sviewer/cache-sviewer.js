@@ -1,4 +1,4 @@
-import {default as SViewerLite} from './lite'; 
+import {default as SViewerLite} from './lite';
 
 const SUGAR_CACHE=new Map();
 const SUGAR_CACHE_COUNTS=new Map();
@@ -57,6 +57,6 @@ class SViewerCache extends SViewerLite {
   }
 }
 
-customElements.define('x-sviewer-cache',SViewerCache);
+customElements.define('ccg-sviewer-cache',SViewerCache);
 
 export default SViewerCache;

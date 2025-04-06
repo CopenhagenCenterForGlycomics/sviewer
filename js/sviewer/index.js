@@ -6,7 +6,7 @@ import { DraggableForm, DragManager, ShadowDragDropTouch } from 'DragMenus';
 
 export { IupacSugar } from './lite';
 
-import {default as SViewerLite} from './lite'; 
+import {default as SViewerLite} from './lite';
 
 let wire_drag_functions = function() {
   new DragManager(this);
@@ -38,6 +38,6 @@ class SViewer extends SViewerLite {
   }
 }
 
-customElements.define('x-sviewer',SViewer);
+customElements.define('ccg-sviewer',SViewer);
 
 export default SViewer;

@@ -7,6 +7,8 @@ import { CondensedIupac, Sugar, SVGRenderer, Reaction, ReactionGroup } from 'gly
 
 import ImageSaver from './imagesaver';
 
+const ELEMENT_NAME = 'ccg-sugarframe';
+
 const module_string='sviewer:sugarframe';
 
 const log = debug(module_string);
@@ -293,6 +295,6 @@ class SugarFrame extends WrapHTML {
 
 }
 
-customElements.define('x-sugarframe',SugarFrame);
+customElements.define(ELEMENT_NAME,SugarFrame);
 
 export default SugarFrame;

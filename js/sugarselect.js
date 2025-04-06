@@ -9,6 +9,8 @@ import * as CacheSViewer from './sviewer/cache-sviewer';
 
 import { CondensedIupac, Sugar, SVGRenderer, Reaction, ReactionGroup, comparator } from 'glycan.js';
 
+const ELEMENT_NAME = 'ccg-sugarselect';
+
 const module_string='sviewer:sugarselect';
 
 const log = debug(module_string);
@@ -34,7 +36,6 @@ tmpl.innerHTML = `
     min-height: calc(15em + 30px);
     --max-select-display: -1;
     --selection-color: #000;
-    --button-default-background-color: rgba(255,255,255,0.8);
     --button-color: #000;
     --drop-shadow-color: rgba(50, 50, 0, 0.5);
     --drop-shadow-offset: 2px;
@@ -75,7 +76,7 @@ tmpl.innerHTML = `
     box-shadow: var(--drop-shadow-offset) var(--drop-shadow-offset) var(--drop-shadow-size) var(--drop-shadow-color);
   }
 
-  #options label:not(:has(x-sviewer)) {
+  #options label:not(:has(ccg-sviewer)) {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -124,7 +125,7 @@ tmpl.innerHTML = `
     opacity: 0;
     pointer-events: none;
   }
-  #options x-sviewer {
+  #options ccg-sviewer {
     width: 100%;
     height: 100%;
     position: relative;
@@ -132,7 +133,7 @@ tmpl.innerHTML = `
 </style>
 
 <div id="output">
-  <x-sugarbuilder links strict id="builder"> </x-sugarbuilder>
+  <ccg-sugarbuilder links strict id="builder"> </ccg-sugarbuilder>
   <slot id="glycanoptions"> </slot>
   <form id="options">
     <label><input type="radio" name="glycan" value=""/>Clear</label>
@@ -143,7 +144,7 @@ tmpl.innerHTML = `
 const label_template = document.createElement('template');
 
 label_template.innerHTML = `
-<label><input type="radio" name="glycan" value=""/><x-sviewer links renderer="png"></x-sviewer></label>
+<label><input type="radio" name="glycan" value=""/><ccg-sviewer links renderer="png"></ccg-sviewer></label>
 `;
 
 const reset_template = document.createElement('template');
@@ -192,7 +193,7 @@ const accept_options = function(slot,target) {
   const passed_options = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.ELEMENT_NODE ));
   for (let node of passed_options) {
     let a_label = label_template.content.cloneNode(true);
-    a_label.firstElementChild.querySelector('x-sviewer').textContent = node.textContent;
+    a_label.firstElementChild.querySelector('ccg-sviewer').textContent = node.textContent;
     a_label.firstElementChild.querySelector('input').setAttribute('value',node.textContent);
     target.appendChild(a_label);
   }
@@ -290,7 +291,7 @@ class SugarSelect extends WrapHTML {
         if (enabled_count > max_display) {
           option.setAttribute('hide','')
         } else {
-          option.querySelector('x-sviewer').fullRefresh();
+          option.querySelector('ccg-sviewer').fullRefresh();
           option.removeAttribute('hide');
         }
       }
@@ -315,6 +316,6 @@ class SugarSelect extends WrapHTML {
 
 }
 
-customElements.define('x-sugarselect',SugarSelect);
+customElements.define(ELEMENT_NAME,SugarSelect);
 
 export default SugarSelect;

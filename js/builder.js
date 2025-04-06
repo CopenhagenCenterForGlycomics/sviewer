@@ -8,6 +8,7 @@ import { default as SViewer, IupacSugar } from './sviewer';
 
 import Highlighter from './highlighter';
 
+const ELEMENT_NAME = 'ccg-sugarbuilder';
 
 const Iupac = CondensedIupac.IO;
 
@@ -29,7 +30,7 @@ class Builder extends SViewer {
   }
 }
 
-customElements.define('x-builder',Builder);
+customElements.define('ccg-builder',Builder);
 
 const tmpl = document.createElement('template');
 
@@ -43,7 +44,7 @@ tmpl.innerHTML = `
     position: relative;
   }
 
-  :host x-builder {
+  :host ccg-builder {
     width: 100%;
     height: 100%;
   }
@@ -55,7 +56,7 @@ tmpl.innerHTML = `
   }
 </style>
 <div class="widget_contents" >
-  <x-builder editable resizable links id="viewer"><slot></slot></x-builder>
+  <ccg-builder editable resizable links id="viewer"><slot></slot></ccg-builder>
 </div>
 `;
 
@@ -226,7 +227,7 @@ const wire_sviewer_events = function(viewer) {
       residue_val = sugar.locate_monosaccharide(viewer.renderer.sugars[0].location_for_monosaccharide(residue_val));
     }
     let supported = reactions.supportsLinkageAt(sugar,donor_val,linkage_val,residue_val);
-    if (supported.substrate) {      
+    if (supported.substrate) {
       viewer.available.highlight(supported.substrate.map( res => sugar.location_for_monosaccharide(res) ).map( loc => viewer.renderer.sugars[0].locate_monosaccharide(loc) ));
     }
     if (supported.anomerlinks && (this.querySelector('input[name="anomer"]:checked') || {}).value) {
@@ -254,7 +255,7 @@ const wire_sviewer_events = function(viewer) {
 };
 
 if (window.ShadyCSS) {
-  ShadyCSS.prepareTemplate(tmpl, 'x-sugarbuilder');
+  ShadyCSS.prepareTemplate(tmpl, ELEMENT_NAME);
 }
 
 class SugarBuilder extends WrapHTML {
@@ -273,7 +274,7 @@ class SugarBuilder extends WrapHTML {
     }
     let shadowRoot = this.attachShadow({mode: 'open'});
     let template_content = tmpl.content.cloneNode(true);
-    template_content.querySelector('x-builder').setAttribute('sugars',this.getAttribute('sugars'));
+    template_content.querySelector('ccg-builder').setAttribute('sugars',this.getAttribute('sugars'));
     shadowRoot.appendChild(template_content);
     wire_sviewer_events.call(this,shadowRoot.getElementById('viewer'));
     this.attributeChangedCallback('horizontal');
@@ -394,6 +395,6 @@ class SugarBuilder extends WrapHTML {
 
 }
 
-customElements.define('x-sugarbuilder',SugarBuilder);
+customElements.define(ELEMENT_NAME,SugarBuilder);
 
 export default SugarBuilder;

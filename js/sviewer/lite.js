@@ -245,7 +245,7 @@ tmpl.innerHTML = `
     -webkit-tap-highlight-color: rgba(0,0,0,0);
   }
 
-  :host x-piemenu {
+  :host ccg-piemenu {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -258,15 +258,15 @@ tmpl.innerHTML = `
     --icon-size: 10px;
   }
 
-  :host x-piemenu[active] label {
+  :host ccg-piemenu[active] label {
     pointer-events: all;
   }
 
-  :host x-piemenu[active] label[data-weight^="-"] {
+  :host ccg-piemenu[active] label[data-weight^="-"] {
     opacity: calc( -1 * var(--weight) * var(--demoted-opacity) );
   }
 
-  :host x-piemenu button, x-piemenu label {
+  :host ccg-piemenu button, ccg-piemenu label {
     font-family: sans-serif;
     font-size: var(--icon-size);
   }
@@ -283,18 +283,18 @@ tmpl.innerHTML = `
   }
 
 
-  :host x-piemenu label.dragover {
+  :host ccg-piemenu label.dragover {
     background: linear-gradient(var(--slice-background-rotate-angle),var(--selection-color) 50%, var(--palette-background-color) 50%);
     background-size: 375% 100%;
     animation: piemenuselection 650ms;
   }
 
-  :host x-piemenu button.hover, x-piemenu label.hover, x-piemenu button:hover, x-piemenu label:hover {
+  :host ccg-piemenu button.hover, ccg-piemenu label.hover, ccg-piemenu button:hover, ccg-piemenu label:hover {
     background: var(--selection-color);
     color: #ffffff;
   }
 
-  :host x-piemenu button[data-weight^="-"].hover, x-piemenu label[data-weight^="-"].hover, x-piemenu button[data-weight^="-"]:hover, x-piemenu label[data-weight^="-"]:hover {
+  :host ccg-piemenu button[data-weight^="-"].hover, ccg-piemenu label[data-weight^="-"].hover, ccg-piemenu button[data-weight^="-"]:hover, ccg-piemenu label[data-weight^="-"]:hover {
     background: #FFE2E2;
     opacity: 1;
     color: #000000;
@@ -318,7 +318,7 @@ tmpl.innerHTML = `
     :host {
       --palette-icon-size: 32px;
     }
-    :host x-piemenu {
+    :host ccg-piemenu {
       --end-angle: 135;
       --start-angle: 35;
       --icon-position-ratio: 0.1;
@@ -422,12 +422,12 @@ tmpl.innerHTML = `
     <input name="donor" value="delete" type="radio"></label>
     </div>
     <div class="pie_parent">
-      <x-piemenu name="anomer" id="anomer_menu" data-next="linkage_menu">
+      <ccg-piemenu name="anomer" id="anomer_menu" data-next="linkage_menu">
         <label><span>α</span><input name="anomer" value="a" type="radio"></label>
         <label><span>β</span><input name="anomer" value="b" type="radio"></label>
         <label><span>?</span><input name="anomer" value="u" type="radio"></label>
-      </x-piemenu>
-      <x-piemenu name="linkage" id="linkage_menu">
+      </ccg-piemenu>
+      <ccg-piemenu name="linkage" id="linkage_menu">
         <label><span>N</span><input name="linkage" value="${Monosaccharide.LINKAGES.N}" type="radio"></label>
         <label><span>O</span><input name="linkage" value="${Monosaccharide.LINKAGES.O}" type="radio"></label>
         <label><span>?</span><input name="linkage" value="0" type="radio"></label>
@@ -437,7 +437,7 @@ tmpl.innerHTML = `
         <label><span>4</span><input name="linkage" value="4" type="radio"></label>
         <label><span>6</span><input name="linkage" value="6" type="radio"></label>
         <label><span>8</span><input name="linkage" value="8" type="radio"></label>
-      </x-piemenu>
+      </ccg-piemenu>
     </div>
   </form>
   <div id="textbox">
@@ -762,7 +762,7 @@ let wire_renderer_fisheye = function(arg) {
 
   let last_req;
   canvas.addEventListener('dragover', (ev) => {
-    if (this.shadowRoot.querySelectorAll('x-piemenu[active]').length > 0) {
+    if (this.shadowRoot.querySelectorAll('ccg-piemenu[active]').length > 0) {
       return;
     }
     if (! this.hasAttribute('editable')) {
@@ -1166,7 +1166,7 @@ let update_sugar_seq = function(watched_text_nodes) {
 };
 
 if (window.ShadyCSS) {
-  ShadyCSS.prepareTemplate(tmpl, 'x-sviewer');
+  ShadyCSS.prepareTemplate(tmpl, 'ccg-sviewer');
 }
 
 const renderers = new Map(Object.entries({
@@ -1411,7 +1411,7 @@ class SViewer extends WrapHTML {
 
 }
 
-customElements.define('x-sviewer-lite',SViewer);
+customElements.define('ccg-sviewer-lite',SViewer);
 
 export default SViewer;
 export { IupacSugar };
