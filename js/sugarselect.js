@@ -35,12 +35,9 @@ tmpl.innerHTML = `
     min-width: calc(22em + 30px);
     min-height: calc(15em + 30px);
     --max-select-display: -1;
-    --selection-color: #000;
-    --button-color: #000;
     --drop-shadow-color: rgba(50, 50, 0, 0.5);
     --drop-shadow-offset: 2px;
     --drop-shadow-size: 1px;
-
   }
 
   :host, :host * {
@@ -115,10 +112,10 @@ tmpl.innerHTML = `
   #options label {
     aspect-ratio: 1 / 1;
     flex: 1 1 min(calc(33.33% - 10px),10em);
-    max-width: min(calc(33.33% - 20px),10em);
+    max-width: min(calc(33.33% - 20px),4em);
     min-width: 3em;
     border-radius: 10px;
-    background: var(--button-default-background-color);
+    background: var(--button-default-background-color,#555);
   }
   #options label input {
     position: fixed;
