@@ -130,7 +130,7 @@ tmpl.innerHTML = `
 </style>
 
 <div id="output">
-  <ccg-sugarbuilder links strict id="builder"> </ccg-sugarbuilder>
+  <ccg-sugarbuilder strict id="builder"> </ccg-sugarbuilder>
   <slot id="glycanoptions"> </slot>
   <form id="options">
     <label><input type="radio" name="glycan" value=""/>Clear</label>
@@ -242,6 +242,10 @@ class SugarSelect extends WrapHTML {
 
     wire_events.call(this);
 
+    for (let attr of ['links','linkangles']) {
+      this.attributeChangedCallback(attr);
+    }
+
   }
 
   get value() {
@@ -300,7 +304,7 @@ class SugarSelect extends WrapHTML {
     if ( ! this.shadowRoot ) {
       return;
     }
-    if ([].indexOf(name) >= 0 ) {
+    if (['links','linkangles'].indexOf(name) >= 0 ) {
       if (this.hasAttribute(name)) {
         this.shadowRoot.getElementById('builder').setAttribute(name,'');
       } else {
