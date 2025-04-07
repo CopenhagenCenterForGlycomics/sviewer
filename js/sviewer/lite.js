@@ -152,6 +152,7 @@ tmpl.innerHTML = `
     flex-flow: row wrap;
     align-items: flex-start;
     justify-content: space-between;
+    row-gap: 5px;
     margin-top: calc(-1 *  var(--palette-height, 0px));
   }
 
@@ -173,6 +174,10 @@ tmpl.innerHTML = `
     background: none;
     height: auto;
     min-height: calc(var(--palette-icon-size) + 5px);
+    padding-bottom: 5px;
+    padding-right: 2px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
   }
 
   :host #palette_closer_wrap {
@@ -352,6 +357,10 @@ tmpl.innerHTML = `
     opacity: var(--demoted-opacity);
   }
 
+  :host #palette_delete {
+    padding: 2px;
+    border-radius: 5px;
+  }
 
   :host .palette label.checked {
     background: #faa;
@@ -705,10 +714,22 @@ let wire_renderer_canvas_events = function() {
     this.classList.add('dragging');
   });
 
+  const contents = this.shadowRoot.querySelector('.widget_contents');
+  contents.addEventListener('click', (ev) => {
+    if (ev.target !== contents) {
+      return;
+    }
+    // // Reset form values and selected items
+    this.form.reset();
+    this.form.clear();
+  });
+
   canvas.addEventListener('click', (ev) => {
     if (ev.target !== canvas) {
       return;
     }
+    // // Reset form values and selected items
+    this.form.reset();
     this.form.clear();
   });
 
