@@ -19,8 +19,6 @@ const Iupac = CondensedIupac.IO;
 
 const IupacSugar = Mass(Iupac(Sugar));
 
-class IupacReaction extends Iupac(Reaction) {}
-
 const sequence_symbol = Symbol('sequence');
 
 const donors_symbol = Symbol('donors');
@@ -901,7 +899,7 @@ const wire_palette_watcher = (label) => {
 
 const active_palette_population_symbol = Symbol('ACTIVE_POPULATION');
 
-let ensure_sugar_icon = (defs_block,sequence) => {
+let ensure_sugar_icon = function(defs_block,sequence) {
   let safe_seq = sequence.toLowerCase().replace(/[()\[\]]/g,'_');
   let existing;
   try {
@@ -916,7 +914,12 @@ let ensure_sugar_icon = (defs_block,sequence) => {
   const templayout = class extends SugarAwareLayoutFishEye {};
   templayout.LINKS = false;
   let sugar_renderer = new SVGRenderer(defs_block,templayout);
-  let sug = new IupacSugar();
+  if (! this ) {
+    debugger;
+  }
+  console.log(this,'clazz');
+  let clazz = this.SugarClass;
+  let sug = new clazz();
   sug.sequence = sequence;
   sugar_renderer.element.canvas.setAttribute('id',safe_seq);
   sugar_renderer.rotate = true;
@@ -962,7 +965,7 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
 
       let safe_seq = sug.toLowerCase().replace(/[()\[\]]/g,'_');
 
-      await ensure_sugar_icon(icons.querySelector('defs'),sug);
+      await ensure_sugar_icon.call(widget,icons.querySelector('defs'),sug);
 
       let palette_entry = palette_template.content.cloneNode(true);
       palette_entry.querySelector('use').setAttribute('xlink:href',`#${safe_seq}`);
@@ -981,7 +984,9 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
 
 let extend_sugar = function(residue,donor_value,anomer_value,linkage_value) {
 
-  let sug = new IupacSugar();
+  let clazz = this.SugarClass;
+
+  let sug = new clazz();
 
   sug.sequence = donor_value;
 
@@ -995,8 +1000,9 @@ let extend_sugar = function(residue,donor_value,anomer_value,linkage_value) {
 
   let reaction_string = `${residue.identifier}(u?-?)*+"{${delta}@y2a}"`;
 
+  let ReactionClass = Reaction.CopyIO(sug)
 
-  let reaction = new IupacReaction();
+  let reaction = new ReactionClass();
   reaction.sequence = reaction_string;
 
   // if (this.querySelector('input[name="donor"]:checked').reaction) {
@@ -1165,7 +1171,8 @@ let initialise_renderer = function() {
   wire_renderer_canvas_events.call(this);
   wire_renderer_fisheye.call(this);
   log.info('Wired canvas events');
-  let sug = new IupacSugar();
+  let clazz = this.SugarClass;
+  let sug = new clazz();
   this.renderer.addSugar(sug);
   if (this.sequence || (this.sequence == '' && this.renderer.sugars[0].sequence != this.sequence)) {
     update_sequence.call(this);
@@ -1215,12 +1222,22 @@ const scale_to_fit = function() {
 
 class SViewer extends WrapHTML {
 
+  #SUGAR_CLASS = IupacSugar;
+
   static get observedAttributes() {
     return ['links','horizontal','linkangles','sugars','renderer'];
   }
 
   static get RegisteredRenderers() {
     return renderers;
+  }
+
+  get SugarClass() {
+    return this.#SUGAR_CLASS;
+  }
+
+  set SugarClass(clazz) {
+    this.#SUGAR_CLASS = clazz;
   }
 
   constructor() {

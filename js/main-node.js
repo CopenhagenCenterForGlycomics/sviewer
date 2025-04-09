@@ -20,8 +20,8 @@ function AdjustSpacing(layout,spacing="normal") {
 
     static get DELTA_Y() {
       return super.DELTA_Y*(SPACINGS[spacing] || 1);
-    }    
-  } 
+    }
+  }
 }
 
 
@@ -43,7 +43,7 @@ function create_renderer_for_sugars(sugars, layout=SugarAwareLayout, spacing="no
   for (let sugar of sugars) {
     renderer.addSugar(sugar);
   }
-  return renderer;  
+  return renderer;
 }
 
 async function serialise_rendered(sugars,renderer,is_array_input=false) {
@@ -130,16 +130,16 @@ async function render_iupac_sugar_fragment(sequence='Man(a1-3)Man(b1-4)GlcNAc(b1
         rendered_linkage.parentNode.removeChild(rendered_linkage);
       }
       if (rendered_linkage && rendered_linkage.element && rendered_linkage.element.parentNode) {
-        rendered_linkage.element.parentNode.removeChild(rendered_linkage.element);          
+        rendered_linkage.element.parentNode.removeChild(rendered_linkage.element);
       }
 
       for (const kid of res.children) {
         let kid_rendered = renderer.rendered.get(kid).linkage;
         if (kid_rendered && kid_rendered.parentNode) {
-          kid_rendered.parentNode.removeChild(kid_rendered);          
+          kid_rendered.parentNode.removeChild(kid_rendered);
         }
         if (kid_rendered && kid_rendered.element && kid_rendered.element.parentNode) {
-          kid_rendered.element.parentNode.removeChild(kid_rendered.element);          
+          kid_rendered.element.parentNode.removeChild(kid_rendered.element);
         }
 
       }

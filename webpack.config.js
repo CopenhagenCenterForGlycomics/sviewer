@@ -34,6 +34,7 @@ module.exports = {
       use: {
         loader: 'babel-loader',
         options: {
+          plugins: ['@babel/plugin-transform-class-properties'],
           presets: [
             ['@babel/preset-env', {
               modules: false,

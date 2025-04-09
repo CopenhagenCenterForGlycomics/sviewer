@@ -18,7 +18,7 @@ ccg-sviewer, ccg-sugarbuilder {
 	height: 250px;
 }
 
-ccg-sugarselect {
+ccg-sugarselect, my-select {
 	resize: both;
 	overflow: auto;
 	width: 30em;
@@ -34,137 +34,190 @@ ccg-sviewer::part(linkage_y3a) {
 	--stroke-color: red;
 }
 </style>
+<script type="text/javascript">
+
+	let rewrite_seq_input = (inseq) => {
+		let sequence = inseq;
+		while (sequence.match(/5([AG])c/)) {
+			sequence = sequence.replace(/5([AG])c/,'$1c')
+		}
+		while (sequence.match(/([^\)]+)([2346])S/)) {
+			sequence = sequence.replace(/([^\)]+)([2346])S/,'[HSO3(u?-$2)]$1');
+		}
+		if (inseq !== sequence) {
+			// console.log(inseq,sequence);
+		}
+		return sequence
+	};
+
+	let rewrite_seq_output = (outseq) => {
+		if (! outseq) {
+			return outseq;
+		}
+		let sequence = outseq;
+		while (sequence.match(/Neu[AG]c/)) {
+			sequence = sequence.replace(/Neu([AG])c/,'Neu5$1c')
+		}
+		while (sequence.match(/\[?HSO3\(u.-(\d)\)\]?([A-Za-z0-9]+)/)) {
+			sequence = sequence.replace(/\[?HSO3\(u.-(\d)\)\]?([A-Za-z0-9]+)/,'$2$1S');
+		}
+		if (outseq !== sequence) {
+			// console.log(outseq,sequence);
+		}
+		return sequence
+	};
+
+
+
+	class MySugarClass extends window.SViewer.IupacSugar {
+		set sequence(inputseq) {
+			super.sequence = rewrite_seq_input(inputseq);
+		}
+		get sequence() {
+			return rewrite_seq_output(super.sequence);
+		}
+	}
+
+	class MySelect extends window.SugarSelect.default {
+		connectedCallback() {
+			this.SugarClass = MySugarClass;
+			super.connectedCallback();
+		}
+	}
+
+	customElements.define('my-select',MySelect);
+
+</script>
 </head>
 <body>
 	<section style="display: flex; align-items: center; flex-wrap: wrap;">
 
-		<ccg-sugarselect >
-			<option>Man</option>
-			<option>Fuc</option>
-			<option>GlcNAc</option>
-			<option>GalNAc</option>
-			<option>Man(a1-2)Man</option>
-			<option>Glc(b1-3)Fuc</option>
-			<option>Man(a1-3)Man</option>
-			<option>Gal(a1-3)GalNAc</option>
-			<option>Glc(b1-3)GalNAc</option>
-			<option>GlcNAc(b1-4)Man</option>
-			<option>GlcNAc(b1-2)Man</option>
-			<option>Gal(b1-3)GalNAc</option>
-			<option>GlcNAc(b1-3)Fuc</option>
-			<option>GalNAc(a1-3)GalNAc</option>
-			<option>GalNAc(a1-4)GalNAc</option>
-			<option>GlcNAc(b1-3)GalNAc</option>
-			<option>GlcNAc(b1-6)GalNAc</option>
-			<option>NeuAc(a2-6)GalNAc</option>
-			<option>GalNAc(a1-6)GalNAc</option>
-			<option>NeuAc(a2-3)GalNAc</option>
-			<option>Glc(b1-4)GlcA(a1-3)Fuc</option>
-			<option>Gal(a1-3)Gal(b1-3)GalNAc</option>
-			<option>Fuc(a1-2)Gal(b1-3)GalNAc</option>
-			<option>Gal(b1-4)GlcNAc(b1-3)Fuc</option>
-			<option>Gal(b1-4)GlcNAc(b1-2)Man</option>
-			<option>Gal(b1-3)[Gal(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-3)GalNAc</option>
-			<option>GlcA(b1-4)[GlcNAc(b1-3)]Fuc</option>
-			<option>NeuGc(a2-3)Gal(b1-3)GalNAc</option>
-			<option>Rha(a1-3)GalNAc(a1-3)GalNAc</option>
-			<option>GalNAc(b1-3)GlcNAc(b1-4)Man</option>
-			<option>GalNAc(b1-4)GlcA(b1-3)GalNAc</option>
-			<option>Gal(b1-3)[GlcNAc(b1-6)]GalNAc</option>
-			<option>GlcNAc(b1-2)[GlcNAc(b1-6)]Man</option>
-			<option>Gal(b1-3)[NeuGc(a2-6)]GalNAc</option>
-			<option>Gal(b1-3)[NeuAc(a2-6)]GalNAc</option>
-			<option>NeuAc(a2-6)GalNAc(a1-3)GalNAc</option>
-			<option>Fuc(a1-2)Gal(b1-4)Glc(a1-3)Fuc</option>
-			<option>NeuGc(a2-8)NeuGc(a2-6)GalNAc</option>
-			<option>Gal(a1-2)[Gal(a1-3)]Man(a1-2)Man</option>
-			<option>NeuAc(a2-6)[GlcNAc(b1-3)]GalNAc</option>
-			<option>NeuAc(a2-6)[GalNAc(a1-3)]GalNAc</option>
-			<option>GlcNAc(b1-3)[GlcNAc(b1-6)]GalNAc</option>
-			<option>Fuc(a1-2)Gal(a1-3)Gal(b1-3)GalNAc</option>
-			<option>GlcA(b1-3)GlcNAc(a1-2)Gal(b1-4)Man</option>
-			<option>GlcA(b1-3)Gal(b1-4)GlcNAc(b1-2)Man</option>
-			<option>Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man</option>
-			<option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-3)GalNAc</option>
-			<option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-4)GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-3)GlcNAc(b1-2)Man</option>
-			<option>HSO3(u?-3)GlcA(b1-3)Gal(b1-4)GlcNAc(b1-2)Man</option>
-			<option>NeuAc(a2-6)Gal(b1-4)GlcNAc(b1-3)Fuc</option>
-			<option>NeuAc(a2-6)Gal(b1-4)GlcNAc(b1-2)Man</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-2)Man</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)Fuc</option>
-			<option>Fuc(a1-2)[GalNAc(a1-3)]Gal(b1-3)GalNAc</option>
-			<option>Fuc(a1-3)GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
-			<option>Fuc(a1-2)Gal(b1-3)[HSO3(u?-6)]GlcNAc(b1-6)GalNAc</option>
-			<option>Gal(b1-3)[Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>GlcNAc(a1-4)GlcNAc(b1-4)Gal(b1-3)GalNAc</option>
-			<option>Man(a1-3)Man(a1-3)Man(a1-2)Man(a1-2)Man</option>
-			<option>NeuAc(a2-3)Gal(b1-3)GlcNAc(b1-3)GalNAc</option>
-			<option>Man(a1-2)Man(a1-2)Man(a1-3)Man(a1-3)Man</option>
-			<option>Man(a1-2)Man(a1-2)Man(a1-2)Man(a1-2)Man</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)GalNAc</option>
-			<option>GlcNAc(b1-3)[Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>Gal(a1-2)[Gal(a1-3)]Man(a1-2)Man(a1-2)Man</option>
-			<option>Xyl(b1-2)[Man(a1-3)]Man(a1-4)Gal(b1-6)Man</option>
-			<option>NeuAc(a2-3)Gal(b1-3)[NeuAc(a2-6)]GalNAc</option>
-			<option>Rha(a1-2)[Rha(a1-4)]GlcA(a1-2)Man(a1-2)Man</option>
-			<option>NeuAc(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man</option>
-			<option>Gal(b1-4)GlcNAc(b1-2)[Gal(b1-4)GlcNAc(b1-6)]Man</option>
-			<option>Gal(b1-4)GlcNAc(b1-3)[Fuc(a1-2)Gal(b1-6)]GalNAc</option>
-			<option>Gal(b1-3)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-4)GlcNAc(b1-3)GalNAc</option>
-			<option>Gal(b1-3)GlcNAc(b1-4)[Fuc(a1-2)Gal(b1-6)]GalNAc</option>
-			<option>Man(b1-2)Man(b1-2)Man(a1-2)Man(a1-2)Man(a1-2)Man</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-3)GalNAc</option>
-			<option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-3)[NeuAc(a2-6)]GalNAc</option>
-			<option>Gal(b1-3)[Fuc(a1-4)]GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
-			<option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-3)[GlcNAc(b1-6)]GalNAc</option>
-			<option>GlcNAc(a1-4)Gal(b1-4)GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
-			<option>GalNAc(b1-3)[ManNAc(b1-4)Gal(a1-4)]Gal(b1-3)GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-3)[Fuc(a1-3)GlcNAc(b1-6)]GalNAc</option>
-			<option>Gal(b1-4)GlcNAc(b1-6)[GlcNAc(a1-4)Gal(b1-3)]GalNAc</option>
-			<option>GalNAc(a1-3)[Fuc(a1-2)]Gal(b1-4)GlcNAc(b1-3)GalNAc</option>
-			<option>Gal(b1-3)[GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>Fuc(a1-2)[GalNAc(a1-3)]Gal(b1-3)[GlcNAc(b1-6)]GalNAc</option>
-			<option>GlcNAc(b1-3)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>Glc(b1-3)[Glc(b1-3)GalNAc(b1-4)Glc(a1-4)]GalNAc(b1-3)Man</option>
-			<option>Fuc(a1-2)Gal(b1-3)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>Rha(a1-3)Rha(a1-3)Man(a1-2)Man(a1-2)[Glc(a1-4)Gal(a1-6)]Man</option>
-			<option>Gal(b1-4)GlcNAc(b1-2)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)]Man</option>
-			<option>Fuc(a1-2)Gal(b1-3)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>Gal(b1-3)[NeuAc(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-3)[Fuc(a1-4)]GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
-			<option>Fuc(a1-2)Gal(b1-4)[HSO3(u?-6)]GlcNAc(b1-6)[NeuAc(a2-3)Gal(b1-3)]GalNAc</option>
-			<option>Fuc(a1-2)[GalNAc(a1-3)]Gal(b1-3)[Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>GalNAc(a1-3)Gal(b1-3)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-3)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-3)[GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>GlcNAc(a1-4)Gal(b1-4)GlcNAc(b1-6)[GlcNAc(a1-4)Gal(b1-3)]GalNAc</option>
-			<option>Gal(b1-4)GlcNAc(b1-3)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>Fuc(a1-2)Gal(b1-3)[Fuc(a1-3)[Fuc(a1-2)Gal(b1-4)]GlcNAc(b1-6)]GalNAc</option>
-			<option>Gal(b1-4)GlcNAc(b1-3)Gal(b1-3)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-6)[Fuc(a1-2)Gal(b1-3)]GalNAc</option>
-			<option>GalNAc(a1-3)[Fuc(a1-2)]Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-3)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-2)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)]Man</option>
-			<option>NeuAc(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-6)[NeuAc(a2-3)Gal(b1-3)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-3)[GalNAc(a1-3)[Fuc(a1-2)]Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-3)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)[Fuc(a1-3)[NeuAc(a2-3)Gal(b1-4)]GlcNAc(b1-6)]GalNAc</option>
-			<option>Fuc(a1-2)[GalNAc(a1-3)]Gal(b1-3)[NeuAc(a2-3)[GalNAc(b1-4)]Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-4)GlcNAc(b1-3)[Fuc(a1-2)[Gal(a1-3)]Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)GalNAc</option>
-			<option>NeuAc(a2-3)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>GalNAc(a1-3)[Fuc(a1-2)]Gal(b1-4)GlcNAc(b1-6)[Gal(b1-4)GlcNAc(b1-3)]Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-3)[NeuAc(a2-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-3)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)GalNAc(b1-3)[NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
-			<option>NeuAc(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)[NeuAc(a2-3)Gal(b1-3)]GalNAc</option>
-		</ccg-sugarselect>
+		<my-select >
+                <option>Man</option>
+                <option>Fuc</option>
+                <option>GlcNAc</option>
+                <option>Man(a1-2)Man</option>
+                <option>Glc(b1-3)Fuc</option>
+                <option>Man(a1-3)Man</option>
+                <option>Gal(a1-3)GalNAc</option>
+                <option>Glc(b1-3)GalNAc</option>
+                <option>GlcNAc(b1-4)Man</option>
+                <option>GlcNAc(b1-2)Man</option>
+                <option>Gal(b1-3)GalNAc</option>
+                <option>GlcNAc(b1-3)Fuc</option>
+                <option>GalNAc(a1-3)GalNAc</option>
+                <option>GalNAc(a1-4)GalNAc</option>
+                <option>GlcNAc(b1-3)GalNAc</option>
+                <option>GlcNAc(b1-6)GalNAc</option>
+                <option>Neu5Ac(a2-6)GalNAc</option>
+                <option>GalNAc(a1-6)GalNAc</option>
+                <option>Neu5Ac(a2-3)GalNAc</option>
+                <option>Glc(b1-4)GlcA(a1-3)Fuc</option>
+                <option>Gal(a1-3)Gal(b1-3)GalNAc</option>
+                <option>Fuc(a1-2)Gal(b1-3)GalNAc</option>
+                <option>Gal(b1-4)GlcNAc(b1-3)Fuc</option>
+                <option>Gal(b1-4)GlcNAc(b1-2)Man</option>
+                <option>Gal(b1-3)[Gal(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)GalNAc</option>
+                <option>GlcA(b1-4)[GlcNAc(b1-3)]Fuc</option>
+                <option>Neu5Gc(a2-3)Gal(b1-3)GalNAc</option>
+                <option>Rha(a1-3)GalNAc(a1-3)GalNAc</option>
+                <option>GalNAc(b1-3)GlcNAc(b1-4)Man</option>
+                <option>GalNAc(b1-4)GlcA(b1-3)GalNAc</option>
+                <option>Gal(b1-3)[GlcNAc(b1-6)]GalNAc</option>
+                <option>GlcNAc(b1-2)[GlcNAc(b1-6)]Man</option>
+                <option>Gal(b1-3)[Neu5Gc(a2-6)]GalNAc</option>
+                <option>Gal(b1-3)[Neu5Ac(a2-6)]GalNAc</option>
+                <option>Neu5Ac(a2-6)GalNAc(a1-3)GalNAc</option>
+                <option>Fuc(a1-2)Gal(b1-4)Glc(a1-3)Fuc</option>
+                <option>Neu5Gc(a2-8)Neu5Gc(a2-6)GalNAc</option>
+                <option>Gal(a1-2)[Gal(a1-3)]Man(a1-2)Man</option>
+                <option>Neu5Ac(a2-6)[GlcNAc(b1-3)]GalNAc</option>
+                <option>Neu5Ac(a2-6)[GalNAc(a1-3)]GalNAc</option>
+                <option>GlcNAc(b1-3)[GlcNAc(b1-6)]GalNAc</option>
+                <option>Fuc(a1-2)Gal(a1-3)Gal(b1-3)GalNAc</option>
+                <option>GlcA(b1-3)GlcNAc(a1-2)Gal(b1-4)Man</option>
+                <option>GlcA(b1-3)Gal(b1-4)GlcNAc(b1-2)Man</option>
+                <option>Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man</option>
+                <option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-3)GalNAc</option>
+                <option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-4)GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)GlcNAc(b1-2)Man</option>
+                <option>GlcA3S(b1-3)Gal(b1-4)GlcNAc(b1-2)Man</option>
+                <option>Neu5Ac(a2-6)Gal(b1-4)GlcNAc(b1-3)Fuc</option>
+                <option>Neu5Ac(a2-6)Gal(b1-4)GlcNAc(b1-2)Man</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-2)Man</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)Fuc</option>
+                <option>Fuc(a1-2)[GalNAc(a1-3)]Gal(b1-3)GalNAc</option>
+                <option>Fuc(a1-3)GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
+                <option>Fuc(a1-2)Gal(b1-3)GlcNAc6S(b1-6)GalNAc</option>
+                <option>Gal(b1-3)[Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>GlcNAc(a1-4)GlcNAc(b1-4)Gal(b1-3)GalNAc</option>
+                <option>Man(a1-3)Man(a1-3)Man(a1-2)Man(a1-2)Man</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)GlcNAc(b1-3)GalNAc</option>
+                <option>Man(a1-2)Man(a1-2)Man(a1-3)Man(a1-3)Man</option>
+                <option>Man(a1-2)Man(a1-2)Man(a1-2)Man(a1-2)Man</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)GalNAc</option>
+                <option>GlcNAc(b1-3)[Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Gal(a1-2)[Gal(a1-3)]Man(a1-2)Man(a1-2)Man</option>
+                <option>Xyl(b1-2)[Man(a1-3)]Man(a1-4)Gal(b1-6)Man</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)[Neu5Ac(a2-6)]GalNAc</option>
+                <option>Rha(a1-2)[Rha(a1-4)]GlcA(a1-2)Man(a1-2)Man</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-2)Man</option>
+                <option>Gal(b1-4)GlcNAc(b1-2)[Gal(b1-4)GlcNAc(b1-6)]Man</option>
+                <option>Gal(b1-4)GlcNAc(b1-3)[Fuc(a1-2)Gal(b1-6)]GalNAc</option>
+                <option>Gal(b1-3)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-4)GlcNAc(b1-3)GalNAc</option>
+                <option>Gal(b1-3)GlcNAc(b1-4)[Fuc(a1-2)Gal(b1-6)]GalNAc</option>
+                <option>Man(b1-2)Man(b1-2)Man(a1-2)Man(a1-2)Man(a1-2)Man</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-3)GalNAc</option>
+                <option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-3)[Neu5Ac(a2-6)]GalNAc</option>
+                <option>Gal(b1-3)[Fuc(a1-4)]GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
+                <option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-3)[GlcNAc(b1-6)]GalNAc</option>
+                <option>GlcNAc(a1-4)Gal(b1-4)GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
+                <option>GalNAc(b1-3)[ManNAc(b1-4)Gal(a1-4)]Gal(b1-3)GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)[Fuc(a1-3)GlcNAc(b1-6)]GalNAc</option>
+                <option>Gal(b1-4)GlcNAc(b1-6)[GlcNAc(a1-4)Gal(b1-3)]GalNAc</option>
+                <option>GalNAc(a1-3)[Fuc(a1-2)]Gal(b1-4)GlcNAc(b1-3)GalNAc</option>
+                <option>Gal(b1-3)[GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Fuc(a1-2)[GalNAc(a1-3)]Gal(b1-3)[GlcNAc(b1-6)]GalNAc</option>
+                <option>GlcNAc(b1-3)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Glc(b1-3)[Glc(b1-3)GalNAc(b1-4)Glc(a1-4)]GalNAc(b1-3)Man</option>
+                <option>Fuc(a1-2)Gal(b1-3)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Rha(a1-3)Rha(a1-3)Man(a1-2)Man(a1-2)[Glc(a1-4)Gal(a1-6)]Man</option>
+                <option>Gal(b1-4)GlcNAc(b1-2)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)]Man</option>
+                <option>Fuc(a1-2)Gal(b1-3)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Gal(b1-3)[Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)[Fuc(a1-4)]GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
+                <option>Fuc(a1-2)Gal(b1-4)GlcNAc6S(b1-6)[Neu5Ac(a2-3)Gal(b1-3)]GalNAc</option>
+                <option>Fuc(a1-2)[GalNAc(a1-3)]Gal(b1-3)[Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>GalNAc(a1-3)Gal(b1-3)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)[GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>GlcNAc(a1-4)Gal(b1-4)GlcNAc(b1-6)[GlcNAc(a1-4)Gal(b1-3)]GalNAc</option>
+                <option>Gal(b1-4)GlcNAc(b1-3)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Fuc(a1-2)Gal(b1-3)[Fuc(a1-3)[Fuc(a1-2)Gal(b1-4)]GlcNAc(b1-6)]GalNAc</option>
+                <option>Gal(b1-4)GlcNAc(b1-3)Gal(b1-3)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-6)[Fuc(a1-2)Gal(b1-3)]GalNAc</option>
+                <option>GalNAc(a1-3)[Fuc(a1-2)]Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-3)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-2)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)]Man</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-6)[Neu5Ac(a2-3)Gal(b1-3)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)[GalNAc(a1-3)[Fuc(a1-2)]Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)[Gal(b1-3)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)[Fuc(a1-3)[Neu5Ac(a2-3)Gal(b1-4)]GlcNAc(b1-6)]GalNAc</option>
+                <option>Fuc(a1-2)[GalNAc(a1-3)]Gal(b1-3)[Neu5Ac(a2-3)[GalNAc(b1-4)]Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Fuc(a1-2)[Gal(a1-3)]Gal(b1-4)GlcNAc(b1-3)[Fuc(a1-2)[Gal(a1-3)]Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)GalNAc</option>
+                <option>Neu5Ac(a2-3)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)[Fuc(a1-2)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>GalNAc(a1-3)[Fuc(a1-2)]Gal(b1-4)GlcNAc(b1-6)[Gal(b1-4)GlcNAc(b1-3)]Gal(b1-4)[Fuc(a1-3)]GlcNAc(b1-3)[Neu5Ac(a2-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-3)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)GalNAc(b1-3)[Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)]GalNAc</option>
+                <option>Neu5Ac(a2-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-3)Gal(b1-4)GlcNAc(b1-6)[Neu5Ac(a2-3)Gal(b1-3)]GalNA</option>
+		</my-select>
 <!--
 	<x-sugarbuilder editable>Gal</x-sugarbuilder>
 

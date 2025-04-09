@@ -15,9 +15,7 @@ const module_string='sviewer:sugarselect';
 
 const log = debug(module_string);
 
-const Iupac = CondensedIupac.IO;
-
-const IupacSugar = Iupac(Sugar);
+const IupacSugar = SViewer.IupacSugar;
 
 const NLINKED_CORE = new IupacSugar();
 NLINKED_CORE.sequence = 'Man(a1-3)[Man(a1-6)]Man(b1-4)GlcNAc(b1-4)GlcNAc(b1-N)Asn';
@@ -151,10 +149,11 @@ reset_template.innerHTML = `
 `;
 
 
-const sequences_to_reactions = (seqs) => {
+const sequences_to_reactions = function(seqs) {
   let reactions = [];
   for (let seq of seqs) {
-    let sug = new IupacSugar();
+    let clazz = this.SugarClass;
+    let sug = new clazz();
     sug.sequence = seq;
     for (let res of sug.composition()) {
       if (res == sug.root) {
@@ -190,12 +189,13 @@ const accept_options = function(slot,target) {
   const passed_options = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.ELEMENT_NODE ));
   for (let node of passed_options) {
     let a_label = label_template.content.cloneNode(true);
+    a_label.firstElementChild.querySelector('ccg-sviewer').SugarClass = this.SugarClass;
     a_label.firstElementChild.querySelector('ccg-sviewer').textContent = node.textContent;
     a_label.firstElementChild.querySelector('input').setAttribute('value',node.textContent);
     target.appendChild(a_label);
   }
   let sequences = [...passed_options].map( node => node.textContent );
-  return sequences_to_reactions(sequences);
+  return sequences_to_reactions.call(this,sequences);
 };
 
 const wire_events = function() {
@@ -215,6 +215,8 @@ const wire_events = function() {
 
 class SugarSelect extends WrapHTML {
 
+  #SugarClass = IupacSugar;
+
   static get observedAttributes() {
     return [];
   }
@@ -228,15 +230,16 @@ class SugarSelect extends WrapHTML {
     let shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.appendChild(tmpl.content.cloneNode(true));
     shadowRoot.getElementById('builder').reactions = {};
+    this.SugarClass = this.SugarClass;
 
     let slot = this.shadowRoot.getElementById('glycanoptions');
     if (slot.assignedNodes({flatten: true}).length > 0) {
-      shadowRoot.getElementById('builder').reactions = accept_options(slot,this.shadowRoot.getElementById('options'));
+      shadowRoot.getElementById('builder').reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'));
       this.updateDisabled();
     }
 
     slot.addEventListener('slotchange', () => {
-      shadowRoot.getElementById('builder').reactions = accept_options(slot,this.shadowRoot.getElementById('options'));
+      shadowRoot.getElementById('builder').reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'));
       this.updateDisabled();
     });
 
@@ -252,6 +255,18 @@ class SugarSelect extends WrapHTML {
     return this.shadowRoot.querySelector('#options').glycan.value;
   }
 
+  get SugarClass() {
+    return this.#SugarClass;
+  }
+
+  set SugarClass(clazz) {
+    this.#SugarClass = clazz;
+    if (this.shadowRoot) {
+      console.log('Setting builder class',clazz);
+      this.shadowRoot.querySelector('#builder').shadowRoot.querySelector('#viewer').SugarClass = clazz;
+    }
+  }
+
   reset() {
     this.shadowRoot.querySelector('#builder').sequence = '';
   }
@@ -264,10 +279,11 @@ class SugarSelect extends WrapHTML {
       if (! seq) {
         continue;
       }
-      let sug = new IupacSugar();
+      let clazz = this.SugarClass;
+      let sug = new clazz();
       sug.sequence = seq;
       let curr_sug_seq = this.shadowRoot.querySelector('#builder').sequence;
-      let curr_sug = new IupacSugar();
+      let curr_sug = new clazz();
       curr_sug.sequence = curr_sug_seq;
       let retval = sug.match_sugar_pattern(curr_sug,comparator);
       let pattern_match = curr_sug_seq != '' && retval.length < 1;
