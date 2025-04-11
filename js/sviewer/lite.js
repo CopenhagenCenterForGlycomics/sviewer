@@ -48,9 +48,6 @@ tmpl.innerHTML = `
     --palette-icon-size: 32px;
     --demoted-opacity: 0.5;
     --sugars-url: inherit;
-    --palette-closer-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: rgba(0,0,0,1); fill: none;%7D line %7B stroke: rgba(0,0,0,1) %7D %3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
-    --palette-closer-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: rgba(0,0,0,1); fill: none;%7D line %7B stroke: rgba(255,255,255,1) %7D %3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
-    --palette-closer-style: var(--palette-closer-light);
   }
 
   :host([resizeable]) {
@@ -186,13 +183,13 @@ tmpl.innerHTML = `
   }
 
   :host #palette_closer:hover {
-    background-color: var(--selection-color,#ff0000);
+    --button-default-background-color: var(--selection-color, #ff0000);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: rgba(0,0,0,1); fill: none;%7D line %7B stroke: rgba(255,255,255,1) %7D %3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
   }
 
   :host #palette_closer {
     background-color: var(--button-default-background-color,#555);
-    background-image: var(--palette-closer-style);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: rgba(0,0,0,1); fill: none;%7D line %7B stroke: rgba(255,255,255,1) %7D %3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E %3C/svg%3E");
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
 
@@ -205,6 +202,19 @@ tmpl.innerHTML = `
     background-repeat: no-repeat;
     position: relative;
     cursor: pointer;
+  }
+
+  :host #palette_closer:after {
+    content: '';
+    display: block;
+    --l-threshold: 0.7;
+    --l: clamp(0, (var(--l-threshold) / l - 1) * infinity, 1);
+    --button-foreground: oklch(from var(--button-default-background-color,#555) var(--l) 0 h);
+    background: var(--button-foreground,white);
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E %3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' stroke-width='0.06' stroke='black' /%3E%3Cline stroke-width='0.06' stroke='black' y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
   }
   :host(:not(.dragging)) .palette.expanded #palette_closer {
     transform: rotate(405deg);
@@ -362,6 +372,8 @@ tmpl.innerHTML = `
     padding: 2px;
     padding-left: 8px;
     border-radius: 5px;
+    height: var(--palette-icon-size);
+    cursor: pointer;
   }
 
   :host .palette label.checked {
@@ -914,10 +926,6 @@ let ensure_sugar_icon = function(defs_block,sequence) {
   const templayout = class extends SugarAwareLayoutFishEye {};
   templayout.LINKS = false;
   let sugar_renderer = new SVGRenderer(defs_block,templayout);
-  if (! this ) {
-    debugger;
-  }
-  console.log(this,'clazz');
   let clazz = this.SugarClass;
   let sug = new clazz();
   sug.sequence = sequence;
