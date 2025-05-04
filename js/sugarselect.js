@@ -152,10 +152,12 @@ reset_template.innerHTML = `
 `;
 
 const CACHED_REACTIONS = {};
+const CACHED_NEW_ROOTS = {};
 
 const sequences_to_reactions = function(seqs) {
   let reactions = [];
   let seen_reactions = {};
+  let new_roots = [];
   for (let seq of seqs) {
     let new_reactions = [];
     if ( ! CACHED_REACTIONS[seq]) {
@@ -164,6 +166,10 @@ const sequences_to_reactions = function(seqs) {
       sug.sequence = seq;
       for (let res of sug.composition()) {
         if (res == sug.root) {
+          if (new_roots.indexOf(res.identifier) < 0 && seqs.indexOf(res.identifier) < 0) {
+            new_roots.push(res.identifier);
+            CACHED_NEW_ROOTS[seq] = res.identifier;
+          }
           continue;
         }
         let pos = sug.location_for_monosaccharide(res);
@@ -192,6 +198,9 @@ const sequences_to_reactions = function(seqs) {
       CACHED_REACTIONS[seq] = new_reactions;
     } else {
       new_reactions = CACHED_REACTIONS[seq];
+      if (CACHED_NEW_ROOTS[seq] && new_roots.indexOf(CACHED_NEW_ROOTS[seq]) < 0) {
+        new_roots.push(CACHED_NEW_ROOTS[seq]);
+      }
     }
     for (let reaction_seq of new_reactions) {
       if ( ! seen_reactions[reaction_seq] ) {
@@ -201,7 +210,7 @@ const sequences_to_reactions = function(seqs) {
     }
   }
   let result =  { "ALL" : { reactions } };
-  return (result);
+  return ({reactions: result,new_roots});
 }
 
 const accept_options = function(slot,target) {
@@ -215,9 +224,17 @@ const accept_options = function(slot,target) {
     a_label.firstElementChild.querySelector('input').setAttribute('value',node.textContent);
     new_children.push(a_label);
   }
-  target.replaceChildren(...new_children);
   let sequences = [...passed_options].map( node => node.textContent );
-  return sequences_to_reactions.call(this,sequences);
+  let {reactions,new_roots} = sequences_to_reactions.call(this,sequences);
+  for (let new_root of new_roots) {
+    let a_label = label_template.content.cloneNode(true);
+    a_label.firstElementChild.querySelector('ccg-sviewer-lite').SugarClass = this.SugarClass;
+    a_label.firstElementChild.querySelector('ccg-sviewer-lite').textContent = new_root;
+    a_label.firstElementChild.querySelector('input').setAttribute('value',new_root);
+    new_children.splice(1,0,a_label);
+  }
+  target.replaceChildren(...new_children);
+  return(reactions);
 };
 
 const wire_events = function() {
@@ -308,9 +325,9 @@ class SugarSelect extends WrapHTML {
       let curr_sug = new clazz();
       curr_sug.sequence = curr_sug_seq;
       let retval = sug.match_sugar_pattern(curr_sug,comparator);
-      let pattern_match = curr_sug_seq != '' && retval.length < 1;
+      let no_pattern_match = curr_sug_seq != '' && retval.length < 1;
       let oligo_match = [...sug.composition()].length > 1;
-      if (pattern_match && oligo_match) {
+      if (no_pattern_match && oligo_match) {
         option.setAttribute('disabled','');
         if (option.querySelector('input').checked) {
           option.querySelector('input').checked = false;
