@@ -71,7 +71,7 @@ tmpl.innerHTML = `
     box-shadow: var(--drop-shadow-offset) var(--drop-shadow-offset) var(--drop-shadow-size) var(--drop-shadow-color);
   }
 
-  #options label:not(:has(ccg-sviewer)) {
+  #options label:not(:has(ccg-sviewer-lite)) {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -104,7 +104,7 @@ tmpl.innerHTML = `
     cursor: pointer;
   }
 
-  #options label[hide] {
+  #options label[hide], #options label[disabled] {
     display: none;
   }
   #options label {
@@ -120,7 +120,7 @@ tmpl.innerHTML = `
     opacity: 0;
     pointer-events: none;
   }
-  #options ccg-sviewer {
+  #options ccg-sviewer-lite {
     width: 100%;
     height: 100%;
     position: relative;
@@ -139,7 +139,7 @@ tmpl.innerHTML = `
 const label_template = document.createElement('template');
 
 label_template.innerHTML = `
-<label><input type="radio" name="glycan" value=""/><ccg-sviewer links renderer="png"></ccg-sviewer></label>
+<label><input type="radio" name="glycan" value=""/><ccg-sviewer-lite links renderer="png"></ccg-sviewer-lite></label>
 `;
 
 const reset_template = document.createElement('template');
@@ -148,37 +148,53 @@ reset_template.innerHTML = `
 <button>None</button>
 `;
 
+const CACHED_REACTIONS = {};
 
 const sequences_to_reactions = function(seqs) {
   let reactions = [];
+  let seen_reactions = {};
   for (let seq of seqs) {
-    let clazz = this.SugarClass;
-    let sug = new clazz();
-    sug.sequence = seq;
-    for (let res of sug.composition()) {
-      if (res == sug.root) {
-        continue;
-      }
-      let pos = sug.location_for_monosaccharide(res);
-      let output = sug.clone();
-      let target = output.locate_monosaccharide(pos);
-      let wanted = output.paths(output.root,target).flat();
-      for (let toremove of output.composition()) {
-        if (! toremove.parent || wanted.indexOf(toremove) >= 0) {
+    let new_reactions = [];
+    if ( ! CACHED_REACTIONS[seq]) {
+      let clazz = this.SugarClass;
+      let sug = new clazz();
+      sug.sequence = seq;
+      for (let res of sug.composition()) {
+        if (res == sug.root) {
           continue;
         }
-        let parent = toremove.parent;
-        let linkage = parent.linkageOf(toremove);
-        parent.removeChild(linkage,toremove);
+        let pos = sug.location_for_monosaccharide(res);
+        let output = sug.clone();
+        let target = output.locate_monosaccharide(pos);
+        let wanted = output.paths(output.root,target).flat();
+        for (let toremove of output.composition()) {
+          if (! toremove.parent || wanted.indexOf(toremove) >= 0) {
+            continue;
+          }
+          let parent = toremove.parent;
+          let linkage = parent.linkageOf(toremove);
+          parent.removeChild(linkage,toremove);
+        }
+        let parent = target.parent;
+        let linkage = parent.linkageOf(target);
+        let parent_link = target.parent_linkage;
+        let anomer = target.anomer;
+        let parent_location = output.location_for_monosaccharide(parent);
+        parent.removeChild(linkage,target);
+        let reaction_seq = `${output.sequence}+"{${target.identifier}(${anomer}${parent_link}-${linkage})}@${parent_location}"`;
+        if (new_reactions.indexOf(reaction_seq) < 0) {
+          new_reactions.push(reaction_seq);
+        }
       }
-      let parent = target.parent;
-      let linkage = parent.linkageOf(target);
-      let parent_link = target.parent_linkage;
-      let anomer = target.anomer;
-      let parent_location = output.location_for_monosaccharide(parent);
-      parent.removeChild(linkage,target);
-      let reaction_seq = `${output.sequence}+"{${target.identifier}(${anomer}${parent_link}-${linkage})}@${parent_location}"`
-      reactions.push([reaction_seq])
+      CACHED_REACTIONS[seq] = new_reactions;
+    } else {
+      new_reactions = CACHED_REACTIONS[seq];
+    }
+    for (let reaction_seq of new_reactions) {
+      if ( ! seen_reactions[reaction_seq] ) {
+        reactions.push([reaction_seq]);
+        seen_reactions[reaction_seq] = 1;
+      }
     }
   }
   let result =  { "ALL" : { reactions } };
@@ -187,13 +203,16 @@ const sequences_to_reactions = function(seqs) {
 
 const accept_options = function(slot,target) {
   const passed_options = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.ELEMENT_NODE ));
+  let clear_button = target.firstElementChild;
+  let new_children = [clear_button];
   for (let node of passed_options) {
     let a_label = label_template.content.cloneNode(true);
-    a_label.firstElementChild.querySelector('ccg-sviewer').SugarClass = this.SugarClass;
-    a_label.firstElementChild.querySelector('ccg-sviewer').textContent = node.textContent;
+    a_label.firstElementChild.querySelector('ccg-sviewer-lite').SugarClass = this.SugarClass;
+    a_label.firstElementChild.querySelector('ccg-sviewer-lite').textContent = node.textContent;
     a_label.firstElementChild.querySelector('input').setAttribute('value',node.textContent);
-    target.appendChild(a_label);
+    new_children.push(a_label);
   }
+  target.replaceChildren(...new_children);
   let sequences = [...passed_options].map( node => node.textContent );
   return sequences_to_reactions.call(this,sequences);
 };
@@ -233,7 +252,9 @@ class SugarSelect extends WrapHTML {
     this.SugarClass = this.SugarClass;
 
     let slot = this.shadowRoot.getElementById('glycanoptions');
-    if (slot.assignedNodes({flatten: true}).length > 0) {
+    const passed_options = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.ELEMENT_NODE ));
+
+    if (passed_options.length > 0) {
       shadowRoot.getElementById('builder').reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'));
       this.updateDisabled();
     }
@@ -262,7 +283,6 @@ class SugarSelect extends WrapHTML {
   set SugarClass(clazz) {
     this.#SugarClass = clazz;
     if (this.shadowRoot) {
-      console.log('Setting builder class',clazz);
       this.shadowRoot.querySelector('#builder').shadowRoot.querySelector('#viewer').SugarClass = clazz;
     }
   }
@@ -273,8 +293,7 @@ class SugarSelect extends WrapHTML {
 
   updateDisabled() {
     let enabled_count = 0;
-    for (let option of this.shadowRoot.querySelectorAll('label:has(input[type="radio"])')) {
-
+    for (let option of [...this.shadowRoot.querySelectorAll('label')].filter( el => el.firstElementChild.getAttribute('type') == 'radio' )) {
       let seq = option.querySelector('input').value;
       if (! seq) {
         continue;
@@ -301,14 +320,14 @@ class SugarSelect extends WrapHTML {
         option.removeAttribute('disabled');
       }
       if ( ! option.hasAttribute('disabled') ) {
-        let max_display = window.getComputedStyle(this).getPropertyValue('--max-select-display');
+        let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
         if (max_display < 0) {
           max_display = Infinity;
         }
         if (enabled_count > max_display) {
-          option.setAttribute('hide','')
+          option.setAttribute('hide','');
         } else {
-          option.querySelector('ccg-sviewer').fullRefresh();
+          option.querySelector('ccg-sviewer-lite').fullRefresh();
           option.removeAttribute('hide');
         }
       }

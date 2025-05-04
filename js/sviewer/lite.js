@@ -569,7 +569,7 @@ let show_anomer = function(residue,target) {
   }
   let anomer_chooser = this.shadowRoot.getElementById('anomer_menu');
   let form = this.form;
-  if (form.clear) {
+  if (form && form.clear) {
     form.clear();
   }
   log.info('Setting target to',residue.identifier);
@@ -732,8 +732,10 @@ let wire_renderer_canvas_events = function() {
       return;
     }
     // // Reset form values and selected items
-    this.form.reset();
-    this.form.clear();
+    if (this.form && this.form.clear) {
+      this.form.reset();
+      this.form.clear();
+    }
   });
 
   canvas.addEventListener('click', (ev) => {
@@ -741,8 +743,10 @@ let wire_renderer_canvas_events = function() {
       return;
     }
     // // Reset form values and selected items
-    this.form.reset();
-    this.form.clear();
+    if (this.form && this.form.clear) {
+      this.form.reset();
+      this.form.clear();
+    }
   });
 
   canvas.addEventListener('dragleave', (ev) => {
@@ -1102,6 +1106,9 @@ let wire_form_action = function(){
 };
 
 let initialise_events = function() {
+  if ( ! this.hasAttribute('editable')) {
+    return;
+  }
   log.info('Initialising global events');
   wire_palette_pagezoom.call(this);
   wire_form_check_class.call(this);
@@ -1112,7 +1119,7 @@ let initialise_events = function() {
       this.style.setProperty( '--palette-height', (palette.offsetHeight - 32)+'px');
     }).observe(this.shadowRoot.getElementById('palette'));
   }
-  if (this.hasAttribute('editable')) {
+  if (this.hasAttribute('editable') && this.shadowRoot.querySelector('#anomer_menu')) {
     this.shadowRoot.querySelector('#anomer_menu').addEventListener('click', () => {
       setTimeout( () => {
         const linkage_chooser = this.shadowRoot.querySelector('#linkage_menu');
@@ -1185,7 +1192,7 @@ let initialise_renderer = function() {
   if (this.sequence || (this.sequence == '' && this.renderer.sugars[0].sequence != this.sequence)) {
     update_sequence.call(this);
     this._redraw_sugar();
-    if (sug.repeats.length > 0) { 
+    if (sug.repeats.length > 0) {
       repeatCallback(sug);
     }
     update_repeats.call(this);
@@ -1360,10 +1367,19 @@ class SViewer extends WrapHTML {
     }
     let shadowRoot = this.attachShadow({mode: 'open'});
 
-    shadowRoot.appendChild(tmpl.content.cloneNode(true));
+    let tmpl_content = tmpl.content.cloneNode(true);
+
+    if (! this.hasAttribute('editable')) {
+      let pie_parent = tmpl_content.getRootNode().querySelector('.pie_parent');
+      pie_parent.parentNode.removeChild(pie_parent);
+    }
+
+    shadowRoot.appendChild(tmpl_content);
 
     this.form = this.shadowRoot.getElementById('new_linkage');
-    this.form.style.display = 'none';
+    if (this.form) {
+      this.form.style.display = 'none';
+    }
 
     let slot = this.shadowRoot.getElementById('textcontent');
     if (slot.assignedNodes({flatten: true})[0]) {
