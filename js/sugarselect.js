@@ -125,10 +125,13 @@ tmpl.innerHTML = `
     height: 100%;
     position: relative;
   }
+  ::part(donor-disabled) {
+    display: none;
+  }
 </style>
 
 <div id="output">
-  <ccg-sugarbuilder strict id="builder"> </ccg-sugarbuilder>
+  <ccg-sugarbuilder exportparts="donor-button, donor-disabled" strict id="builder"> </ccg-sugarbuilder>
   <slot id="glycanoptions"> </slot>
   <form id="options">
     <label><input type="radio" name="glycan" value=""/>Clear</label>
