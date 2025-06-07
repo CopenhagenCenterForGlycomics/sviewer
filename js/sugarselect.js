@@ -155,6 +155,7 @@ const CACHED_REACTIONS = {};
 const CACHED_NEW_ROOTS = {};
 
 const sequences_to_reactions = function(seqs) {
+  console.time('sequences_to_reactions');
   let reactions = [];
   let seen_reactions = {};
   let new_roots = [];
@@ -210,10 +211,12 @@ const sequences_to_reactions = function(seqs) {
     }
   }
   let result =  { "ALL" : { reactions } };
+  console.timeEnd('sequences_to_reactions');
   return ({reactions: result,new_roots});
 }
 
-const accept_options = function(slot,target) {
+const accept_options = function(slot,target,max_children=10) {
+  console.time('accept_options');
   const passed_options = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.ELEMENT_NODE ));
   let clear_button = target.firstElementChild;
   let new_children = [clear_button];
@@ -227,13 +230,11 @@ const accept_options = function(slot,target) {
   let sequences = [...passed_options].map( node => node.textContent );
   let {reactions,new_roots} = sequences_to_reactions.call(this,sequences);
   for (let new_root of new_roots) {
-    let a_label = label_template.content.cloneNode(true);
-    a_label.firstElementChild.querySelector('ccg-sviewer-lite').SugarClass = this.SugarClass;
-    a_label.firstElementChild.querySelector('ccg-sviewer-lite').textContent = new_root;
-    a_label.firstElementChild.querySelector('input').setAttribute('value',new_root);
-    new_children.splice(1,0,a_label);
+    sequences.splice(1,0,new_root);
   }
-  target.replaceChildren(...new_children);
+  target.replaceChildren(...(new_children.slice(0,max_children)));
+  this.options = sequences;
+  console.timeEnd('accept_options');
   return(reactions);
 };
 
@@ -255,6 +256,7 @@ const wire_events = function() {
 class SugarSelect extends WrapHTML {
 
   #SugarClass = IupacSugar;
+  #options = [];
 
   static get observedAttributes() {
     return [];
@@ -275,12 +277,15 @@ class SugarSelect extends WrapHTML {
     const passed_options = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.ELEMENT_NODE ));
 
     if (passed_options.length > 0) {
-      shadowRoot.getElementById('builder').reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'));
+      let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
+
+      shadowRoot.getElementById('builder').reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'),max_display);
       this.updateDisabled();
     }
 
     slot.addEventListener('slotchange', () => {
-      shadowRoot.getElementById('builder').reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'));
+      let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
+      shadowRoot.getElementById('builder').reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'),max_display);
       this.updateDisabled();
     });
 
@@ -290,6 +295,14 @@ class SugarSelect extends WrapHTML {
       this.attributeChangedCallback(attr);
     }
 
+  }
+
+  get options() {
+    return this.#options;
+  }
+
+  set options(sequences) {
+    this.#options = sequences;
   }
 
   get value() {
@@ -313,8 +326,14 @@ class SugarSelect extends WrapHTML {
 
   updateDisabled() {
     let enabled_count = 0;
-    for (let option of [...this.shadowRoot.querySelectorAll('label')].filter( el => el.firstElementChild.getAttribute('type') == 'radio' )) {
-      let seq = option.querySelector('input').value;
+    console.time('updateDisabled');
+    let option_els = [...this.shadowRoot.querySelectorAll('label')].filter( el => (el.firstElementChild.getAttribute('type') == 'radio') && el.querySelector('ccg-sviewer-lite') );
+    let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
+    if (max_display < 0) {
+      max_display = Infinity;
+    }
+
+    for (let seq of this.options) {
       if (! seq) {
         continue;
       }
@@ -328,30 +347,28 @@ class SugarSelect extends WrapHTML {
       let no_pattern_match = curr_sug_seq != '' && retval.length < 1;
       let oligo_match = [...sug.composition()].length > 1;
       if (no_pattern_match && oligo_match) {
-        option.setAttribute('disabled','');
-        if (option.querySelector('input').checked) {
-          option.querySelector('input').checked = false;
-        }
+        continue;
       } else {
+        let option  = option_els[enabled_count];
+        option.querySelector('input').value = seq;
+        option.querySelector('ccg-sviewer-lite').textContent = seq;
+        option.querySelector('ccg-sviewer-lite').fullRefresh();
+
         enabled_count += 1;
         if (curr_sug.sequence == sug.sequence) {
           option.querySelector('input').checked = true;
         }
         option.removeAttribute('disabled');
-      }
-      if ( ! option.hasAttribute('disabled') ) {
-        let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
-        if (max_display < 0) {
-          max_display = Infinity;
-        }
-        if (enabled_count > max_display) {
-          option.setAttribute('hide','');
-        } else {
-          option.querySelector('ccg-sviewer-lite').fullRefresh();
-          option.removeAttribute('hide');
+        console.log(enabled_count,option_els.length);
+        if ((enabled_count + 1) == max_display) {
+          return;
         }
       }
     }
+    while ((enabled_count + 1) < max_display) {
+      option_els[enabled_count++].setAttribute('disabled','');
+    }
+    console.timeEnd('updateDisabled');
   }
 
 
