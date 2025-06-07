@@ -71,6 +71,12 @@ tmpl.innerHTML = `
     box-shadow: var(--drop-shadow-offset) var(--drop-shadow-offset) var(--drop-shadow-size) var(--drop-shadow-color);
   }
 
+  #options label:first-child {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Helvetica, Arial, sans-serif;
+  }
   #options label:not(:has(ccg-sviewer-lite)) {
     display: flex;
     justify-content: center;
@@ -81,7 +87,7 @@ tmpl.innerHTML = `
   #options label[disabled] {
     display: none;
   }
-  #options label:has(input[type="radio"]:checked) {
+  #options label[checked] {
     background: var(--selection-color);
   }
   #options {
@@ -111,6 +117,7 @@ tmpl.innerHTML = `
     aspect-ratio: 1 / 1;
     flex: 1 1 min(calc(33.33% - 10px),10em);
     max-width: min(calc(33.33% - 20px),4em);
+    max-height: min(calc(33.33% - 20px),4em);
     min-width: 3em;
     border-radius: 10px;
     background: var(--button-default-background-color,#555);
@@ -225,6 +232,14 @@ const accept_options = function(slot,target,max_children=10) {
     a_label.firstElementChild.querySelector('ccg-sviewer-lite').SugarClass = this.SugarClass;
     a_label.firstElementChild.querySelector('ccg-sviewer-lite').textContent = node.textContent;
     a_label.firstElementChild.querySelector('input').setAttribute('value',node.textContent);
+    a_label.firstElementChild.querySelector('input').addEventListener('change', ev => {
+      for (let node of target.querySelectorAll('label[checked]')) {
+        node.removeAttribute('checked');
+      }
+      if (ev.target.checked) {
+        ev.target.parentNode.setAttribute('checked','');
+      }
+    });
     new_children.push(a_label);
   }
   let sequences = [...passed_options].map( node => node.textContent );
@@ -350,23 +365,27 @@ class SugarSelect extends WrapHTML {
         continue;
       } else {
         let option  = option_els[enabled_count];
+        option.removeAttribute('checked');
         option.querySelector('input').value = seq;
         option.querySelector('ccg-sviewer-lite').textContent = seq;
         option.querySelector('ccg-sviewer-lite').fullRefresh();
 
         enabled_count += 1;
         if (curr_sug.sequence == sug.sequence) {
-          option.querySelector('input').checked = true;
+          option.querySelector('input').click();
+          option.setAttribute('checked','');
         }
         option.removeAttribute('disabled');
-        console.log(enabled_count,option_els.length);
         if ((enabled_count + 1) == max_display) {
           return;
         }
       }
     }
+    console.log(enabled_count,max_display);
     while ((enabled_count + 1) < max_display) {
-      option_els[enabled_count++].setAttribute('disabled','');
+      option_els[enabled_count].removeAttribute('checked');
+      option_els[enabled_count].setAttribute('disabled','true');
+      enabled_count += 1;
     }
     console.timeEnd('updateDisabled');
   }
