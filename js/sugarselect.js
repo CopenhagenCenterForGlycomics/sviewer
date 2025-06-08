@@ -225,6 +225,12 @@ const sequences_to_reactions = function(seqs) {
 const accept_options = function(slot,target,max_children=10) {
   console.time('accept_options');
   const passed_options = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.ELEMENT_NODE ));
+  if (passed_options.length > 0 && passed_options[0].accepted ) {
+    return;
+  }
+  if (passed_options.length > 0) {
+    passed_options[0].accepted = true;
+  }
   let clear_button = target.firstElementChild;
   let new_children = [clear_button];
   for (let node of passed_options) {
@@ -257,14 +263,22 @@ const wire_events = function() {
   this.shadowRoot.getElementById('options').addEventListener('change', () => {
     if (this.shadowRoot.getElementById('options').glycan.value == '') {
       this.reset();
+      let event = new Event('change',{bubbles: true});
+      this.dispatchEvent(event);
       return;
     }
-    this.shadowRoot.getElementById('builder').sequence = this.shadowRoot.getElementById('options').glycan.value;
-  });
-  this.shadowRoot.getElementById('builder').addEventListener('change', () => {
-    this.updateDisabled();
+    this.value = this.shadowRoot.getElementById('options').glycan.value;
     let event = new Event('change',{bubbles: true});
     this.dispatchEvent(event);
+  });
+  this.shadowRoot.getElementById('builder').addEventListener('change', () => {
+    let input_seq = this.shadowRoot.querySelector('#builder').sequence;
+    if ((this.value !== input_seq) && ((this.options.indexOf(input_seq) >= 0) || input_seq == '') ) {
+      this.value = input_seq;
+      let event = new Event('change',{bubbles: true});
+      this.dispatchEvent(event);
+    }
+    this.updateDisabled(input_seq);
   });
 };
 
@@ -292,16 +306,11 @@ class SugarSelect extends WrapHTML {
     const passed_options = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.ELEMENT_NODE ));
 
     if (passed_options.length > 0) {
-      let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
-
-      shadowRoot.getElementById('builder').reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'),max_display);
-      this.updateDisabled();
+      this.refreshOptions();
     }
 
     slot.addEventListener('slotchange', () => {
-      let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
-      shadowRoot.getElementById('builder').reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'),max_display);
-      this.updateDisabled();
+      this.refreshOptions();
     });
 
     wire_events.call(this);
@@ -310,6 +319,17 @@ class SugarSelect extends WrapHTML {
       this.attributeChangedCallback(attr);
     }
 
+  }
+
+  refreshOptions() {
+    let slot = this.shadowRoot.getElementById('glycanoptions');
+    let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
+    const reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'),max_display);
+    if (! reactions ) {
+      return;
+    }
+    this.shadowRoot.getElementById('builder').reactions = reactions;
+    this.updateDisabled(this.value);
   }
 
   get options() {
@@ -322,6 +342,15 @@ class SugarSelect extends WrapHTML {
 
   get value() {
     return this.shadowRoot.querySelector('#options').glycan.value;
+  }
+
+  set value(seq) {
+    if (this.options.indexOf(seq) < 0) {
+      return;
+    }
+    this.shadowRoot.querySelector('#builder').sequence = seq;
+    this.shadowRoot.querySelector('#options').glycan.value = seq;
+    this.updateDisabled(seq);
   }
 
   get SugarClass() {
@@ -339,13 +368,13 @@ class SugarSelect extends WrapHTML {
     this.shadowRoot.querySelector('#builder').sequence = '';
   }
 
-  updateDisabled() {
+  updateDisabled(reference_sequence) {
     let enabled_count = 0;
     console.time('updateDisabled');
     let option_els = [...this.shadowRoot.querySelectorAll('label')].filter( el => (el.firstElementChild.getAttribute('type') == 'radio') && el.querySelector('ccg-sviewer-lite') );
     let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
     if (max_display < 0) {
-      max_display = Infinity;
+      max_display = option_els.length;
     }
 
     for (let seq of this.options) {
@@ -355,7 +384,7 @@ class SugarSelect extends WrapHTML {
       let clazz = this.SugarClass;
       let sug = new clazz();
       sug.sequence = seq;
-      let curr_sug_seq = this.shadowRoot.querySelector('#builder').sequence;
+      let curr_sug_seq = reference_sequence;
       let curr_sug = new clazz();
       curr_sug.sequence = curr_sug_seq;
       let retval = sug.match_sugar_pattern(curr_sug,comparator);
@@ -381,7 +410,6 @@ class SugarSelect extends WrapHTML {
         }
       }
     }
-    console.log(enabled_count,max_display);
     while ((enabled_count + 1) < max_display) {
       option_els[enabled_count].removeAttribute('checked');
       option_els[enabled_count].setAttribute('disabled','true');
