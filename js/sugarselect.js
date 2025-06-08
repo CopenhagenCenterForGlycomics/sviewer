@@ -174,9 +174,12 @@ const sequences_to_reactions = function(seqs) {
       sug.sequence = seq;
       for (let res of sug.composition()) {
         if (res == sug.root) {
-          if (new_roots.indexOf(res.identifier) < 0 && seqs.indexOf(res.identifier) < 0) {
+          if (new_roots.indexOf(res.identifier) < 0) {
             new_roots.push(res.identifier);
             CACHED_NEW_ROOTS[seq] = res.identifier;
+            if (res.children.length < 1) {
+              seqs.splice(seqs.indexOf(seq),1);
+            }
           }
           continue;
         }
@@ -251,8 +254,9 @@ const accept_options = function(slot,target,max_children=10) {
   let sequences = [...passed_options].map( node => node.textContent );
   let {reactions,new_roots} = sequences_to_reactions.call(this,sequences);
   for (let new_root of new_roots) {
-    sequences.splice(1,0,new_root);
+    sequences.splice(0,0,new_root);
   }
+  sequences = sequences.filter( (o,i,a) => a.indexOf(o) == i )
   target.replaceChildren(...(new_children.slice(0,max_children)));
   this.options = sequences;
   console.timeEnd('accept_options');
