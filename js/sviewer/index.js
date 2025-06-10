@@ -8,6 +8,8 @@ export { IupacSugar } from './lite';
 
 import {default as SViewerLite} from './lite';
 
+export { SViewerLite }
+
 let wire_drag_functions = function() {
   if (this.form) {
     new DragManager(this);
