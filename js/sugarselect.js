@@ -161,7 +161,7 @@ reset_template.innerHTML = `
 const CACHED_REACTIONS = {};
 const CACHED_NEW_ROOTS = {};
 
-const sequences_to_reactions = function(seqs) {
+const sequences_to_reactions = function(seqs,clazz) {
   console.time('sequences_to_reactions');
   let reactions = [];
   let seen_reactions = {};
@@ -169,7 +169,6 @@ const sequences_to_reactions = function(seqs) {
   for (let seq of seqs) {
     let new_reactions = [];
     if ( ! CACHED_REACTIONS[seq]) {
-      let clazz = this.SugarClass;
       let sug = new clazz();
       sug.sequence = seq;
       for (let res of sug.composition()) {
@@ -252,7 +251,7 @@ const accept_options = function(slot,target,max_children=10) {
     new_children.push(a_label);
   }
   let sequences = [...passed_options].map( node => node.textContent );
-  let {reactions,new_roots} = sequences_to_reactions.call(this,sequences);
+  let {reactions,new_roots} = sequences_to_reactions(sequences,this.SugarClass);
   for (let new_root of new_roots) {
     sequences.splice(0,0,new_root);
   }
@@ -293,6 +292,10 @@ class SugarSelect extends WrapHTML {
 
   static get observedAttributes() {
     return [];
+  }
+
+  static processSequences(sequences,clazz) {
+    sequences_to_reactions(sequences,clazz);
   }
 
   constructor() {
