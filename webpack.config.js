@@ -4,20 +4,21 @@ const crypto = require("crypto");
 const crypto_orig_createHash = crypto.createHash;
 crypto.createHash = algorithm => crypto_orig_createHash(algorithm == "md4" ? "sha256" : algorithm);
 
-let sviewer_headless = ['./js/headless.js'];
+let entry = {
+    'sviewer-browser': [ './js/sugarviewers.js' ],
+    'sviewer-headless' : ['./js/headless.js']
+};
 
 try {
     var m = require('svgdom');
     // do stuff
 } catch (ex) {
-    sviewer_headless = [];
+    delete entry['sviewer-headless'];
 }
 
+
 module.exports = {
-  entry: {
-    'sviewer-browser': [ './js/sugarviewers.js' ],
-    'sviewer-headless' : sviewer_headless
-  },
+  entry,
   output: {
     filename: '[name].bundle.js',
     hashFunction: 'sha256',
