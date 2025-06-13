@@ -33,9 +33,9 @@ tmpl.innerHTML = `
     min-width: calc(22em + 30px);
     min-height: calc(15em + 30px);
     --max-select-display: -1;
-    --drop-shadow-color: rgba(50, 50, 0, 0.5);
+    --drop-shadow-color: rgba(90, 90, 90, 0.6);
     --drop-shadow-offset: 2px;
-    --drop-shadow-size: 1px;
+    --drop-shadow-size: 2px;
   }
 
   :host, :host * {
@@ -77,11 +77,20 @@ tmpl.innerHTML = `
     align-items: center;
     font-family: Helvetica, Arial, sans-serif;
   }
+
+  #options label:first-child:hover {
+    color: white;
+  }
+
   #options label:not(:has(ccg-sviewer-lite)) {
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: Helvetica, Arial, sans-serif;
+  }
+
+  #options label:not(:has(ccg-sviewer-lite)):hover {
+    color: white;
   }
 
   #options label[disabled] {
@@ -101,6 +110,8 @@ tmpl.innerHTML = `
     gap: 10px;
     overflow-y: auto;
     overflow-x: hidden;
+    background: var(--palette-background-color,#eee);
+    padding: 5px;
   }
 
   #options label:hover {
@@ -119,8 +130,11 @@ tmpl.innerHTML = `
     max-width: min(calc(33.33% - 20px),4em);
     max-height: min(calc(33.33% - 20px),4em);
     min-width: 3em;
+    min-height: 3em;
     border-radius: 10px;
-    background: var(--button-default-background-color,#555);
+    border: solid 1px var(--main-border-color);
+    background: rgba(255,255,255,0.8);
+    color: black;
   }
   #options label input {
     position: fixed;

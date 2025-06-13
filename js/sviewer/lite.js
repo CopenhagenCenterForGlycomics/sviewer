@@ -204,18 +204,28 @@ tmpl.innerHTML = `
     cursor: pointer;
   }
 
+
   :host #palette_closer:after {
     content: '';
     display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E %3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' stroke-width='0.06' stroke='white' /%3E%3Cline stroke-width='0.06' stroke='white' y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");  
+  }
+
+  @supports (color: oklch(from red l c h)) {
+
+  :host #palette_closer:after {
     --l-threshold: 0.7;
     --l: clamp(0, (var(--l-threshold) / l - 1) * infinity, 1);
     --button-foreground: oklch(from var(--button-default-background-color,#555) var(--l) 0 h);
     background: var(--button-foreground,white);
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E %3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' stroke-width='0.06' stroke='black' /%3E%3Cline stroke-width='0.06' stroke='black' y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
   }
+
+  }
+
   :host(:not(.dragging)) .palette.expanded #palette_closer {
     transform: rotate(405deg);
   }
