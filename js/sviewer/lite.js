@@ -654,9 +654,13 @@ let enableDropResidue = function(renderer,residue) {
   target.addEventListener('click', (ev) => {
     if (form.querySelector('input[name="donor"]:checked').value === 'delete') {
       let parent = residue.parent;
-      parent.removeChild(parent.linkageOf(residue),residue);
-      parent.balance();
-      parent.renderer.refresh();
+      if (parent) {
+        parent.removeChild(parent.linkageOf(residue),residue);
+        parent.balance();
+        parent.renderer.refresh();
+      } else {
+        this.renderer.sugars[0].sequence = '';
+      }
       this.sequence = this.renderer.sugars[0].sequence;
       this.form.reset();
       return;
@@ -750,6 +754,13 @@ let wire_renderer_canvas_events = function() {
 
   canvas.addEventListener('click', (ev) => {
     if (ev.target !== canvas) {
+      return;
+    }
+    if (this.sequence == '') {
+      let donor = this.form.querySelector('input[name="donor"]:checked')?.value;
+      if (donor) {
+        this.sequence = donor;
+      }
       return;
     }
     // // Reset form values and selected items
@@ -1375,7 +1386,7 @@ class SViewer extends WrapHTML {
     if (window.ShadyCSS) {
       ShadyCSS.styleElement(this);
     }
-    let shadowRoot = this.attachShadow({mode: 'open'});
+    let shadowRoot = this.shadowRoot ? this.shadowRoot : this.attachShadow({mode: 'open'});
 
     let tmpl_content = tmpl.content.cloneNode(true);
 

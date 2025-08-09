@@ -23,8 +23,8 @@ function create_canvas(viewer,identifier) {
 
 function create_offscreen(target,scale_factor) {
     var offScreenCanvas = document.createElement('canvas');
-    offScreenCanvas.width = target.width;
-    offScreenCanvas.height = target.height;
+    offScreenCanvas.width = target.width || 1;
+    offScreenCanvas.height = target.height || 1;
     return offScreenCanvas;
 }
 
