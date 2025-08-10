@@ -985,8 +985,10 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
   widget[active_palette_population_symbol] = process_token;
 
   widget[donors_symbol] = donors;
-  return Promise.resolve(widget.renderer.constructor.SYMBOLS)
-  .then( (xml) => icons.innerHTML = xml )
+  let icons_root = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  icons.replaceChildren(icons_root);
+
+  return widget.renderer.constructor.AppendSymbols(icons_root)
   .then( async () => {
     if (widget[active_palette_population_symbol] !== process_token) {
       return;
