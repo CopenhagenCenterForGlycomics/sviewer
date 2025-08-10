@@ -1377,6 +1377,9 @@ class SViewer extends WrapHTML {
       setTimeout(() => this.scaleToFit(),500);
     }
     if (name === 'linkangles') {
+      if (! this.renderer) {
+        return;
+      }
       this.LayoutEngine.LINKS = this.renderer.LayoutEngine.LINKS;
       this.renderer.LayoutEngine = this.LayoutEngine;
       this.renderer.refresh();
