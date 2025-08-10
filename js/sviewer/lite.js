@@ -5,6 +5,9 @@ import * as debug from 'debug-any-level';
 
 import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, SVGRenderer, CanvasRenderer, Repeat, Reaction } from 'glycan.js';
 
+// Fix this to properly import from Renderer
+const LINKAGE_STROKE_DEFAULT_COLOR = 'rgba(125,125,125,1)';
+
 import { default as ImageSaver, prepare as prepareImage } from '../imagesaver';
 
 import Highlighter from '../highlighter';
@@ -35,6 +38,8 @@ const tmpl = document.createElement('template');
 
 tmpl.innerHTML = `
 <style>
+  @namespace glycanjs "https://glycocode.com/glycanjs";
+
   :root {
     --button-color: #000;
     --drop-shadow-color: rgba(50, 50, 0, 0.5);
@@ -90,6 +95,10 @@ tmpl.innerHTML = `
     -o-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
     transition: all 0.5s ease-in-out;
+  }
+
+  :host .widget_contents > div > svg [glycanjs|sequence] > [glycanjs|location]:hover, :host .widget_contents > div > svg [*|sequence] > [*|location]:hover {
+    --stroke-color: var(--linkage-hover-color, ${LINKAGE_STROKE_DEFAULT_COLOR});
   }
 
   :host .widget_contents {
@@ -634,6 +643,11 @@ let enableDropResidue = function(renderer,residue) {
 
   let supports_bounding_box = window.getComputedStyle(target).getPropertyValue('--bounding-box-events') === 'true';
 
+  if (renderer.rendered.get(residue)?.linkage?.element) {
+    renderer.rendered.get(residue).linkage.element.style.pointerEvents = 'auto';
+    renderer.rendered.get(residue).linkage.element.style.pointerEvents === (supports_bounding_box ? 'bounding-box' : 'all')
+  }
+
   if (target.style.pointerEvents === (supports_bounding_box ? 'bounding-box' : 'all')) {
     return;
   }
@@ -652,7 +666,7 @@ let enableDropResidue = function(renderer,residue) {
   });
 
   target.addEventListener('click', (ev) => {
-    if (form.querySelector('input[name="donor"]:checked').value === 'delete') {
+    if (form.querySelector('input[name="donor"]:checked')?.value === 'delete') {
       let parent = residue.parent;
       if (parent) {
         parent.removeChild(parent.linkageOf(residue),residue);
@@ -665,7 +679,7 @@ let enableDropResidue = function(renderer,residue) {
       this.form.reset();
       return;
     }
-    if (form.querySelector('input[name="donor"]:checked').value) {
+    if (form.querySelector('input[name="donor"]:checked')?.value) {
       show_anomer.bind(this,residue)(ev.target);
     }
   });
@@ -732,6 +746,14 @@ let redraw_sugar = function() {
   });
 };
 
+let get_glycanjs_attr = (el,key) => {
+  const ns = 'https://glycocode.com/glycanjs';
+  let result = {};
+  if (el.hasAttributeNS && el.hasAttributeNS(ns,key)) {
+    result[key] = el.getAttributeNS(ns,key);
+  }
+  return result;
+}
 
 let wire_renderer_canvas_events = function() {
   let canvas = this.renderer.element.canvas;
@@ -742,6 +764,7 @@ let wire_renderer_canvas_events = function() {
 
   const contents = this.shadowRoot.querySelector('.widget_contents');
   contents.addEventListener('click', (ev) => {
+    ev.sugarData = Object.assign({}, ...[...ev.composedPath()].map( el => [get_glycanjs_attr(el,'location')].concat([get_glycanjs_attr(el,'sequence')]) ).flat());
     if (ev.target !== contents) {
       return;
     }
