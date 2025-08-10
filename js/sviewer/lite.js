@@ -1410,9 +1410,15 @@ class SViewer extends WrapHTML {
     }
   }
 
+  async disconnectedCallback() {
+  }
+
   async connectedCallback() {
     if (window.ShadyCSS) {
       ShadyCSS.styleElement(this);
+    }
+    if (this.shadowRoot) {
+      return;
     }
     let shadowRoot = this.shadowRoot ? this.shadowRoot : this.attachShadow({mode: 'open'});
 
