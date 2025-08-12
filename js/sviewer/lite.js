@@ -738,8 +738,10 @@ let redraw_sugar = function() {
   }
   return this.renderer.refresh().then( () => {
     if (this.hasAttribute('editable')) {
-      for (let residue of this.renderer.sugars[0].composition() ) {
-        enableDropResidue.call( this, this.renderer,residue );
+      for (let sugar of this.renderer.sugars) {
+        for (let residue of sugar.composition() ) {
+          this.enableResidueInteractivity(residue,sugar,this.renderer);
+        }
       }
     }
     this.scaleToFit();
@@ -1129,7 +1131,7 @@ let form_action = function(widget,ev) {
 
   renderer.refresh().then( () => {
     for (let new_res of added ) {
-      enableDropResidue.call( widget, renderer,new_res);
+      this.enableResidueInteractivity(new_res, renderer.sugars[0], renderer);
     }
     widget.scaleToFit();
     widget.highlightResidues();
@@ -1314,6 +1316,10 @@ class SViewer extends WrapHTML {
 
   _redraw_sugar() {
     return redraw_sugar.call(this);
+  }
+
+  enableResidueInteractivity(residue,sugar,renderer=this.renderer) {
+    enableDropResidue.call( this, renderer, residue );
   }
 
   scaleToFit() {
