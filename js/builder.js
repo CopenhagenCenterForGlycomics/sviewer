@@ -106,7 +106,7 @@ const update_donors = async function(donors) {
                               .filter( reac => reac.delta.composition().length == 2 )
                               .map( reac => [].concat(reac.delta.composition()).reverse().shift().identifier )
                               .filter( (o,i,a) => a.indexOf(o) === i );
-  const viewer = this.shadowRoot.getElementById('viewer');
+  const viewer = this;
   let donor_descriptors = viewer.donors.concat( reaction_donors.filter( donor => viewer.donors.indexOf(donor) < 0 ) );
   let chain_donors = donors.reactions
                               .filter( reac => reac.delta.composition().length > 2 || reac.delta.root.identifier !== 'Root' );
@@ -258,7 +258,8 @@ if (window.ShadyCSS) {
   ShadyCSS.prepareTemplate(tmpl, ELEMENT_NAME);
 }
 
-class SugarBuilder extends WrapHTML {
+class SugarBuilder extends SViewer {
+
   static get observedAttributes() {
     return ['resizable','links','horizontal','strict','linkangles','renderer'];
   }
@@ -268,26 +269,26 @@ class SugarBuilder extends WrapHTML {
     log('Initiating SugarBuilder element');
   }
 
+  extendSugar(residue,donor_value,anomer_value,linkage_value) {
+    return extend_sugar.call(this,residue,donor_value,anomer_value,linkage_value);
+  }
+
+
   connectedCallback() {
-    if (window.ShadyCSS) {
-      ShadyCSS.styleElement(this);
-    }
-    let shadowRoot = this.attachShadow({mode: 'open'});
-    let template_content = tmpl.content.cloneNode(true);
-    template_content.querySelector('ccg-builder').setAttribute('sugars',this.getAttribute('sugars'));
-    shadowRoot.appendChild(template_content);
-    wire_sviewer_events.call(this,shadowRoot.getElementById('viewer'));
-    this.attributeChangedCallback('horizontal');
-    this.attributeChangedCallback('resizeable');
-    this.attributeChangedCallback('linkangles');
-    this.attributeChangedCallback('links');
-    this.attributeChangedCallback('sugars');
+
+    this.setAttribute('editable','');
+
+    super.connectedCallback();
+
+    const shadowRoot = this.shadowRoot;
+
+    wire_sviewer_events.call(this,this);
 
     if (this.hasAttribute('reactions-src')) {
       fetch(this.getAttribute('reactions-src') || 'reactions.json')
       .then((response) => response.json())
       .then((reactions) => this.reactions = reactions )
-      .then( () => reset_form_disabled(this,this.shadowRoot.getElementById('viewer')) );
+      .then( () => reset_form_disabled(this,this) );
     }
 
     this.reactiongroup = ReactionGroup.groupFromJSON({},IupacSugar);
@@ -295,15 +296,15 @@ class SugarBuilder extends WrapHTML {
 
     if ( this.reactiongroup ) {
       update_donors.call(this,this.reactiongroup).then( () => {
-        if( this.shadowRoot.getElementById('viewer').palette_ready_promise ) {
-          this.shadowRoot.getElementById('viewer').palette_ready_promise.then( () => {
-            reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+        if( this.palette_ready_promise ) {
+          this.palette_ready_promise.then( () => {
+            reset_form_disabled(this,this);
           });
         }
       });
     }
 
-    let selection_highlighter = new Highlighter(shadowRoot.getElementById('viewer'),'available');
+    let selection_highlighter = new Highlighter(this,'available');
     selection_highlighter.setStates({opacity:0}, { opacity: 1 });
     selection_highlighter.duration = 10;
     selection_highlighter.draw = ({ angle, opacity },{x, y, width, height, zoom},ctx) => {
@@ -314,59 +315,36 @@ class SugarBuilder extends WrapHTML {
       ctx.arc( x+0.5*width,y+0.5*height, 1.2*width/2,-0.5*Math.PI, 2*Math.PI, false );
       ctx.stroke();
     };
-    shadowRoot.getElementById('viewer').available = selection_highlighter;
-
-    shadowRoot.getElementById('viewer').addEventListener('change', (ev) => {
-      let event = new Event('change',{bubbles: true});
-      this.dispatchEvent(event);
-    });
-
+    this.available = selection_highlighter;
   }
 
   attributeChangedCallback(name) {
+    super.attributeChangedCallback(name);
+
     if ( ! this.shadowRoot ) {
       return;
     }
-    if (['links','horizontal','resizeable','linkangles'].indexOf(name) >= 0 ) {
-      if (this.hasAttribute(name)) {
-        this.shadowRoot.getElementById('viewer').setAttribute(name,'');
-      } else {
-        this.shadowRoot.getElementById('viewer').removeAttribute(name);
-      }
-    }
-    if (name === 'linkangles') {
-      this.attributeChangedCallback('links');
-    }
-    if (name === 'renderer') {
-      if (this.hasAttribute(name)) {
-        this.shadowRoot.getElementById('viewer').setAttribute(name,this.getAttribute(name));
-      } else {
-        this.shadowRoot.getElementById('viewer').removeAttribute(name);
-      }
-    }
+
     if (name === 'strict') {
-      reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+      reset_form_disabled(this,this);
     }
   }
 
   savePNG() {
-    this.shadowRoot.getElementById('viewer').save('png');
+    this.save('png');
   }
 
   saveSVG() {
-    this.shadowRoot.getElementById('viewer').save('svg');
-  }
-
-  async toDataURL(format) {
-    return this.shadowRoot.getElementById('viewer').toDataURL(format);
+    this.save('svg');
   }
 
   set sequence(sequence) {
-    this.shadowRoot.getElementById('viewer').sequence = sequence;
-    setTimeout( () => reset_form_disabled(this,this.shadowRoot.getElementById('viewer')),10);
+    super.sequence = sequence;
+    setTimeout( () => reset_form_disabled(this,this),10);
   }
+
   get sequence() {
-    return this.shadowRoot.getElementById('viewer').sequence;
+    return super.sequence;
   }
 
   get textContent() {
@@ -374,18 +352,18 @@ class SugarBuilder extends WrapHTML {
   }
 
   get sugar() {
-    return this.shadowRoot.getElementById('viewer').renderer.sugars[0];
+    return this.renderer.sugars[0];
   }
 
   get repeats() {
-    return this.shadowRoot.getElementById('viewer').repeats;
+    return this.repeats;
   }
 
   set reactions(reactions) {
 
     this.reactiongroup = ReactionGroup.groupFromJSON(reactions,IupacSugar);
     update_donors.call(this,this.reactiongroup).then( () => {
-      reset_form_disabled(this,this.shadowRoot.getElementById('viewer'));
+      reset_form_disabled(this,this);
     });
   }
 
