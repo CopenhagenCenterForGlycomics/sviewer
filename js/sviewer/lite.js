@@ -22,6 +22,8 @@ const Iupac = CondensedIupac.IO;
 
 const IupacSugar = Mass(Iupac(Sugar));
 
+const ReactionMass = Mass(Reaction);
+
 const sequence_symbol = Symbol('sequence');
 
 const donors_symbol = Symbol('donors');
@@ -632,7 +634,6 @@ let show_anomer = function(residue,target) {
 };
 
 let enableDropResidue = function(renderer,residue) {
-  residue.renderer = renderer;
   if (! renderer.rendered.has(residue)) {
     return;
   }
@@ -671,7 +672,7 @@ let enableDropResidue = function(renderer,residue) {
       if (parent) {
         parent.removeChild(parent.linkageOf(residue),residue);
         parent.balance();
-        parent.renderer.refresh();
+        this.renderer.refresh();
       } else {
         this.renderer.sugars[0].sequence = '';
       }
@@ -781,7 +782,7 @@ let wire_renderer_canvas_events = function() {
     if (ev.target !== canvas) {
       return;
     }
-    if (this.sequence == '') {
+    if ((! this.sugar.sequence ) && (this.sequence == '')) {
       let donor = this.form.querySelector('input[name="donor"]:checked')?.value;
       if (donor) {
         this.sequence = donor;
@@ -1060,7 +1061,7 @@ let extend_sugar = function(residue,donor_value,anomer_value,linkage_value) {
 
   let reaction_string = `${residue.identifier}(u?-?)*+"{${delta}@y2a}"`;
 
-  let ReactionClass = Reaction.CopyIO(sug)
+  let ReactionClass = ReactionMass.CopyIO(sug)
 
   let reaction = new ReactionClass();
   reaction.sequence = reaction_string;
@@ -1069,7 +1070,7 @@ let extend_sugar = function(residue,donor_value,anomer_value,linkage_value) {
   //   reaction = this.querySelector('input[name="donor"]:checked').reaction;
   // }
 
-  let renderer = residue.renderer;
+  let renderer = this.renderer;
 
   if ( (residue instanceof Repeat.Monosaccharide) &&
        (residue.repeat.mode === Repeat.MODE_MINIMAL) ) {
@@ -1112,7 +1113,7 @@ let form_action = function(widget,ev) {
 
   let linkage_value = this.querySelector('input[name="linkage"]:checked').value;
 
-  let renderer = this.residue.renderer;
+  let renderer = widget.renderer;
 
   let original_location = renderer.sugars[0].location_for_monosaccharide(this.residue);
 
@@ -1131,7 +1132,7 @@ let form_action = function(widget,ev) {
 
   renderer.refresh().then( () => {
     for (let new_res of added ) {
-      this.enableResidueInteractivity(new_res, renderer.sugars[0], renderer);
+      widget.enableResidueInteractivity(new_res, renderer.sugars[0], renderer);
     }
     widget.scaleToFit();
     widget.highlightResidues();
@@ -1191,7 +1192,7 @@ let initialise_renderer_object = function() {
     return;
   }
 
-  let renderer_class = this.hasAttribute('renderer') ? (this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) || SVGRenderer) : SVGRenderer;
+  let renderer_class = this.getRendererClass();
 
   let get_sugars_url = () => {
     return window.getComputedStyle(this).getPropertyValue('--sugars-url') || this.getAttribute('sugars');
@@ -1295,6 +1296,9 @@ class SViewer extends WrapHTML {
     return renderers;
   }
 
+  getRendererClass() {
+    return this.hasAttribute('renderer') ? (this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) || SVGRenderer) : SVGRenderer;
+  }
   get SugarClass() {
     return this.#SUGAR_CLASS;
   }
@@ -1522,6 +1526,10 @@ class SViewer extends WrapHTML {
   }
   get sequence() {
     return this[sequence_symbol];
+  }
+
+  get sugar() {
+    return this.renderer.sugars[0];
   }
 
   get repeats() {
