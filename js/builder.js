@@ -24,13 +24,7 @@ Object.setPrototypeOf(WrapHTML, HTMLElement);
 
 const donor_map_symbol = Symbol('donor_map');
 
-class Builder extends SViewer {
-  extendSugar(residue,donor_value,anomer_value,linkage_value) {
-    return extend_sugar.call(this,residue,donor_value,anomer_value,linkage_value);
-  }
-}
 
-customElements.define('ccg-builder',Builder);
 
 const tmpl = document.createElement('template');
 
@@ -152,7 +146,9 @@ let write_link = link => {
 };
 
 function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
-  let sug = new IupacSugar();
+  let clazz = this.SugarClass;
+
+  let sug = new clazz();
 
   sug.sequence = donor_value;
 
@@ -181,7 +177,8 @@ function extend_sugar(residue,donor_value,anomer_value,linkage_value) {
     }
   }
 
-  let renderer = residue.renderer;
+  let renderer = this.renderer;
+
   if ( (residue instanceof Repeat.Monosaccharide) &&
        (residue.repeat.mode === Repeat.MODE_MINIMAL) ) {
     if ( (! residue.endsRepeat || residue.repeat.root.identifier !== new_res.identifier) &&
@@ -269,11 +266,6 @@ class SugarBuilder extends SViewer {
     log('Initiating SugarBuilder element');
   }
 
-  extendSugar(residue,donor_value,anomer_value,linkage_value) {
-    return extend_sugar.call(this,residue,donor_value,anomer_value,linkage_value);
-  }
-
-
   connectedCallback() {
 
     this.setAttribute('editable','');
@@ -349,10 +341,6 @@ class SugarBuilder extends SViewer {
 
   get textContent() {
     return this.sequence;
-  }
-
-  get sugar() {
-    return this.renderer.sugars[0];
   }
 
   get repeats() {
