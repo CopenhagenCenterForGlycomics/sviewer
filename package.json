@@ -8,7 +8,7 @@
     "test": "test"
   },
   "dependencies": {
-    "debug-any-level": "^0.3.0",
+    "debug": "^4.4.1",
     "DragMenus": "github:hirenj/DragMenus",
     "es6-tween": "^5.5.11",
     "esm": "^3.2.25",

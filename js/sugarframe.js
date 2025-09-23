@@ -1,7 +1,7 @@
 /* globals document,HTMLElement,customElements,window,ShadyCSS,CustomEvent */
 'use strict';
 
-import * as debug from 'debug-any-level';
+import debug from './Debug';
 
 import { CondensedIupac, Sugar, SVGRenderer, Reaction, ReactionGroup } from 'glycan.js';
 

@@ -1,7 +1,7 @@
 /* globals document,HTMLElement,customElements,window,ShadyCSS,CustomEvent */
 'use strict';
 
-import * as debug from 'debug-any-level';
+import debug from './Debug';
 
 import * as SViewer from './sviewer';
 import * as CacheSViewer from './sviewer/cache-sviewer';
