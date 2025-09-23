@@ -1,7 +1,7 @@
 /* globals document,HTMLElement,customElements,window,fetch,ShadyCSS */
 'use strict';
 
-import debug from './Debug';
+import debug from './Debug.js';
 
 import { CondensedIupac, Reaction, ReactionGroup, Repeat, Monosaccharide } from 'glycan.js';
 import { default as SViewer, IupacSugar } from './sviewer';
