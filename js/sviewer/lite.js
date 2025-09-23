@@ -1199,6 +1199,9 @@ let initialise_renderer_object = function() {
   };
 
   let overriding_renderer = class extends renderer_class {
+    static async AppendSymbols(element, SYMBOLS_STRING) {
+      return await renderer_class.AppendSymbols(element,SYMBOLS_STRING);
+    }
     static get SYMBOLS() {
       const sugars_url = get_sugars_url();
       if (sugars_url !== null && sugars_url !== "null" && sugars_url) {
@@ -1470,11 +1473,14 @@ class SViewer extends WrapHTML {
 
     await this.renderer.constructor.SYMBOLS;
 
-    this.palette_ready_promise = populate_palette(this,this.shadowRoot.getElementById('palette'))
-    .then( () => {
-      initialise_renderer.call(this);
-      initialise_events.call(this);
-    });
+    if (this.hasAttribute('editable')) {
+      await populate_palette(this,this.shadowRoot.getElementById('palette'));
+    } else {
+      await this.renderer.appendSymbols();
+    }
+
+    initialise_renderer.call(this);
+    initialise_events.call(this);
 
     setTimeout(() => {
       this.shadowRoot.querySelector('#palette').classList.remove('expanded');

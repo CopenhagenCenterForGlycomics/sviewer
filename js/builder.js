@@ -344,7 +344,7 @@ class SugarBuilder extends SViewer {
   }
 
   get repeats() {
-    return this.repeats;
+    return super.repeats;
   }
 
   set reactions(reactions) {
