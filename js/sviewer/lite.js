@@ -1,7 +1,7 @@
 /* globals document,HTMLElement,HTMLLabelElement,MutationObserver,Event,customElements,window,requestAnimationFrame,cancelAnimationFrame,ShadyCSS,Node,ResizeObserver */
 'use strict';
 
-import * as debug from 'debug-any-level';
+import debug from '../Debug.js';
 
 import {CondensedIupac, Mass, Sugar, Monosaccharide, LinkageLayoutFishEye, SugarAwareLayoutFishEye, SVGRenderer, CanvasRenderer, Repeat, Reaction } from 'glycan.js';
 
