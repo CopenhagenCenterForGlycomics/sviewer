@@ -16,7 +16,8 @@
   },
   "exports": {
     ".": "./js/main.js",
-    "./builder": "./js/builder.js"
+    "./builder": "./js/builder.js",
+    "./lite" : "./js/sviewer/lite.js",
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",
