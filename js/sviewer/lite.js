@@ -22,6 +22,8 @@ const Iupac = CondensedIupac.IO;
 
 const IupacSugar = Mass(Iupac(Sugar));
 
+const ReactionMass = Mass(Reaction);
+
 const sequence_symbol = Symbol('sequence');
 
 const donors_symbol = Symbol('donors');
@@ -632,7 +634,6 @@ let show_anomer = function(residue,target) {
 };
 
 let enableDropResidue = function(renderer,residue) {
-  residue.renderer = renderer;
   if (! renderer.rendered.has(residue)) {
     return;
   }
@@ -671,7 +672,7 @@ let enableDropResidue = function(renderer,residue) {
       if (parent) {
         parent.removeChild(parent.linkageOf(residue),residue);
         parent.balance();
-        parent.renderer.refresh();
+        this.renderer.refresh();
       } else {
         this.renderer.sugars[0].sequence = '';
       }
@@ -738,8 +739,10 @@ let redraw_sugar = function() {
   }
   return this.renderer.refresh().then( () => {
     if (this.hasAttribute('editable')) {
-      for (let residue of this.renderer.sugars[0].composition() ) {
-        enableDropResidue.call( this, this.renderer,residue );
+      for (let sugar of this.renderer.sugars) {
+        for (let residue of sugar.composition() ) {
+          this.enableResidueInteractivity(residue,sugar,this.renderer);
+        }
       }
     }
     this.scaleToFit();
@@ -779,7 +782,7 @@ let wire_renderer_canvas_events = function() {
     if (ev.target !== canvas) {
       return;
     }
-    if (this.sequence == '') {
+    if ((! this.sugar.sequence ) && (this.sequence == '')) {
       let donor = this.form.querySelector('input[name="donor"]:checked')?.value;
       if (donor) {
         this.sequence = donor;
@@ -1058,7 +1061,7 @@ let extend_sugar = function(residue,donor_value,anomer_value,linkage_value) {
 
   let reaction_string = `${residue.identifier}(u?-?)*+"{${delta}@y2a}"`;
 
-  let ReactionClass = Reaction.CopyIO(sug)
+  let ReactionClass = ReactionMass.CopyIO(sug)
 
   let reaction = new ReactionClass();
   reaction.sequence = reaction_string;
@@ -1067,7 +1070,7 @@ let extend_sugar = function(residue,donor_value,anomer_value,linkage_value) {
   //   reaction = this.querySelector('input[name="donor"]:checked').reaction;
   // }
 
-  let renderer = residue.renderer;
+  let renderer = this.renderer;
 
   if ( (residue instanceof Repeat.Monosaccharide) &&
        (residue.repeat.mode === Repeat.MODE_MINIMAL) ) {
@@ -1110,7 +1113,7 @@ let form_action = function(widget,ev) {
 
   let linkage_value = this.querySelector('input[name="linkage"]:checked').value;
 
-  let renderer = this.residue.renderer;
+  let renderer = widget.renderer;
 
   let original_location = renderer.sugars[0].location_for_monosaccharide(this.residue);
 
@@ -1129,7 +1132,7 @@ let form_action = function(widget,ev) {
 
   renderer.refresh().then( () => {
     for (let new_res of added ) {
-      enableDropResidue.call( widget, renderer,new_res);
+      widget.enableResidueInteractivity(new_res, renderer.sugars[0], renderer);
     }
     widget.scaleToFit();
     widget.highlightResidues();
@@ -1189,13 +1192,16 @@ let initialise_renderer_object = function() {
     return;
   }
 
-  let renderer_class = this.hasAttribute('renderer') ? (this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) || SVGRenderer) : SVGRenderer;
+  let renderer_class = this.getRendererClass();
 
   let get_sugars_url = () => {
     return window.getComputedStyle(this).getPropertyValue('--sugars-url') || this.getAttribute('sugars');
   };
 
   let overriding_renderer = class extends renderer_class {
+    static async AppendSymbols(element, SYMBOLS_STRING) {
+      return await renderer_class.AppendSymbols(element,SYMBOLS_STRING);
+    }
     static get SYMBOLS() {
       const sugars_url = get_sugars_url();
       if (sugars_url !== null && sugars_url !== "null" && sugars_url) {
@@ -1293,6 +1299,9 @@ class SViewer extends WrapHTML {
     return renderers;
   }
 
+  getRendererClass() {
+    return this.hasAttribute('renderer') ? (this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) || SVGRenderer) : SVGRenderer;
+  }
   get SugarClass() {
     return this.#SUGAR_CLASS;
   }
@@ -1314,6 +1323,10 @@ class SViewer extends WrapHTML {
 
   _redraw_sugar() {
     return redraw_sugar.call(this);
+  }
+
+  enableResidueInteractivity(residue,sugar,renderer=this.renderer) {
+    enableDropResidue.call( this, renderer, residue );
   }
 
   scaleToFit() {
@@ -1460,11 +1473,14 @@ class SViewer extends WrapHTML {
 
     await this.renderer.constructor.SYMBOLS;
 
-    this.palette_ready_promise = populate_palette(this,this.shadowRoot.getElementById('palette'))
-    .then( () => {
-      initialise_renderer.call(this);
-      initialise_events.call(this);
-    });
+    if (this.hasAttribute('editable')) {
+      await populate_palette(this,this.shadowRoot.getElementById('palette'));
+    } else {
+      await this.renderer.appendSymbols();
+    }
+
+    initialise_renderer.call(this);
+    initialise_events.call(this);
 
     setTimeout(() => {
       this.shadowRoot.querySelector('#palette').classList.remove('expanded');
@@ -1516,6 +1532,10 @@ class SViewer extends WrapHTML {
   }
   get sequence() {
     return this[sequence_symbol];
+  }
+
+  get sugar() {
+    return this.renderer.sugars[0];
   }
 
   get repeats() {
