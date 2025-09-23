@@ -19,6 +19,7 @@ try {
 
 module.exports = {
   entry,
+  mode: 'development',
   output: {
     filename: '[name].bundle.js',
     hashFunction: 'sha256',

@@ -381,7 +381,7 @@ class SugarSelect extends WrapHTML {
   set SugarClass(clazz) {
     this.#SugarClass = clazz;
     if (this.shadowRoot) {
-      this.shadowRoot.querySelector('#builder').shadowRoot.querySelector('#viewer').SugarClass = clazz;
+      this.shadowRoot.querySelector('#builder').SugarClass = clazz;
     }
   }
 
