@@ -296,6 +296,7 @@ const wire_events = function() {
       this.dispatchEvent(event);
     }
     this.updateDisabled(input_seq);
+    this.dispatchEvent(new Event('filter_change',{bubbles: true}));
   });
 };
 
@@ -387,6 +388,27 @@ class SugarSelect extends WrapHTML {
 
   reset() {
     this.shadowRoot.querySelector('#builder').sequence = '';
+  }
+
+  getMatchedSequences() {
+    const clazz = this.SugarClass;
+    const reference_sequence = this.shadowRoot.querySelector('#builder').sequence;
+    const curr_sug = new clazz();
+    curr_sug.sequence = reference_sequence;
+
+    const matched = [];
+    for (const seq of this.options) {
+      if (!seq) continue;
+      const sug = new clazz();
+      sug.sequence = seq;
+      const retval = sug.match_sugar_pattern(curr_sug, comparator);
+      const no_pattern_match = reference_sequence !== '' && retval.length < 1;
+      const oligo_match = [...sug.composition()].length > 1;
+      if (!(no_pattern_match && oligo_match)) {
+        matched.push(seq);
+      }
+    }
+    return matched;
   }
 
   updateDisabled(reference_sequence) {
