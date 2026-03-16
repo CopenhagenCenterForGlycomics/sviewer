@@ -33,10 +33,10 @@ tmpl.innerHTML = `
   :host {
     display: block;
     position: relative;
-    --highlight-stroke: #000;
-    --highlight-stroke-opacity: 1;
-    --highlight-fill-opacity: 1;
-    --highlight-fill: #fff;
+    --_highlight-stroke:         var(--highlight-stroke,         #000);
+    --_highlight-stroke-opacity: var(--highlight-stroke-opacity, 1);
+    --_highlight-fill-opacity:   var(--highlight-fill-opacity,   1);
+    --_highlight-fill:           var(--highlight-fill,           #fff);
   }
 
   :host div#styles {
@@ -132,10 +132,10 @@ const mixin_colours = (hex,opacity) => {
 const update_highlight_colours = function() {
   let filter = this[highlight_filter];
   let actual_style = window.getComputedStyle(this);
-  let stroke = actual_style.getPropertyValue('--highlight-stroke');
-  let fill = actual_style.getPropertyValue('--highlight-fill');
-  let stroke_opacity = actual_style.getPropertyValue('--highlight-stroke-opacity');
-  let fill_opacity = actual_style.getPropertyValue('--highlight-fill-opacity');
+  let stroke         = actual_style.getPropertyValue('--highlight-stroke').trim()         || '#000';
+  let fill           = actual_style.getPropertyValue('--highlight-fill').trim()           || '#fff';
+  let stroke_opacity = actual_style.getPropertyValue('--highlight-stroke-opacity').trim() || '1';
+  let fill_opacity   = actual_style.getPropertyValue('--highlight-fill-opacity').trim()   || '1';
   filter.querySelector('feColorMatrix[result="outeroutline"]').setAttribute('values',mixin_colours(stroke,stroke_opacity));
   filter.querySelector('feColorMatrix[result="feather_back"]').setAttribute('values',mixin_colours(fill,fill_opacity));
 };

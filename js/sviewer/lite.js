@@ -36,25 +36,49 @@ const scale_timeout_symbol = Symbol('scale_timeout');
 
 const RESIDUE_SELECTION_TIMEOUT = 500;
 
+function ensureSelectionColorProperty() {
+  if (typeof document === 'undefined') return;
+  if (typeof CSS !== 'undefined' && CSS.registerProperty) {
+    try {
+      CSS.registerProperty({
+        name: '--selection-color',
+        syntax: '<color>',
+        inherits: true,
+        initialValue: 'grey',
+      });
+    } catch (_) {
+      // Already registered — nothing to do.
+    }
+    return;
+  }
+  if (document.querySelector('style[data-selection-color-prop]')) return;
+  const style = document.createElement('style');
+  style.setAttribute('data-selection-color-prop', '');
+  style.textContent = `@property --selection-color { syntax: '<color>'; inherits: true; initial-value: grey; }`;
+  document.head.appendChild(style);
+}
+
+ensureSelectionColorProperty();
+
 const tmpl = document.createElement('template');
 
 tmpl.innerHTML = `
 <style>
   @namespace glycanjs "https://glycocode.com/glycanjs";
 
-  :root {
-    --button-color: #000;
-    --drop-shadow-color: rgba(50, 50, 0, 0.5);
-    --drop-shadow-offset: 2px;
-    --drop-shadow-size: 1px;
-  }
   :host {
     display: block;
     position: relative;
-    --palette-background-color: #eee;
-    --palette-icon-size: 32px;
-    --demoted-opacity: 0.5;
-    --sugars-url: inherit;
+    --_button-color:             var(--button-color,             #000);
+    --_drop-shadow-color:        var(--drop-shadow-color,        rgba(50, 50, 0, 0.5));
+    --_drop-shadow-offset:       var(--drop-shadow-offset,       2px);
+    --_drop-shadow-size:         var(--drop-shadow-size,         1px);
+    --_palette-background-color: var(--palette-background-color, #eee);
+    --_palette-icon-size:        var(--palette-icon-size,        32px);
+    --_demoted-opacity:          var(--demoted-opacity,          0.5);
+    --_sugars-url:               var(--sugars-url,               inherit);
+    --_selection-color:          var(--selection-color,          grey);
+    --_button-default-background-color: var(--button-default-background-color, black);
   }
 
   :host([resizeable]) {
@@ -156,7 +180,7 @@ tmpl.innerHTML = `
   :host([editable]) .palette {
     display: grid;
     grid-gap: 5px;
-    grid-template-columns: repeat(auto-fill, calc( var(--palette-icon-size) + 10px ));
+    grid-template-columns: repeat(auto-fill, calc( var(--_palette-icon-size) + 10px ));
     margin-top: calc(-1 *  var(--palette-height, 0px));
   }
 
@@ -171,13 +195,13 @@ tmpl.innerHTML = `
     top: 0px;
     left: 0px;
     right: 0px;
-    background: var(--palette-background-color);
+    background: var(--_palette-background-color);
     pointer-events: auto;
     overflow: hidden;
     width: var(--expandedwidth);
     background: none;
     height: auto;
-    min-height: calc(var(--palette-icon-size) + 5px);
+    min-height: calc(var(--_palette-icon-size) + 5px);
     padding-top: 5px;
     padding-left: 5px;
     padding-bottom: 5px;
@@ -190,22 +214,22 @@ tmpl.innerHTML = `
     display: flex;
     align-items: center;
     justify-content: center;
-    filter: drop-shadow(var(--drop-shadow-offset) var(--drop-shadow-offset) var(--drop-shadow-size) var(--drop-shadow-color));
+    filter: drop-shadow(var(--_drop-shadow-offset) var(--_drop-shadow-offset) var(--_drop-shadow-size) var(--_drop-shadow-color));
   }
 
   :host #palette_closer:hover {
-    --button-default-background-color: var(--selection-color, #ff0000);
+    --_button-default-background-color: var(--_selection-color);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: rgba(0,0,0,1); fill: none;%7D line %7B stroke: rgba(255,255,255,1) %7D %3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
   }
 
   :host #palette_closer {
-    background-color: var(--button-default-background-color,#555);
+    background-color: var(--_button-default-background-color,#555);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Cstyle%3E* %7B stroke-width: 0.05; stroke: rgba(0,0,0,1); fill: none;%7D line %7B stroke: rgba(255,255,255,1) %7D %3C/style%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E %3C/svg%3E");
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Ccircle cx='0.5' cy='0.5' r='0.4' /%3E%3Cline x1='0.5' y1='0.25' x2='0.5' y2='0.75' /%3E%3Cline y1='0.5' x1='0.25' y2='0.5' x2='0.75' /%3E%3C/svg%3E");
 
-    width: var(--palette-icon-size);
-    height: var(--palette-icon-size);
+    width: var(--_palette-icon-size);
+    height: var(--_palette-icon-size);
     -moz-transition: all 0.5s ease-in-out;
     -o-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
@@ -246,22 +270,22 @@ tmpl.innerHTML = `
   }
 
   :host .palette label {
-    transform: translate(calc(-1 * (var(--palette-item-count) + 1) * (var(--palette-icon-size) + 12px) ),0px);
+    transform: translate(calc(-1 * (var(--palette-item-count) + 1) * (var(--_palette-icon-size) + 12px) ),0px);
     transition: transform 0.5s ease-in-out;
   }
 
   :host(:not(.dragging)) .palette.expanded label {
     flex: 1;
     transform: translate(0px,0px);
-    min-width: var(--palette-icon-size);
-    min-height: var(--palette-icon-size);
-    max-width: var(--palette-icon-size);
-    max-height: var(--palette-icon-size);
+    min-width: var(--_palette-icon-size);
+    min-height: var(--_palette-icon-size);
+    max-width: var(--_palette-icon-size);
+    max-height: var(--_palette-icon-size);
   }
 
   :host(:not(.dragging)) .palette.expanded {
     width: var(--expandedwidth);
-    background: var(--palette-background-color);
+    background: var(--_palette-background-color);
   }
 
   :host #textbox {
@@ -302,7 +326,7 @@ tmpl.innerHTML = `
   }
 
   :host ccg-piemenu[active] label[data-weight^="-"] {
-    opacity: calc( -1 * var(--weight) * var(--demoted-opacity) );
+    opacity: calc( -1 * var(--weight) * var(--_demoted-opacity) );
   }
 
   :host ccg-piemenu button, ccg-piemenu label {
@@ -323,13 +347,13 @@ tmpl.innerHTML = `
 
 
   :host ccg-piemenu label.dragover {
-    background: linear-gradient(var(--slice-background-rotate-angle),var(--selection-color) 50%, var(--palette-background-color) 50%);
+    background: linear-gradient(var(--slice-background-rotate-angle),var(--_selection-color) 50%, var(--_palette-background-color) 50%);
     background-size: 375% 100%;
     animation: piemenuselection 650ms;
   }
 
   :host ccg-piemenu button.hover, ccg-piemenu label.hover, ccg-piemenu button:hover, ccg-piemenu label:hover {
-    background: var(--selection-color);
+    background: var(--_selection-color);
     color: #ffffff;
   }
 
@@ -355,7 +379,7 @@ tmpl.innerHTML = `
     and (max-device-width: 480px)
     and (-webkit-min-device-pixel-ratio: 2) {
     :host {
-      --palette-icon-size: 32px;
+      --_palette-icon-size: 32px;
     }
     :host ccg-piemenu {
       --end-angle: 135;
@@ -386,14 +410,14 @@ tmpl.innerHTML = `
   }
 
   :host .palette label[data-weight^="-"] {
-    opacity: var(--demoted-opacity);
+    opacity: var(--_demoted-opacity);
   }
 
   :host #palette_delete {
     padding: 2px;
     padding-left: 8px;
     border-radius: 5px;
-    height: var(--palette-icon-size);
+    height: var(--_palette-icon-size);
     cursor: pointer;
   }
 
@@ -410,8 +434,8 @@ tmpl.innerHTML = `
     cursor: -webkit-grab;
 
     background: rgba(255,255,255,0.8);
-    width: var(--palette-icon-size);
-    height: var(--palette-icon-size);
+    width: var(--_palette-icon-size);
+    height: var(--_palette-icon-size);
 
     -webkit-user-drag: element;
     border-radius: 5px;
@@ -434,7 +458,7 @@ tmpl.innerHTML = `
   }
 
   :host .palette label[draggable].checked {
-    background: var(--selection-color);
+    background: var(--_selection-color);
   }
 
   :host .palette label input[value="delete"] {
@@ -1495,7 +1519,7 @@ class SViewer extends WrapHTML {
       ctx.beginPath();
       ctx.lineWidth = parseFloat((10 / Math.max(zoom,1)).toFixed(2));
       if (opacity >= max_opacity) {
-        ctx.strokeStyle = window.getComputedStyle(this).getPropertyValue('--selection-color');
+        ctx.strokeStyle = window.getComputedStyle(this).getPropertyValue('--selection-color').trim() || 'grey';
       } else {
         ctx.strokeStyle = `rgba(0,0,0,${opacity.toFixed(2)})`;
       }

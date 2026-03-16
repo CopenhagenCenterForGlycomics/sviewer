@@ -32,10 +32,11 @@ tmpl.innerHTML = `
     display: block;
     min-width: calc(22em + 30px);
     min-height: calc(15em + 30px);
-    --max-select-display: -1;
-    --drop-shadow-color: rgba(90, 90, 90, 0.6);
-    --drop-shadow-offset: 2px;
-    --drop-shadow-size: 2px;
+    --_max-select-display: var(--max-select-display, -1);
+    --_drop-shadow-color:  var(--drop-shadow-color,  rgba(90, 90, 90, 0.6));
+    --_drop-shadow-offset: var(--drop-shadow-offset, 2px);
+    --_drop-shadow-size:   var(--drop-shadow-size,   2px);
+    --_selection-color:    var(--selection-color,    grey);
   }
 
   :host, :host * {
@@ -68,7 +69,7 @@ tmpl.innerHTML = `
 
   #options label {
     pointer-events: auto;
-    box-shadow: var(--drop-shadow-offset) var(--drop-shadow-offset) var(--drop-shadow-size) var(--drop-shadow-color);
+    box-shadow: var(--_drop-shadow-offset) var(--_drop-shadow-offset) var(--_drop-shadow-size) var(--_drop-shadow-color);
   }
 
   #options label:first-child {
@@ -97,7 +98,7 @@ tmpl.innerHTML = `
     display: none;
   }
   #options label[checked] {
-    background: var(--selection-color);
+    background: var(--_selection-color);
   }
   #options {
     margin-top: 10px;
@@ -115,7 +116,7 @@ tmpl.innerHTML = `
   }
 
   #options label:hover {
-    background: var(--selection-color);
+    background: var(--_selection-color);
   }
   #options label {
     cursor: pointer;
@@ -345,7 +346,7 @@ class SugarSelect extends WrapHTML {
 
   refreshOptions() {
     let slot = this.shadowRoot.getElementById('glycanoptions');
-    let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
+    let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display') || '-1');
     const reactions = accept_options.call(this,slot,this.shadowRoot.getElementById('options'),max_display);
     if (! reactions ) {
       return;
@@ -415,7 +416,7 @@ class SugarSelect extends WrapHTML {
     let enabled_count = 0;
     console.time('updateDisabled');
     let option_els = [...this.shadowRoot.querySelectorAll('label')].filter( el => (el.firstElementChild.getAttribute('type') == 'radio') && el.querySelector('ccg-sviewer-lite') );
-    let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display'));
+    let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display') || '-1');
     if (max_display < 0) {
       max_display = option_els.length;
     }

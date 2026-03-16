@@ -31,7 +31,7 @@ const tmpl = document.createElement('template');
 tmpl.innerHTML = `
 <style>
   :host {
-    --demoted-opacity: 0.8;
+    --_demoted-opacity: var(--demoted-opacity, 0.8);
   }
   :host {
     display: block;
