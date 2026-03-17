@@ -44,9 +44,10 @@
       "babelify"
     ]
   },
+  "files": ["js/", "package.json"],
   "repository": {
     "type": "git",
-    "url": "git@github.com:CopenhagenCenterForGlycomics/sviewer.git"
+    "url": "git+https://github.com/CopenhagenCenterForGlycomics/sviewer.git"
   },
   "author": "joshi@sund.ku.dk",
   "license": "MIT"
