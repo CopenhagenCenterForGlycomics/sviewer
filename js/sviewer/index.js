@@ -1,6 +1,6 @@
 import { RoughCanvasRenderer } from 'rough-glycan.js';
 
-import SNFGFiziko from 'glycan.js/js/Fiziko/FizikoSVGRenderer.js';
+import { SNFGFiziko } from 'glycan.js/js/Fiziko/FizikoSVGRenderer.js';
 
 import { SVGRenderer, CanvasRenderer } from 'glycan.js';
 
