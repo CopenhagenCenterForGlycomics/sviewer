@@ -42,6 +42,7 @@ module.exports = {
     },
     {
       test: /\.js$/,
+      exclude: /node_modules\/glycan\.js/,
       use: {
         loader: 'babel-loader',
         options: {
@@ -61,6 +62,24 @@ module.exports = {
                 ],
               },
             }],
+          ],
+        },
+      },
+    },
+    {
+      // glycan.js uses `import ... with { type: 'json' }` (needed for
+      // Node's native ESM JSON loading) which webpack 4's own parser can't
+      // read. Transpiling this package's modules to CommonJS lets babel
+      // fully consume the import (stripping the attribute) before webpack
+      // ever sees it, instead of passing the syntax through untouched.
+      test: /\.js$/,
+      include: /node_modules\/glycan\.js/,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          plugins: ['@babel/plugin-transform-class-properties', '@babel/plugin-syntax-import-attributes'],
+          presets: [
+            ['@babel/preset-env', { modules: 'commonjs' }],
           ],
         },
       },

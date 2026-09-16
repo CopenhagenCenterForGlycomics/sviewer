@@ -1,5 +1,7 @@
 import { RoughCanvasRenderer } from 'rough-glycan.js';
 
+import SNFGFiziko from 'glycan.js/js/Fiziko/FizikoSVGRenderer.js';
+
 import { SVGRenderer, CanvasRenderer } from 'glycan.js';
 
 import { DraggableForm, DragManager, ShadowDragDropTouch } from 'DragMenus';
@@ -20,7 +22,8 @@ let wire_drag_functions = function() {
 const renderers = new Map(Object.entries({
   svg: SVGRenderer,
   canvas: CanvasRenderer,
-  sketch: RoughCanvasRenderer
+  sketch: RoughCanvasRenderer,
+  fiziko: SNFGFiziko,
 }));
 
 class SViewer extends SViewerLite {
