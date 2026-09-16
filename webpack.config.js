@@ -42,7 +42,7 @@ module.exports = {
     },
     {
       test: /\.js$/,
-      exclude: /node_modules\/glycan\.js/,
+      exclude: /[\\/]glycan\.js[\\/]/,
       use: {
         loader: 'babel-loader',
         options: {
@@ -73,7 +73,7 @@ module.exports = {
       // fully consume the import (stripping the attribute) before webpack
       // ever sees it, instead of passing the syntax through untouched.
       test: /\.js$/,
-      include: /node_modules\/glycan\.js/,
+      include: /[\\/]glycan\.js[\\/]/,
       use: {
         loader: 'babel-loader',
         options: {
