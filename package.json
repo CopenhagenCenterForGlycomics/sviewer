@@ -12,7 +12,9 @@
     "DragMenus": "github:hirenj/DragMenus",
     "es6-tween": "^5.5.11",
     "esm": "^3.2.25",
-    "rough-glycan.js": "github:CopenhagenCenterForGlycomics/rough-glycan.js"
+    "legra-glycan.js": "github:hirenj/legra-glycan.js",
+    "rough-glycan.js": "github:CopenhagenCenterForGlycomics/rough-glycan.js",
+    "zdog-glycan.js": "github:CopenhagenCenterForGlycomics/zdog-glycan.js"
   },
   "exports": {
     ".": "./js/main.js",

@@ -87,7 +87,7 @@ tmpl.innerHTML = `
   }
 
   :host([resizeable]) .widget_contents {
-    width: calc(100% - 5px);
+    width: calc(100% - 1em);
     height: calc(100% - 5px);
   }
 
@@ -163,6 +163,11 @@ tmpl.innerHTML = `
     height: calc( 100% - var(--palette-height));
   }
 
+  :host([editable][resizeable]) .highlight_canvas {
+    height: calc( 100% - var(--palette-height) - 5px);
+    width: calc( 100% - 1em );
+  }
+
   :host([editable]) .widget_contents > div {
     top: var(--palette-height);
     height: calc( 100% - var(--palette-height));
@@ -175,6 +180,16 @@ tmpl.innerHTML = `
   :host([editable]) .widget_contents {
     margin-top: var(--palette-height, 0px);
     height: calc( 100% - var(--palette-height, 0px));
+  }
+
+  /* Same specificity as [editable] .widget_contents above, but declared later
+     so it wins the cascade on this height property: without it, an
+     editable+resizeable host (e.g. ccg-sugarbuilder, which always sets both)
+     loses the 5px gap carved out below for the native resize grip, and
+     .widget_contents ends up covering that corner, swallowing the drag. */
+  :host([editable][resizeable]) .widget_contents {
+    height: calc( 100% - var(--palette-height, 0px) - 5px);
+    width: calc( 100% - 1em);
   }
 
   :host([editable]) .palette {
@@ -1211,12 +1226,12 @@ let initialise_events = function() {
 };
 
 
-let initialise_renderer_object = function() {
+let initialise_renderer_object = async function() {
   if ( ! this.shadowRoot ) {
     return;
   }
 
-  let renderer_class = this.getRendererClass();
+  let renderer_class = await this.getRendererClass();
 
   let get_sugars_url = () => {
     return window.getComputedStyle(this).getPropertyValue('--sugars-url') || this.getAttribute('sugars');
@@ -1323,8 +1338,16 @@ class SViewer extends WrapHTML {
     return renderers;
   }
 
-  getRendererClass() {
-    return this.hasAttribute('renderer') ? (this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) || SVGRenderer) : SVGRenderer;
+  // A registry entry is either the renderer class itself, or (for
+  // renderers that pull in a whole extra library, e.g. the sketch/legra
+  // modes' roughjs/legra) a function returning a dynamic import() promise
+  // for it, so that library only loads the first time it's selected.
+  async getRendererClass() {
+    const entry = this.hasAttribute('renderer') ? this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) : null;
+    if (!entry) {
+      return SVGRenderer;
+    }
+    return typeof entry === 'function' && !entry.prototype ? await entry() : entry;
   }
   get SugarClass() {
     return this.#SUGAR_CLASS;
@@ -1399,7 +1422,7 @@ class SViewer extends WrapHTML {
       if ( ! this.shadowRoot ) {
         return;
       }
-      initialise_renderer_object.call(this);
+      await initialise_renderer_object.call(this);
       await this.renderer.constructor.SYMBOLS;
       initialise_renderer.call(this);
       return;
@@ -1493,7 +1516,7 @@ class SViewer extends WrapHTML {
       this.style.setProperty( '--sugars-url', this.getAttribute('sugars'));
     }
 
-    initialise_renderer_object.call(this);
+    await initialise_renderer_object.call(this);
 
     await this.renderer.constructor.SYMBOLS;
 
