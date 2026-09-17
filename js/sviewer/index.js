@@ -1,4 +1,4 @@
-import { SNFGFiziko } from 'glycan.js/js/Fiziko/FizikoSVGRenderer.js';
+import { SNFGFiziko } from 'glycan.js/renderers/fiziko';
 
 import { SVGRenderer, CanvasRenderer } from 'glycan.js';
 

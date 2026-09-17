@@ -16,6 +16,9 @@
     "rough-glycan.js": "github:CopenhagenCenterForGlycomics/rough-glycan.js",
     "zdog-glycan.js": "github:CopenhagenCenterForGlycomics/zdog-glycan.js"
   },
+  "peerDependencies": {
+    "glycan.js": ">= 0.0.1"
+  },
   "exports": {
     ".": "./js/main.js",
     "./builder": "./js/builder.js",
