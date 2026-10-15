@@ -1038,7 +1038,7 @@ let ensure_sugar_icon = function(defs_block,sequence) {
   });
 };
 
-let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc','GlcNAc','NeuAc','NeuGc','GlcA','IdoA','Xyl','Fuc']) {
+let populate_palette = async function(widget,palette,donors=['Gal','Glc','Man','GalNAc','GlcNAc','NeuAc','NeuGc','GlcA','IdoA','Xyl','Fuc']) {
   let icons = widget.shadowRoot.getElementById('icons');
 
   while (palette.lastElementChild && palette.lastElementChild.getAttribute('id') !== 'palette_delete') {
@@ -1052,6 +1052,10 @@ let populate_palette = function(widget,palette,donors=['Gal','Glc','Man','GalNAc
   widget[donors_symbol] = donors;
   let icons_root = document.createElementNS('http://www.w3.org/2000/svg','svg');
   icons.replaceChildren(icons_root);
+
+  if ( ! widget.renderer ) {
+    await initialise_renderer_object.call(widget);
+  }
 
   return widget.renderer.constructor.AppendSymbols(icons_root)
   .then( async () => {
