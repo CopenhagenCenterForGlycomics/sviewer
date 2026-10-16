@@ -29,6 +29,7 @@ const renderers = new Map(Object.entries({
   fiziko: SNFGFiziko,
   legra: () => import(/* webpackChunkName: "renderer-legra" */ 'legra-glycan.js').then(m => m.LegraCanvasRenderer),
   zdog: () => import(/* webpackChunkName: "renderer-zdog" */ 'zdog-glycan.js').then(m => m.ZDogCanvasRenderer),
+  isomer: () => import(/* webpackChunkName: "renderer-isomer" */ 'isomer-glycan.js').then(m => m.IsomerCanvasRenderer),
 }));
 
 class SViewer extends SViewerLite {
