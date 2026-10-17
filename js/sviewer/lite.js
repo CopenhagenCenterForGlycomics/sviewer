@@ -1256,6 +1256,15 @@ let initialise_renderer_object = async function() {
   }
 
   if ( this.renderer ) {
+    // Renderers that attach their own listeners (e.g. isomer/zdog's
+    // WobbleCanvasRenderer, listening for device-orientation tilt) expose an
+    // optional `disconnect()` to tear those down -- without this, swapping
+    // away from one would leave it listening forever, still updating a
+    // renderer instance nothing points at any more. Every other renderer has
+    // no `disconnect`, so this is a no-op for them.
+    if (typeof this.renderer.disconnect === 'function') {
+      this.renderer.disconnect();
+    }
     while (this.shadowRoot.getElementById('output').firstChild) {
       this.shadowRoot.getElementById('output').removeChild(this.shadowRoot.getElementById('output').firstChild);
     }
