@@ -1,4 +1,5 @@
 import { SNFGFiziko } from 'glycan.js/renderers/fiziko';
+import { SNFGHeraldic } from 'glycan.js/renderers/heraldic';
 
 import { SVGRenderer, CanvasRenderer } from 'glycan.js';
 
@@ -27,6 +28,7 @@ const renderers = new Map(Object.entries({
   canvas: CanvasRenderer,
   sketch: () => import(/* webpackChunkName: "renderer-sketch" */ 'rough-glycan.js').then(m => m.RoughCanvasRenderer),
   fiziko: SNFGFiziko,
+  heraldic: SNFGHeraldic,
   legra: () => import(/* webpackChunkName: "renderer-legra" */ 'legra-glycan.js').then(m => m.LegraCanvasRenderer),
   zdog: () => import(/* webpackChunkName: "renderer-zdog" */ 'zdog-glycan.js').then(m => m.ZDogCanvasRenderer),
   isomer: () => import(/* webpackChunkName: "renderer-isomer" */ 'isomer-glycan.js').then(m => m.IsomerCanvasRenderer),
