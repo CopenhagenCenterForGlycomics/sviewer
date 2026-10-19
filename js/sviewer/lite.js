@@ -1469,6 +1469,25 @@ class SViewer extends WrapHTML {
 
       update_icon_text_orientation.call(this);
 
+      if (this.getAttribute('renderer') === 'heraldic') {
+        // Works around a glycan.js limitation: an already-rendered
+        // residue's cached hatch texture is only rebuilt the first time
+        // that residue is drawn (Renderer.js's render_sugar only calls
+        // renderIcon() when there's no existing entry for it) - toggling
+        // this attribute changes every residue's rotation, but a plain
+        // refresh() only updates their outer shape transform, leaving the
+        // tincture hatching baked in at the old (pre-toggle) rotation.
+        // Dropping and re-adding each sugar forces every residue through
+        // the icon-creation path again, with the now-current rotation.
+        // Other renderers don't need this - Fiziko's own textures
+        // (shaded/latitude/longitude) don't depend on rotation at all.
+        const sugars = this.renderer.sugars;
+        this.renderer.removeAllSugars();
+        for (const sugar of sugars) {
+          this.renderer.addSugar(sugar);
+        }
+      }
+
       this.renderer.refresh();
       setTimeout(() => this.scaleToFit(),500);
     }
