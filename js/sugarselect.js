@@ -150,6 +150,9 @@ tmpl.innerHTML = `
   ::part(donor-disabled) {
     display: none;
   }
+  #glycanoptions {
+    display: none;
+  }
 </style>
 
 <div id="output">
@@ -174,7 +177,7 @@ reset_template.innerHTML = `
 `;
 
 const CACHED_REACTIONS = {};
-const CACHED_NEW_ROOTS = {};
+const CACHED_ROOTS = {};
 
 const sequences_to_reactions = function(seqs,clazz) {
   console.time('sequences_to_reactions');
@@ -182,19 +185,14 @@ const sequences_to_reactions = function(seqs,clazz) {
   let seen_reactions = {};
   let new_roots = [];
   for (let seq of seqs) {
-    let new_reactions = [];
-    if ( ! CACHED_REACTIONS[seq]) {
+    let new_reactions = CACHED_REACTIONS[seq];
+    if ( ! new_reactions) {
+      new_reactions = [];
       let sug = new clazz();
       sug.sequence = seq;
+      CACHED_ROOTS[seq] = sug.root ? sug.root.identifier : null;
       for (let res of sug.composition()) {
         if (res == sug.root) {
-          if (new_roots.indexOf(res.identifier) < 0) {
-            new_roots.push(res.identifier);
-            CACHED_NEW_ROOTS[seq] = res.identifier;
-            if (res.children.length < 1) {
-              seqs.splice(seqs.indexOf(seq),1);
-            }
-          }
           continue;
         }
         let pos = sug.location_for_monosaccharide(res);
@@ -221,11 +219,10 @@ const sequences_to_reactions = function(seqs,clazz) {
         }
       }
       CACHED_REACTIONS[seq] = new_reactions;
-    } else {
-      new_reactions = CACHED_REACTIONS[seq];
-      if (CACHED_NEW_ROOTS[seq] && new_roots.indexOf(CACHED_NEW_ROOTS[seq]) < 0) {
-        new_roots.push(CACHED_NEW_ROOTS[seq]);
-      }
+    }
+    let root = CACHED_ROOTS[seq];
+    if (root && new_roots.indexOf(root) < 0) {
+      new_roots.push(root);
     }
     for (let reaction_seq of new_reactions) {
       if ( ! seen_reactions[reaction_seq] ) {
@@ -240,21 +237,23 @@ const sequences_to_reactions = function(seqs,clazz) {
 }
 
 const accept_options = function(slot,target,max_children=10) {
-  console.time('accept_options');
   const passed_options = (slot.assignedNodes({flatten: true }).filter( node => node.nodeType === Node.ELEMENT_NODE ));
-  if (passed_options.length > 0 && passed_options[0].accepted ) {
+  let passed_sequences = passed_options.map( node => node.textContent );
+  let options_key = passed_sequences.join('\n');
+  if (target.options_key === options_key) {
     return;
   }
-  if (passed_options.length > 0) {
-    passed_options[0].accepted = true;
-  }
+  target.options_key = options_key;
+  console.time('accept_options');
+  let {reactions,new_roots} = sequences_to_reactions(passed_sequences,this.SugarClass);
+  let sequences = new_roots.concat(passed_sequences).filter( (o,i,a) => a.indexOf(o) == i );
   let clear_button = target.firstElementChild;
   let new_children = [clear_button];
-  for (let node of passed_options) {
+  for (let seq of sequences) {
     let a_label = label_template.content.cloneNode(true);
     a_label.firstElementChild.querySelector('ccg-sviewer-lite').SugarClass = this.SugarClass;
-    a_label.firstElementChild.querySelector('ccg-sviewer-lite').textContent = node.textContent;
-    a_label.firstElementChild.querySelector('input').setAttribute('value',node.textContent);
+    a_label.firstElementChild.querySelector('ccg-sviewer-lite').textContent = seq;
+    a_label.firstElementChild.querySelector('input').setAttribute('value',seq);
     a_label.firstElementChild.querySelector('input').addEventListener('change', ev => {
       for (let node of target.querySelectorAll('label[checked]')) {
         node.removeAttribute('checked');
@@ -265,13 +264,7 @@ const accept_options = function(slot,target,max_children=10) {
     });
     new_children.push(a_label);
   }
-  let sequences = [...passed_options].map( node => node.textContent );
-  let {reactions,new_roots} = sequences_to_reactions(sequences,this.SugarClass);
-  for (let new_root of new_roots) {
-    sequences.splice(0,0,new_root);
-  }
-  sequences = sequences.filter( (o,i,a) => a.indexOf(o) == i )
-  target.replaceChildren(...(new_children.slice(0,max_children)));
+  target.replaceChildren(...(max_children < 0 ? new_children : new_children.slice(0,max_children)));
   this.options = sequences;
   console.timeEnd('accept_options');
   return(reactions);
@@ -418,7 +411,7 @@ class SugarSelect extends WrapHTML {
     let option_els = [...this.shadowRoot.querySelectorAll('label')].filter( el => (el.firstElementChild.getAttribute('type') == 'radio') && el.querySelector('ccg-sviewer-lite') );
     let max_display = parseInt(window.getComputedStyle(this).getPropertyValue('--max-select-display') || '-1');
     if (max_display < 0) {
-      max_display = option_els.length;
+      max_display = option_els.length + 1;
     }
 
     for (let seq of this.options) {
@@ -450,11 +443,11 @@ class SugarSelect extends WrapHTML {
         }
         option.removeAttribute('disabled');
         if ((enabled_count + 1) == max_display) {
-          return;
+          break;
         }
       }
     }
-    while ((enabled_count + 1) < max_display) {
+    while ((enabled_count + 1) < max_display && enabled_count < option_els.length) {
       option_els[enabled_count].removeAttribute('checked');
       option_els[enabled_count].setAttribute('disabled','true');
       enabled_count += 1;
