@@ -1413,8 +1413,12 @@ class SViewer extends WrapHTML {
     return data;
   }
 
-  save(format='svg') {
-    ImageSaver(this,this.renderer.element.canvas,format,this.sequence);
+  save(format='svg',opts) {
+    return ImageSaver(this,this.renderer.element.canvas,format,this.sequence,opts);
+  }
+
+  saveVideo(durationMs,fps) {
+    return this.save('video',{durationMs,fps});
   }
 
   get LayoutEngine() {

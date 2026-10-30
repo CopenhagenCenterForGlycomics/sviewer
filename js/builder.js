@@ -330,6 +330,10 @@ class SugarBuilder extends SViewer {
     this.save('svg');
   }
 
+  saveVideo(durationMs,fps) {
+    return this.save('video',{durationMs,fps});
+  }
+
   set sequence(sequence) {
     super.sequence = sequence;
     setTimeout( () => reset_form_disabled(this,this),10);
