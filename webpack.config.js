@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 let entry = {
     'sviewer-browser': [ './js/sugarviewers.js' ],
@@ -30,16 +31,19 @@ module.exports = {
       path: false,
       stream: false,
       string_decoder: false,
-      url: false,
-      // svgdom imports node core modules via the `node:` URI scheme
-      // (e.g. `node:fs`), which webpack treats as a distinct, unhandled
-      // scheme from the bare specifier -- needs its own fallback entries
-      // even though the bare names above are already stubbed out.
-      'node:fs': false,
-      'node:path': false,
-      'node:url': false
+      url: false
     }
   },
+  plugins: [
+    // svgdom imports node core modules via the `node:` URI scheme (e.g.
+    // `node:fs`). Webpack treats that as a distinct, unhandled resource
+    // scheme rather than a normal module request, so `resolve.fallback`
+    // above never gets a chance to stub it out. Strip the prefix so these
+    // requests fall through to the plain `fs`/`path`/`url` fallbacks.
+    new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+      resource.request = resource.request.replace(/^node:/, '');
+    }),
+  ],
   module: {
     rules: [
     {
