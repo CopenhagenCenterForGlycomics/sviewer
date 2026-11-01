@@ -29,7 +29,15 @@ module.exports = {
       fs: false,
       path: false,
       stream: false,
-      string_decoder: false
+      string_decoder: false,
+      url: false,
+      // svgdom imports node core modules via the `node:` URI scheme
+      // (e.g. `node:fs`), which webpack treats as a distinct, unhandled
+      // scheme from the bare specifier -- needs its own fallback entries
+      // even though the bare names above are already stubbed out.
+      'node:fs': false,
+      'node:path': false,
+      'node:url': false
     }
   },
   module: {
