@@ -32,6 +32,7 @@ const renderers = new Map(Object.entries({
   legra: () => import(/* webpackChunkName: "renderer-legra" */ 'legra-glycan.js').then(m => m.LegraCanvasRenderer),
   zdog: () => import(/* webpackChunkName: "renderer-zdog" */ 'zdog-glycan.js').then(m => m.ZDogCanvasRenderer),
   isomer: () => import(/* webpackChunkName: "renderer-isomer" */ 'isomer-glycan.js').then(m => m.IsomerCanvasRenderer),
+  phoria: () => import(/* webpackChunkName: "renderer-phoria" */ 'phoria-glycan.js').then(m => m.PhoriaCanvasRenderer),
 }));
 
 class SViewer extends SViewerLite {

@@ -28,7 +28,12 @@ module.exports = {
   resolve: {
     alias: {
       'fontkit' : path.resolve('./shim.js'),
-      'glycan.js' : path.resolve('./node_modules/glycan.js')
+      'glycan.js' : path.resolve('./node_modules/glycan.js'),
+      // phoria2 only declares a package.json "exports" map (no "main"),
+      // which webpack 4 (predating Node/webpack's "exports" support)
+      // can't resolve on its own -- point it straight at the built entry,
+      // same workaround as the aliases above.
+      'phoria2' : path.resolve('./node_modules/phoria2/dist/phoria2.js')
     }
   },
   node: {
