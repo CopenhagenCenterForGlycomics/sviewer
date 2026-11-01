@@ -1,9 +1,5 @@
 const path = require('path');
 
-const crypto = require("crypto");
-const crypto_orig_createHash = crypto.createHash;
-crypto.createHash = algorithm => crypto_orig_createHash(algorithm == "md4" ? "sha256" : algorithm);
-
 let entry = {
     'sviewer-browser': [ './js/sugarviewers.js' ],
     'sviewer-headless' : ['./js/headless.js']
@@ -27,27 +23,23 @@ module.exports = {
   },
   resolve: {
     alias: {
-      'fontkit' : path.resolve('./shim.js'),
-      'glycan.js' : path.resolve('./node_modules/glycan.js'),
-      // phoria2 only declares a package.json "exports" map (no "main"),
-      // which webpack 4 (predating Node/webpack's "exports" support)
-      // can't resolve on its own -- point it straight at the built entry,
-      // same workaround as the aliases above.
-      'phoria2' : path.resolve('./node_modules/phoria2/dist/phoria2.js')
+      'fontkit' : path.resolve('./shim.js')
+    },
+    fallback: {
+      fs: false,
+      path: false,
+      stream: false,
+      string_decoder: false
     }
-  },
-  node: {
-    fs: "empty"
   },
   module: {
     rules: [
     {
       test: /sugars\.svg$/,
-      use: 'raw-loader'
+      type: 'asset/source'
     },
     {
       test: /\.js$/,
-      exclude: /[\\/]glycan\.js[\\/]/,
       use: {
         loader: 'babel-loader',
         options: {
@@ -67,24 +59,6 @@ module.exports = {
                 ],
               },
             }],
-          ],
-        },
-      },
-    },
-    {
-      // glycan.js uses `import ... with { type: 'json' }` (needed for
-      // Node's native ESM JSON loading) which webpack 4's own parser can't
-      // read. Transpiling this package's modules to CommonJS lets babel
-      // fully consume the import (stripping the attribute) before webpack
-      // ever sees it, instead of passing the syntax through untouched.
-      test: /\.js$/,
-      include: /[\\/]glycan\.js[\\/]/,
-      use: {
-        loader: 'babel-loader',
-        options: {
-          plugins: ['@babel/plugin-transform-class-properties', '@babel/plugin-syntax-import-attributes'],
-          presets: [
-            ['@babel/preset-env', { modules: 'commonjs' }],
           ],
         },
       },

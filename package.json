@@ -21,6 +21,9 @@
   "peerDependencies": {
     "glycan.js": ">= 0.0.1"
   },
+  "overrides": {
+    "glycan.js": "github:CopenhagenCenterForGlycomics/glycan.js"
+  },
   "exports": {
     ".": "./js/main.js",
     "./builder": "./js/builder.js",
@@ -29,21 +32,19 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
-    "@babel/plugin-syntax-import-attributes": "^7.29.7",
     "@babel/plugin-transform-class-properties": "^7.25.9",
     "@babel/preset-env": "^7.29.7",
     "babel-loader": "^8.0.5",
     "commander": "^8.2.0",
     "glycan.js": "github:CopenhagenCenterForGlycomics/glycan.js",
-    "raw-loader": "^2.0.0",
     "svgdom": "^0.1.8",
-    "webpack": "^4.29.6",
-    "webpack-cli": "^3.3.0"
+    "webpack": "^5.99.9",
+    "webpack-cli": "^7.3.1"
   },
   "scripts": {
     "build": "./node_modules/.bin/webpack --mode=production",
-    "build-web": "./node_modules/.bin/webpack -d",
-    "build-watch-web": "./node_modules/.bin/webpack -d --watch",
+    "build-web": "./node_modules/.bin/webpack",
+    "build-watch-web": "./node_modules/.bin/webpack --watch",
     "server": "python ./scripts/simplehttpserver",
     "start": "npm run-script build-watch-web & npm run-script server",
     "validate": "npm ls"
