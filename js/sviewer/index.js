@@ -1,5 +1,6 @@
 import { SNFGFiziko } from 'glycan.js/renderers/fiziko';
 import { SNFGHeraldic } from 'glycan.js/renderers/heraldic';
+import { SugarTextRenderer } from 'glycan.js/renderers/text';
 
 import { SVGRenderer, CanvasRenderer } from 'glycan.js';
 
@@ -26,6 +27,7 @@ let wire_drag_functions = function() {
 const renderers = new Map(Object.entries({
   svg: SVGRenderer,
   canvas: CanvasRenderer,
+  text: SugarTextRenderer,
   sketch: () => import(/* webpackChunkName: "renderer-sketch" */ 'rough-glycan.js').then(m => m.RoughCanvasRenderer),
   fiziko: SNFGFiziko,
   heraldic: SNFGHeraldic,
