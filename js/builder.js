@@ -224,7 +224,12 @@ const wire_sviewer_events = function(viewer) {
       residue_val = sugar.locate_monosaccharide(viewer.renderer.sugars[0].location_for_monosaccharide(residue_val));
     }
     let supported = reactions.supportsLinkageAt(sugar,donor_val,linkage_val,residue_val);
-    if (supported.substrate) {
+    if (donor_val === 'delete') {
+      // Every residue is a valid delete target (see enableDropResidue's
+      // click handler in lite.js) - 'delete' isn't a real reaction donor,
+      // so supportsLinkageAt never reports any substrate for it.
+      viewer.available.highlight(viewer.renderer.sugars[0].composition());
+    } else if (supported.substrate) {
       viewer.available.highlight(supported.substrate.map( res => sugar.location_for_monosaccharide(res) ).map( loc => viewer.renderer.sugars[0].locate_monosaccharide(loc) ));
     }
     if (supported.anomerlinks && (this.querySelector('input[name="anomer"]:checked') || {}).value) {
@@ -247,6 +252,47 @@ const wire_sviewer_events = function(viewer) {
     window.cancelAnimationFrame(reset_form_disabled.timeout);
     reset_form_disabled.timeout = window.requestAnimationFrame( reset_form_disabled.bind(null,widget,viewer) );
     changed = false;
+  });
+
+  // Tracks which residue icon (if any) the mouse is currently over, for
+  // the delete-mode X's hover-thicken effect in the 'draw' callback below.
+  // Deliberately plain mouseover/mouseout, NOT enableDropResidue's
+  // dragenter/dragleave (lite.js) - those only fire during an actual HTML5
+  // drag gesture (dragging a donor item from the palette), confirmed via
+  // DragManager.js, which just forwards real native drag events rather
+  // than synthesizing them from mouse movement. The delete tool has
+  // nothing to drag - you just click - so dragenter never fires at all
+  // while using it.
+  //
+  // Listens on shadowRoot rather than viewer.renderer.element.canvas:
+  // wire_sviewer_events runs here before super.connectedCallback() has
+  // finished setting up the renderer (viewer.renderer/viewer.available
+  // don't exist yet at this point), but shadowRoot already does, and
+  // bubbling carries the event there regardless of when the icons
+  // themselves get created later - no need for the canvas element to
+  // exist yet at listener-attachment time.
+  const redrawAvailableOnHover = () => {
+    if (! viewer.available) {
+      return;
+    }
+    if (viewer.form.querySelector('input[name="donor"]:checked')?.value === 'delete') {
+      viewer.available.highlight(viewer.renderer.sugars[0].composition());
+    }
+  };
+  viewer.shadowRoot.addEventListener('mouseover', (ev) => {
+    const el = ev.target.closest?.('[part*="residue_location_"]') || null;
+    if (el === viewer._hoveredResidueElement) {
+      return;
+    }
+    viewer._hoveredResidueElement = el;
+    redrawAvailableOnHover();
+  });
+  viewer.shadowRoot.addEventListener('mouseout', () => {
+    if (! viewer._hoveredResidueElement) {
+      return;
+    }
+    viewer._hoveredResidueElement = null;
+    redrawAvailableOnHover();
   });
 
 };
@@ -299,13 +345,40 @@ class SugarBuilder extends SViewer {
     let selection_highlighter = new Highlighter(this,'available');
     selection_highlighter.setStates({opacity:0}, { opacity: 1 });
     selection_highlighter.duration = 10;
-    selection_highlighter.draw = ({ angle, opacity },{x, y, width, height, zoom},ctx) => {
-      ctx.beginPath();
-      ctx.setLineDash([5, 5]);
-      ctx.lineWidth = parseFloat((2 / Math.max(zoom,1)).toFixed(2));
-      ctx.strokeStyle = `rgba(0,0,0,0.5)`;
-      ctx.arc( x+0.5*width,y+0.5*height, 1.2*width/2,-0.5*Math.PI, 2*Math.PI, false );
-      ctx.stroke();
+    selection_highlighter.draw = ({ angle, opacity },{x, y, width, height, zoom},ctx,res) => {
+      // Shares this one Highlighter/canvas/part-token channel for two
+      // different tools: the normal dashed "valid substrate" circle, and
+      // (while the delete tool is selected) a small X over every residue,
+      // since every residue is a valid delete target. The call site above
+      // picks WHICH residues get highlighted at all; this picks HOW to
+      // draw each one, checked fresh each frame against the live form.
+      const isDelete = this.form.querySelector('input[name="donor"]:checked')?.value === 'delete';
+      ctx.globalAlpha = opacity;
+      if (isDelete) {
+        // `res` is the residue this particular draw call is for (see
+        // highlighter.js's performHighlight) - comparing its own icon
+        // element against the mouseover/mouseout-tracked
+        // _hoveredResidueElement (set up above in wire_sviewer_events)
+        // lets a canvas-drawn shape react to hover, which plain CSS
+        // :hover can't reach since this isn't an SVG/DOM element.
+        const resElement = this.renderer.rendered.get(res)?.residue?.element;
+        const isHovered = !!resElement && resElement === this._hoveredResidueElement;
+        const cx = x+0.5*width, cy = y+0.5*height, r = 0.25*Math.min(width,height);
+        ctx.beginPath();
+        ctx.lineWidth = parseFloat(((isHovered ? 4 : 2) / Math.max(zoom,1)).toFixed(2));
+        ctx.strokeStyle = 'rgba(200,0,0,0.9)';
+        ctx.moveTo(cx-r, cy-r); ctx.lineTo(cx+r, cy+r);
+        ctx.moveTo(cx+r, cy-r); ctx.lineTo(cx-r, cy+r);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = parseFloat((2 / Math.max(zoom,1)).toFixed(2));
+        ctx.strokeStyle = `rgba(0,0,0,0.5)`;
+        ctx.arc( x+0.5*width,y+0.5*height, 1.2*width/2,-0.5*Math.PI, 2*Math.PI, false );
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
     };
     this.available = selection_highlighter;
   }

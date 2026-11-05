@@ -98,7 +98,8 @@ function performHighlight(residues=[]) {
     offscreen_ctx.clearRect(0, 0, canv.width, canv.height);
   });
 
-  for (let layout of residues.map( res => renderer.layoutFor(res) )) {
+  for (let res of residues) {
+    let layout = renderer.layoutFor(res);
     if ( ! layout ) {
       continue;
     }
@@ -109,7 +110,10 @@ function performHighlight(residues=[]) {
     y = y-boundingrect.top;
 
     tween.on('update', (state) => {
-      this.draw(state,{x, y, width, height, zoom },offscreen_ctx);
+      // `res` lets draw() react to per-residue live state (e.g. whether
+      // THIS residue is the one currently hovered) rather than just drawing
+      // identical geometry for every highlighted residue.
+      this.draw(state,{x, y, width, height, zoom },offscreen_ctx,res);
     });
   }
 
