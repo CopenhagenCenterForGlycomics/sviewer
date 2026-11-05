@@ -1087,7 +1087,17 @@ let populate_palette = async function(widget,palette,donors=['Gal','Glc','Man','
     await initialise_renderer_object.call(widget);
   }
 
-  return widget.renderer.constructor.AppendSymbols(icons_root)
+  // Always SVGRenderer's own AppendSymbols, not widget.renderer.constructor's -
+  // ensure_sugar_icon (below) always builds its hidden palette icons with
+  // plain SVGRenderer regardless of the widget's own chosen renderer, so it
+  // always needs SVGRenderer's base <symbol> defs here too. Using the
+  // widget's actual renderer class instead left the palette completely
+  // empty whenever that renderer's own AppendSymbols doesn't populate SVG
+  // defs at all - true for every canvas-based renderer (CanvasRenderer's
+  // own AppendSymbols is just `return element.ready`, a no-op for this
+  // purpose) and for SugarTextRenderer (`static async AppendSymbols() {}`,
+  // deliberately empty, since it has no icon shapes to begin with).
+  return SVGRenderer.AppendSymbols(icons_root)
   .then( async () => {
     if (widget[active_palette_population_symbol] !== process_token) {
       return;
