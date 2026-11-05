@@ -29,6 +29,7 @@ const renderers = new Map(Object.entries({
   canvas: CanvasRenderer,
   text: SugarTextRenderer,
   sketch: () => import(/* webpackChunkName: "renderer-sketch" */ 'rough-glycan.js').then(m => m.RoughCanvasRenderer),
+  'sketch-svg': () => import(/* webpackChunkName: "renderer-sketch" */ 'rough-glycan.js').then(m => m.RoughSVGRenderer),
   fiziko: SNFGFiziko,
   heraldic: SNFGHeraldic,
   legra: () => import(/* webpackChunkName: "renderer-legra" */ 'legra-glycan.js').then(m => m.LegraCanvasRenderer),
