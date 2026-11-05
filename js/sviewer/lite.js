@@ -96,6 +96,24 @@ tmpl.innerHTML = `
     justify-content: center;
   }
 
+  /* Residues currently marked as valid drop targets by the 'available'
+     Highlighter (see highlighter.js's updatePartTokens, builder.js's
+     dashed-circle highlighter) - [part~=] rather than ::part() since this
+     is the component's OWN internal stylesheet, not a consumer styling it
+     from outside the shadow root. */
+  :host [part~="available"] {
+    cursor: pointer;
+  }
+
+  /* Text-renderer-only: turn the residue's own label red while it's an
+     available drop target, on top of the cursor rule above (which applies
+     to every renderer, icons included). Overrides SugarTextRenderer's
+     renderIcon() fill="..." presentation attribute, which always loses to
+     any stylesheet rule regardless of specificity. */
+  :host([renderer="text"]) [part~="available"] {
+    fill: red;
+  }
+
   :host .widget_contents > div > svg {
     width: 100%;
     height: 100%;
