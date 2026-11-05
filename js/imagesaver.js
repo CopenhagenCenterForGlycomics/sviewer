@@ -18,6 +18,46 @@ const rect_tmpl = document.createElement('template');
 
 rect_tmpl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg"><rect  x="0" y="0" width="100" height="100" fill="#fff" opacity="0" /></svg>';
 
+// glycan.js's SVGRenderer.js (use_css_variables()) writes every icon
+// shape's fill/stroke/stroke-width as e.g.
+// style="fill: var(--fill-color,#ffd400)" so a live page can theme icons
+// via CSS - harmless in a browser, but Adobe Illustrator's SVG importer
+// doesn't reliably resolve CSS custom properties, and can leave shapes
+// unfilled/unstroked in an otherwise-identical file. There's no live page
+// for var() to matter to in a static export, so resolve each one down to
+// its actual computed value (matching whatever's really on screen right
+// now, theme overrides included - not just hard-coded fallbacks) and write
+// that as a plain attribute instead, before the style attribute carrying
+// the var() reference is dropped.
+//
+// Relies on `original` and `clone` being structurally identical at this
+// point (clone is a fresh, unmutated cloneNode(true) of original) so
+// querySelectorAll('*') on each returns matching elements at the same
+// index - must run before any further clone-only DOM mutations (defs
+// merging, href rewriting, etc. further down in prepare()).
+const VAR_PROPERTY = /([a-z-]+)\s*:\s*var\(/gi;
+
+const flattenCSSVariables = (original,clone) => {
+  const originals = original.querySelectorAll('*');
+  const clones = clone.querySelectorAll('*');
+  originals.forEach((el,i) => {
+    const style = el.getAttribute('style');
+    if (!style || !style.includes('var(')) {
+      return;
+    }
+    const computed = window.getComputedStyle(el);
+    const target = clones[i];
+    for (const match of style.matchAll(VAR_PROPERTY)) {
+      const prop = match[1];
+      const value = computed.getPropertyValue(prop);
+      if (value) {
+        target.setAttribute(prop,value);
+      }
+    }
+    target.removeAttribute('style');
+  });
+};
+
 let save = async (widget,svg,format='png',filename='image',opts) => {
   let data = await prepare(widget,svg,format,opts);
   if (format === 'video') {
@@ -103,9 +143,22 @@ let prepare = (widget,svg,format='png',opts={}) => {
   canvas.height=widget.getBoundingClientRect().height;
   let ctx = canvas.getContext('2d');
   let new_svg = svg.cloneNode(true);
+  if (format === 'svg') {
+    flattenCSSVariables(svg,new_svg);
+  }
   if (widget.shadowRoot.getElementById('icons')) {
     let defs = widget.shadowRoot.getElementById('icons').querySelector('defs');
-    new_svg.appendChild(defs.cloneNode(true));
+    let cloned_defs = defs.cloneNode(true);
+    if (format === 'svg') {
+      // The actual var()-styled shapes (use_css_variables() in
+      // SVGRenderer.js) live inside these <symbol> defs, not in `svg`
+      // itself (which only holds <use>/<line>/<text> referencing them by
+      // id) - the flattenCSSVariables(svg,new_svg) call above never sees
+      // them, since this defs tree isn't part of `svg` at all; it's a
+      // separate, shared store merged in here.
+      flattenCSSVariables(defs,cloned_defs);
+    }
+    new_svg.appendChild(cloned_defs);
     for (let extra_svg of [...new_svg.querySelectorAll('defs > svg')]) {
       extra_svg.parentNode.removeChild(extra_svg);
     }
