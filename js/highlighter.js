@@ -29,8 +29,42 @@ function create_offscreen(target,scale_factor) {
 }
 
 const active_tweens = new WeakMap();
+const part_elements = Symbol('part_elements');
+
+// Mirrors whatever this Highlighter is currently drawing (the 'selection'
+// ring, the 'available' dashed circle, or any future named Highlighter)
+// onto each highlighted residue's own icon, via the `part` attribute
+// already used for per-residue ::part() styling (see renderIcon()'s
+// `part="residue_location_N"`). Named after the Highlighter's own
+// `identifier` (e.g. 'selection'/'available'), so CSS from outside the
+// shadow root can target the icon itself in sync with the canvas drawing -
+// e.g. `::part(selection)`, `::part(available)` - without each call site
+// having to manage it by hand. Tracks the previously-touched elements so a
+// residue dropped from the next `highlight()` call gets its token removed,
+// not left stuck on.
+function updatePartTokens(highlighter,residues) {
+  let renderer = highlighter.viewer.renderer;
+  let current = new Set();
+  for (let res of residues) {
+    let element = renderer.rendered.get(res)?.residue?.element;
+    if (element) {
+      current.add(element);
+    }
+  }
+  let previous = highlighter[part_elements] || new Set();
+  for (let element of previous) {
+    if ( ! current.has(element)) {
+      element.part.remove(highlighter.identifier);
+    }
+  }
+  for (let element of current) {
+    element.part.add(highlighter.identifier);
+  }
+  highlighter[part_elements] = current;
+}
 
 function performHighlight(residues=[]) {
+  updatePartTokens(this,residues);
   let canv = this.canvas;
   const ctx = canv.getContext('2d');
   const zoom = Math.ceil(parseFloat(( window.document.documentElement.clientWidth / window.innerWidth).toFixed(2)));
