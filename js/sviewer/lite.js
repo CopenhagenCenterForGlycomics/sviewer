@@ -179,6 +179,18 @@ tmpl.innerHTML = `
     width: 100%;
     top: var(--palette-height);
     height: calc( 100% - var(--palette-height));
+    /* Painted before #output in the shadow DOM (see highlighter.js's
+       create_canvas), so without this it sits BEHIND the renderer's own
+       SVG/canvas output in normal paint order - an opaque sugar icon then
+       fully covers whatever's drawn here (the selection ring/available
+       circle mostly "work" today only because they're large enough to
+       stick out past the icon's own edges; a small marker fully inside an
+       icon's bounding box, like the delete-mode X, is entirely hidden).
+       z-index raises it above #output; pointer-events:none is required
+       alongside that, or this canvas would swallow clicks/drags meant for
+       the icons it now sits on top of. */
+    z-index: 1;
+    pointer-events: none;
   }
 
   :host([editable][resizeable]) .highlight_canvas {
