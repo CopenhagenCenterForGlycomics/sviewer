@@ -1360,6 +1360,17 @@ if (window.ShadyCSS) {
   ShadyCSS.prepareTemplate(tmpl, 'ccg-sviewer');
 }
 
+// Exported so index.js's SViewer (ccg-sviewer, the full/editable element)
+// can register its own extra renderer entries (text/fiziko/heraldic/legra/...)
+// directly into this SAME Map, rather than building a second, separate one -
+// a `ccg-sviewer-lite` element has its own `RegisteredRenderers` getter
+// reading this exact Map, so a renderer only registered on SViewer's own
+// (previously distinct) Map was silently invisible to every
+// <ccg-sviewer-lite>, falling back to plain SVGRenderer no matter what its
+// `renderer` attribute said. One shared Map means whichever of 'sviewer' or
+// 'sviewer/lite' ends up imported into a bundle, every renderer registered
+// anywhere in it is usable from any ccg-sviewer-lite/ccg-sviewer instance in
+// that same bundle.
 const renderers = new Map(Object.entries({
   svg: SVGRenderer,
   canvas: CanvasRenderer
@@ -1678,4 +1689,4 @@ class SViewer extends WrapHTML {
 customElements.define('ccg-sviewer-lite',SViewer);
 
 export default SViewer;
-export { IupacSugar };
+export { IupacSugar, renderers as RegisteredRenderers };
