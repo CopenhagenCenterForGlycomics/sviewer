@@ -373,6 +373,29 @@ tmpl.innerHTML = `
     pointer-events: all;
   }
 
+  /* Readout of the slice under the pointer/finger, drawn on the side of the
+     menu opposite its arc (see wire_pie_readout), as small slices and a
+     finger or drag icon over them make the choice hard to see. */
+  :host ccg-piemenu::before {
+    content: attr(data-current);
+    position: absolute;
+    left: var(--readout-x, 50%);
+    top: var(--readout-y, 50%);
+    transform: translate(-50%, -50%);
+    display: none;
+    padding: 0.15em 0.5em;
+    border-radius: 0.4em;
+    background: var(--_selection-color);
+    color: #fff;
+    font: bold 1rem sans-serif;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  :host ccg-piemenu[active][data-current]::before {
+    display: block;
+  }
+
   :host ccg-piemenu[active] label[data-weight^="-"] {
     opacity: calc( -1 * var(--weight) * var(--_demoted-opacity) );
   }
@@ -1288,6 +1311,55 @@ let wire_form_action = function(){
   this.form.addEventListener('finished', form_action.bind(this.form,this));
 };
 
+// Show the slice currently under the pointer (mouse hover, or the slice a
+// drag is over: DragMenus marks it with the 'hover' class) as a text label on
+// the opposite side of the menu from its arc. The arc runs counter-clockwise
+// from --start-angle to --end-angle (0 = pointing right), so the label sits
+// at the arc's middle angle + 180.
+const PIE_READOUT_RADIUS = 30;   // % of the menu box, from its centre
+
+let wire_pie_readout = function(menu) {
+  let pointed = null;
+  const update = () => {
+    const label = pointed || menu.querySelector('label.hover');
+    const text = label && menu.hasAttribute('active') ? label.textContent.trim() : '';
+    if ( ! text ) {
+      menu.removeAttribute('data-current');
+      return;
+    }
+    if (menu.getAttribute('data-current') !== text) {
+      menu.setAttribute('data-current', text);
+    }
+  };
+  const place = () => {
+    const style = window.getComputedStyle(menu);
+    const start = parseFloat(style.getPropertyValue('--start-angle')) || 0;
+    const end = parseFloat(style.getPropertyValue('--end-angle')) || 0;
+    const opposite = ((start + end) / 2 + 180) * Math.PI / 180;
+    menu.style.setProperty('--readout-x', `${(50 + PIE_READOUT_RADIUS * Math.cos(opposite)).toFixed(1)}%`);
+    menu.style.setProperty('--readout-y', `${(50 - PIE_READOUT_RADIUS * Math.sin(opposite)).toFixed(1)}%`);
+  };
+  menu.addEventListener('pointerover', ev => {
+    pointed = ev.target.closest ? ev.target.closest('label') : null;
+    update();
+  });
+  menu.addEventListener('pointerout', ev => {
+    if ( ! ev.relatedTarget || ! menu.contains(ev.relatedTarget)) {
+      pointed = null;
+      update();
+    }
+  });
+  new MutationObserver(mutations => {
+    if (mutations.some(m => m.attributeName === 'active')) {
+      pointed = null;
+      if (menu.hasAttribute('active')) {
+        place();   // the angles change with the layout (phone vs desktop)
+      }
+    }
+    update();
+  }).observe(menu, { attributes: true, attributeFilter: ['active', 'class'], subtree: true });
+};
+
 let initialise_events = function() {
   if ( ! this.hasAttribute('editable')) {
     return;
@@ -1296,6 +1368,7 @@ let initialise_events = function() {
   wire_palette_pagezoom.call(this);
   wire_form_check_class.call(this);
   wire_form_action.call(this);
+  this.shadowRoot.querySelectorAll('ccg-piemenu').forEach(wire_pie_readout);
   if ('ResizeObserver' in window) {
     new ResizeObserver(() => {
       const palette = this.shadowRoot.getElementById('palette');
