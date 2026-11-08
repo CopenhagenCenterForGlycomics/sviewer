@@ -579,39 +579,66 @@ Object.setPrototypeOf(WrapHTML.prototype, HTMLElement.prototype);
 Object.setPrototypeOf(WrapHTML, HTMLElement);
 
 
+// Page pinch-zoom factor, as the scale that undoes it: 0.5 when the page is
+// pinched to 2x. Never above 1: a page shown zoomed out (a phone fitting a
+// wide page) keeps the palette shrunk with it, so it still fits the widget.
+// Browser zoom (ctrl +) is not pinch-zoom and gives 1.
+let page_zoom = function() {
+  if (window.visualViewport) {
+    return Math.min(1, 1 / window.visualViewport.scale);
+  }
+  return Math.min(1, parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2)));
+};
+
+// The part of the page actually on screen (the visual viewport), in document
+// coordinates. Browsers disagree on what getBoundingClientRect and scrollX/Y
+// are relative to once the page is pinch-zoomed (Chrome: the layout viewport;
+// iOS Safari: what is visible), but rect + scroll is the document position in
+// both, so all placement is done in document coordinates.
+let visible_rect = function() {
+  const vv = window.visualViewport;
+  if ( ! vv ) {
+    return { left: window.scrollX, top: window.scrollY, right: window.scrollX + window.innerWidth, bottom: window.scrollY + window.innerHeight };
+  }
+  return { left: vv.pageLeft, top: vv.pageTop, right: vv.pageLeft + vv.width, bottom: vv.pageTop + vv.height };
+};
+
+// Keep the palette the same size on screen whatever the pinch-zoom, so only
+// the glycan gets bigger. It lives at the top of the widget; when the
+// widget's top or left edge is off screen it moves to hug the top (and left)
+// of what is visible, clamped so it never leaves the widget, and it spans
+// only the visible width of the widget.
 let rescale_widget_chrome = function(state) {
+  state.ticking = false;
   if ( ! this.hasAttribute('editable')) {
     return;
   }
-  let zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
-  let palette = this.shadowRoot.querySelector('.palette');
-  let pie_parent = this.shadowRoot.querySelector('.pie_parent');
-
-  let widget_pos = palette.parentNode.parentNode.getBoundingClientRect();
-
-
-  if (widget_pos.top < 0 || widget_pos.left < 0) {
-    let fs_left = widget_pos.left < 0 ? -1*widget_pos.left : 0;
-    let fs_top = widget_pos.top < 0 ? -1*widget_pos.top : 0;
-    palette.style.position = 'absolute';
-    palette.style.transformOrigin = `${fs_left}px ${fs_top}px`;
-    // Viewport width
-    if ( palette.classList.contains('expanded') ) {
-      palette.style.setProperty('--expandedwidth',document.documentElement.clientWidth+'px');
-    }
-    palette.style.transform = `scale(${zoom}) translate(${fs_left}px,${fs_top}px)`;
-  } else {
-    palette.style.position = 'absolute';
-    if ( palette.classList.contains('expanded') ) {
-      palette.style.setProperty('--expandedwidth',(1/zoom*100).toFixed(2)+'%');
-    }
-    palette.style.transformOrigin = `${0}px ${0}px`;
-    palette.style.transform = `scale(${zoom}) translate(${0}px,0px)`;
+  const zoom = page_zoom();
+  const palette = this.shadowRoot.querySelector('.palette');
+  const pie_parent = this.shadowRoot.querySelector('.pie_parent');
+  const widget = palette.offsetParent;
+  if ( ! widget ) {   // not rendered (display: none)
+    return;
   }
+  const rect = widget.getBoundingClientRect();
+  const box = { left: rect.left + window.scrollX, top: rect.top + window.scrollY, bottom: rect.bottom + window.scrollY };
+  const view = visible_rect();
+  // Where the palette sits untransformed (offsets ignore transforms).
+  const base_left = box.left + widget.clientLeft + palette.offsetLeft;
+  const base_top = box.top + widget.clientTop + palette.offsetTop;
+  const base_right = box.left + widget.clientLeft + widget.clientWidth;
+  const height = palette.offsetHeight * zoom;
+
+  const left = Math.max(base_left, view.left);
+  const right = Math.max(left, Math.min(base_right, view.right));
+  const top = Math.max(base_top, Math.min(view.top, box.bottom - height));
+
+  palette.style.position = 'absolute';
+  palette.style.transformOrigin = '0px 0px';
+  palette.style.transform = `translate(${(left - base_left).toFixed(2)}px,${(top - base_top).toFixed(2)}px) scale(${zoom})`;
+  palette.style.setProperty('--expandedwidth', `${((right - left) / zoom).toFixed(2)}px`);
 
   place_pie_parent(pie_parent, zoom);
-
-  state.ticking = false;
 };
 
 // The pie menus' container is position: fixed (so menus aren't clipped by an
@@ -655,11 +682,19 @@ let create_scroll_listener = (state) => {
   return () => window_scroll_listener(state);
 };
 
+// Pinching fires visualViewport resize/scroll (not always a window scroll),
+// panning a pinched page fires visualViewport scroll, and the widget can be
+// resized or its palette toggled: re-place the palette on all of these.
 let wire_palette_pagezoom = function() {
   let state = { ticking: false, owner: this };
   let scroll_listener = create_scroll_listener(state);
-  window.removeEventListener('scroll',scroll_listener);
   window.addEventListener('scroll', scroll_listener);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', scroll_listener);
+    window.visualViewport.addEventListener('scroll', scroll_listener);
+  }
+  this.shadowRoot.querySelector('#palette_closer').addEventListener('click', scroll_listener);
+  scroll_listener();
 };
 
 // While a pie menu is open mid-drag, the pointer may wander a little past
@@ -695,7 +730,7 @@ let show_anomer = function(residue,target) {
   form.dispatchEvent(event);
 
   anomer_chooser.removeAttribute('active');
-  let zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
+  let zoom = page_zoom();
   let target_pos = target.getBoundingClientRect();
   let vals = { top: target_pos.top ,left: target_pos.left ,width: target_pos.width ,height: target_pos.height };
 
@@ -940,7 +975,7 @@ let wire_renderer_fisheye = function(arg) {
       return;
     }
     this.LayoutEngine.focus = [ ev.sugarX, ev.sugarY ];
-    let vp_zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
+    let vp_zoom = page_zoom();
     let candidate_zoom = parseFloat((vp_zoom * vp_zoom * 3).toFixed(2));
     this.LayoutEngine.zoom = candidate_zoom < 0.1 ? 0.1 : candidate_zoom;
     this.LayoutEngine.lock_residues = true;
