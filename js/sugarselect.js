@@ -109,14 +109,15 @@ tmpl.innerHTML = `
   #options label[checked] {
     background: var(--_selection-color);
   }
+  /* Top edge level with the builder's palette bar; max-height leaves room
+     for the 5px padding top and bottom. */
   #options {
-    margin-top: 10px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-content: flex-start;
     max-width: calc(50% - 20px);
-    max-height: calc(100% - 20px);
+    max-height: calc(100% - 10px);
     gap: 10px;
     overflow-y: auto;
     overflow-x: hidden;
