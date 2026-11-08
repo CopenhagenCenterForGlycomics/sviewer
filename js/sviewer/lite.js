@@ -358,8 +358,10 @@ tmpl.innerHTML = `
     top: 0px;
     left: 0px;
     pointer-events: none;
-    width: 150px;
-    height: 150px;
+    /* rem so the slices grow with the label text (PieMenu places labels at
+       percentages of this size): 150px at the default 16px base. */
+    width: 9.375rem;
+    height: 9.375rem;
     z-index: 2;
     --end-angle: 60;
     --start-angle: -60;
@@ -433,8 +435,8 @@ tmpl.innerHTML = `
       --icon-position-ratio: 0.1;
       --icon-size: 24px;
       --pie-font-size: 1.5rem;
-      width: 200px;
-      height: 200px;
+      width: 12.5rem;     /* 200px at the default base */
+      height: 12.5rem;
     }
 
     :host([editable]) .widget_contents {
@@ -655,6 +657,22 @@ let wire_palette_pagezoom = function() {
   window.addEventListener('scroll', scroll_listener);
 };
 
+// While a pie menu is open mid-drag, the pointer may wander a little past
+// its edge (or over another residue) without dismissing it. The margin
+// scales with the root font size, like the menu itself.
+const MENU_KEEP_MARGIN_REM = 1.5;   // beyond the menu's radius
+const MENU_KEEP_MIN_RADIUS = 75;    // px, never smaller than this
+
+let near_active_menu = function(form, x, y) {
+  const center = form.active_center;
+  if ( ! center ) {
+    return false;
+  }
+  const rem = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+  const r = Math.max(center.r + MENU_KEEP_MARGIN_REM * rem, MENU_KEEP_MIN_RADIUS);
+  return Math.pow(x - center.left, 2) + Math.pow(y - center.top, 2) < Math.pow(r, 2);
+};
+
 let show_anomer = function(residue,target) {
   if ( ! this.hasAttribute('editable')) {
     return;
@@ -771,14 +789,8 @@ let enableDropResidue = function(renderer,residue) {
       return;
     }
 
-    if (form.active_center) {
-      let center = form.active_center;
-      if (center.r < 75) {
-        center.r = 75;
-      }
-      if ( Math.pow(ev.clientX - center.left,2) + Math.pow(ev.clientY - center.top,2) < Math.pow(1*center.r,2) ) {
-        return;
-      }
+    if (near_active_menu(form, ev.clientX, ev.clientY)) {
+      return;
     }
 
     form.clear();
@@ -869,14 +881,8 @@ let wire_renderer_canvas_events = function() {
 
   canvas.addEventListener('dragleave', (ev) => {
     if (ev.relatedTarget === canvas) {
-      if (this.form.active_center) {
-        let center = this.form.active_center;
-        if (center.r < 75) {
-          center.r = 75;
-        }
-        if ( Math.pow(ev.clientX - center.left,2) + Math.pow(ev.clientY - center.top,2) < Math.pow(1*center.r,2) ) {
-          return;
-        }
+      if (near_active_menu(this.form, ev.clientX, ev.clientY)) {
+        return;
       }
 
       this.form.clear();
