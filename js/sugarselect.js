@@ -30,6 +30,9 @@ tmpl.innerHTML = `
 <style>
   :host {
     display: block;
+    /* Anchored to the page base so the em-based layout below doesn't
+       shrink or grow with whatever this is nested in. */
+    font-size: 1rem;
     min-width: calc(22em + 30px);
     min-height: calc(15em + 30px);
     --_max-select-display: var(--max-select-display, -1);
@@ -53,13 +56,19 @@ tmpl.innerHTML = `
     left: 0px;
     width: 100%;
     height: 100%;
-    min-height: 10em;
+    /* The host often has only a min-height (no definite height), so
+       height: 100% above resolves to the content height, which is ~0 as
+       the builder's contents are absolutely positioned. Taking the host's
+       min-height keeps the row tall enough either way. */
+    min-height: inherit;
     gap: 5px;
   }
+  /* No height here: the builder stretches to the row's height. A
+     height: 100% would turn stretching off and collapse it to 0 whenever
+     the host's height isn't definite. */
   #builder {
     display: block;
     width: 50%;
-    height: 100%;
     flex: 1 0 20em;
   }
 
@@ -100,14 +109,15 @@ tmpl.innerHTML = `
   #options label[checked] {
     background: var(--_selection-color);
   }
+  /* Top edge level with the builder's palette bar; max-height leaves room
+     for the 5px padding top and bottom. */
   #options {
-    margin-top: 10px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-content: flex-start;
     max-width: calc(50% - 20px);
-    max-height: calc(100% - 20px);
+    max-height: calc(100% - 10px);
     gap: 10px;
     overflow-y: auto;
     overflow-x: hidden;
