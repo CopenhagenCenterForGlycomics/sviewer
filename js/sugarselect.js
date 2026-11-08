@@ -56,13 +56,19 @@ tmpl.innerHTML = `
     left: 0px;
     width: 100%;
     height: 100%;
-    min-height: 10em;
+    /* The host often has only a min-height (no definite height), so
+       height: 100% above resolves to the content height, which is ~0 as
+       the builder's contents are absolutely positioned. Taking the host's
+       min-height keeps the row tall enough either way. */
+    min-height: inherit;
     gap: 5px;
   }
+  /* No height here: the builder stretches to the row's height. A
+     height: 100% would turn stretching off and collapse it to 0 whenever
+     the host's height isn't definite. */
   #builder {
     display: block;
     width: 50%;
-    height: 100%;
     flex: 1 0 20em;
   }
 
