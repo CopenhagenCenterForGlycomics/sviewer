@@ -30,6 +30,9 @@ tmpl.innerHTML = `
 <style>
   :host {
     display: block;
+    /* Anchored to the page base so the em-based layout below doesn't
+       shrink or grow with whatever this is nested in. */
+    font-size: 1rem;
     min-width: calc(22em + 30px);
     min-height: calc(15em + 30px);
     --_max-select-display: var(--max-select-display, -1);

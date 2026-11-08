@@ -363,7 +363,8 @@ tmpl.innerHTML = `
     z-index: 2;
     --end-angle: 60;
     --start-angle: -60;
-    --icon-size: 10px;
+    --icon-size: 10px;           /* px only: PieMenu parses it for its layout */
+    --pie-font-size: 0.625rem;   /* label text: 10px at the default base, scales with it */
   }
 
   :host ccg-piemenu[active] label {
@@ -376,7 +377,7 @@ tmpl.innerHTML = `
 
   :host ccg-piemenu button, ccg-piemenu label {
     font-family: sans-serif;
-    font-size: var(--icon-size);
+    font-size: var(--pie-font-size);
   }
 
   @keyframes piemenuselection {
@@ -431,6 +432,7 @@ tmpl.innerHTML = `
       --start-angle: 35;
       --icon-position-ratio: 0.1;
       --icon-size: 24px;
+      --pie-font-size: 1.5rem;
       width: 200px;
       height: 200px;
     }
