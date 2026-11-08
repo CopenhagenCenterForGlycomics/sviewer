@@ -584,8 +584,6 @@ let rescale_widget_chrome = function(state) {
     return;
   }
   let zoom = parseFloat((window.innerWidth / window.document.documentElement.clientWidth).toFixed(2));
-  let top = window.scrollY;
-  let left = window.scrollX;
   let palette = this.shadowRoot.querySelector('.palette');
   let pie_parent = this.shadowRoot.querySelector('.pie_parent');
 
@@ -611,19 +609,26 @@ let rescale_widget_chrome = function(state) {
     palette.style.transform = `scale(${zoom}) translate(${0}px,0px)`;
   }
 
-  let looper = palette;
-  let offsetLeft = 0;
-  while (looper.parentNode) {
-    offsetLeft += looper.offsetLeft;
-    looper = looper.parentNode;
-  }
-
-  left -= offsetLeft/zoom;
-
-  pie_parent.style.transformOrigin = `${window.scrollX}px ${top}px`;
-  pie_parent.style.transform = `scale(${zoom}) translate(${left}px,${top}px)`;
+  place_pie_parent(pie_parent, zoom);
 
   state.ticking = false;
+};
+
+// The pie menus' container is position: fixed (so menus aren't clipped by an
+// overflowing ancestor) at the viewport's top-left. A menu is placed relative
+// to it when it opens; on scroll the container only shifts by the distance
+// scrolled since then, so the open menu follows its residue. It used to be
+// translated by the whole page scroll (and the menu back by about as much),
+// which left the container's own box off screen: Safari then intermittently
+// skipped painting the menu even though it was on screen and clickable.
+let place_pie_parent = function(pie_parent, zoom, reset=false) {
+  if (reset || ! pie_parent.scrollOrigin) {
+    pie_parent.scrollOrigin = [window.scrollX, window.scrollY];
+  }
+  const dx = pie_parent.scrollOrigin[0] - window.scrollX;
+  const dy = pie_parent.scrollOrigin[1] - window.scrollY;
+  pie_parent.style.transformOrigin = '0px 0px';
+  pie_parent.style.transform = `translate(${dx}px,${dy}px) scale(${zoom})`;
 };
 
 const layout_engine_stores = new Map();
@@ -701,11 +706,14 @@ let show_anomer = function(residue,target) {
     vals.height = vals.height * 100;
   }
   let anomer_size = anomer_chooser.getBoundingClientRect();
-  let palette_top = (anomer_chooser.parentNode.getBoundingClientRect().top/zoom);
-  let palette_left = (anomer_chooser.parentNode.getBoundingClientRect().left/zoom);
-  let left_pos = (((vals.left +0.5*vals.width - 0.5*anomer_size.width)/zoom) - palette_left).toFixed(2);
-  let top_pos = (((vals.top+0.5*vals.height  - 0.5*anomer_size.height)/zoom) - palette_top).toFixed(2);
-  left_pos = ((vals.left + 0.5*vals.width - 0.5*anomer_size.width)/zoom).toFixed(2);
+  // Place the menu relative to its container's actual on-screen position
+  // (after resetting the container's scroll shift), in the container's
+  // scaled coordinates.
+  let pie_parent = anomer_chooser.parentNode;
+  place_pie_parent(pie_parent, zoom, true);
+  let parent_pos = pie_parent.getBoundingClientRect();
+  let left_pos = ((vals.left + 0.5*vals.width - 0.5*anomer_size.width - parent_pos.left)/zoom).toFixed(2);
+  let top_pos = ((vals.top + 0.5*vals.height - 0.5*anomer_size.height - parent_pos.top)/zoom).toFixed(2);
 
   anomer_chooser.style.transformOrigin = `${left_pos}px ${top_pos}px`;
   anomer_chooser.style.transform = `scale(1) translate(${left_pos}px,${top_pos}px)`;
