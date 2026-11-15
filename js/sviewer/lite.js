@@ -73,12 +73,19 @@ tmpl.innerHTML = `
     --_drop-shadow-color:        var(--drop-shadow-color,        rgba(50, 50, 0, 0.5));
     --_drop-shadow-offset:       var(--drop-shadow-offset,       2px);
     --_drop-shadow-size:         var(--drop-shadow-size,         1px);
-    --_palette-background-color: var(--palette-background-color, #eee);
+    --_palette-background-color: var(--palette-background-color, light-dark(#eee, var(--surface-color, #211e2a)));
     --_palette-icon-size:        var(--palette-icon-size,        32px);
     --_demoted-opacity:          var(--demoted-opacity,          0.5);
     --_sugars-url:               var(--sugars-url,               inherit);
     --_selection-color:          var(--selection-color,          grey);
     --_button-default-background-color: var(--button-default-background-color, black);
+  }
+
+  /* Labels (linkages, residue names) drawn without their own fill default
+     to black in SVG: give them the page's text colour in a dark scheme.
+     Renderers that set a fill (ukiyoe, haeckel, neon) keep theirs. */
+  svg text:not([fill]) {
+    fill: light-dark(black, var(--text-color, #e6e3ec));
   }
 
   :host([resizeable]) {
@@ -506,6 +513,7 @@ tmpl.innerHTML = `
     cursor: -webkit-grab;
 
     background: rgba(255,255,255,0.8);
+    background: light-dark(rgba(255,255,255,0.8), var(--surface-alt-color, #2a2635));
     width: var(--_palette-icon-size);
     height: var(--_palette-icon-size);
 

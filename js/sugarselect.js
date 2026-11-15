@@ -121,7 +121,7 @@ tmpl.innerHTML = `
     gap: 10px;
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--palette-background-color,#eee);
+    background: var(--palette-background-color, light-dark(#eee, var(--surface-color, #211e2a)));
     padding: 5px;
   }
 
@@ -145,7 +145,9 @@ tmpl.innerHTML = `
     border-radius: 10px;
     border: solid 1px var(--main-border-color);
     background: rgba(255,255,255,0.8);
+    background: light-dark(rgba(255,255,255,0.8), var(--surface-alt-color, #2a2635));
     color: black;
+    color: light-dark(black, var(--text-color, #e6e3ec));
   }
   #options label input {
     position: fixed;
