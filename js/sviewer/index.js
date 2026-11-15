@@ -2,6 +2,7 @@ import { SNFGFiziko } from 'glycan.js/renderers/fiziko';
 import { SNFGHeraldic } from 'glycan.js/renderers/heraldic';
 import { SNFGUkiyoe } from 'glycan.js/renderers/ukiyoe';
 import { SNFGHaeckel, SNFGHaeckelOrnate } from 'glycan.js/renderers/haeckel';
+import { SNFGNeon } from 'glycan.js/renderers/neon';
 import { SugarTextRenderer } from 'glycan.js/renderers/text';
 
 import { DraggableForm, DragManager, ShadowDragDropTouch } from 'DragMenus';
@@ -41,6 +42,7 @@ renderers.set('heraldic', SNFGHeraldic);
 renderers.set('ukiyoe', SNFGUkiyoe);
 renderers.set('haeckel', SNFGHaeckel);
 renderers.set('haeckel-ornate', SNFGHaeckelOrnate);
+renderers.set('neon', SNFGNeon);
 renderers.set('legra', () => import(/* webpackChunkName: "renderer-legra" */ 'legra-glycan.js').then(m => m.LegraCanvasRenderer));
 renderers.set('zdog', () => import(/* webpackChunkName: "renderer-zdog" */ 'zdog-glycan.js').then(m => m.ZDogCanvasRenderer));
 renderers.set('isomer', () => import(/* webpackChunkName: "renderer-isomer" */ 'isomer-glycan.js').then(m => m.IsomerCanvasRenderer));
