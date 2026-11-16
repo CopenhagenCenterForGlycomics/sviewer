@@ -167,20 +167,20 @@ Red  #ed1c24
       <text x="50" y="50" text-anchor="middle" fill="#2f5fac" stroke="none" stroke-width="2" dy=".35em" dx="0.05em" font-size="50">P</text>
     </symbol>
     <symbol id="ser" viewBox="0 0 100 100">
-      <path d="M20,50 a1,1 0 0,0 30,0 a1,1 0 0,1 30,0" fill="none" stroke="#000" stroke-width="1"/>
-      <text x="50" y="98" text-anchor="middle" fill="#000" stroke="#000" stroke-width="0" font-size="40">Ser</text>
+      <path d="M20,50 a1,1 0 0,0 30,0 a1,1 0 0,1 30,0" fill="none" stroke="light-dark(#000, var(--text-color, #ddd))" stroke-width="1"/>
+      <text x="50" y="98" text-anchor="middle" fill="light-dark(#000, var(--text-color, #ddd))" stroke="#000" stroke-width="0" font-size="40">Ser</text>
     </symbol>
     <symbol id="thr" viewBox="0 0 100 100">
-      <path d="M20,50 a1,1 0 0,0 30,0 a1,1 0 0,1 30,0" fill="none" stroke="#000" stroke-width="1"/>
-      <text x="50" y="98" text-anchor="middle" fill="#000" stroke="#000" stroke-width="0" font-size="40">Thr</text>
+      <path d="M20,50 a1,1 0 0,0 30,0 a1,1 0 0,1 30,0" fill="none" stroke="light-dark(#000, var(--text-color, #ddd))" stroke-width="1"/>
+      <text x="50" y="98" text-anchor="middle" fill="light-dark(#000, var(--text-color, #ddd))" stroke="#000" stroke-width="0" font-size="40">Thr</text>
     </symbol>
     <symbol id="asn" viewBox="0 0 100 100">
-      <path d="M20,50 a1,1 0 0,0 30,0 a1,1 0 0,1 30,0" fill="none" stroke="#000" stroke-width="1"/>
-      <text x="50" y="98" text-anchor="middle" fill="#000" stroke="#000" stroke-width="0" font-size="40">Asn</text>
+      <path d="M20,50 a1,1 0 0,0 30,0 a1,1 0 0,1 30,0" fill="none" stroke="light-dark(#000, var(--text-color, #ddd))" stroke-width="1"/>
+      <text x="50" y="98" text-anchor="middle" fill="light-dark(#000, var(--text-color, #ddd))" stroke="#000" stroke-width="0" font-size="40">Asn</text>
     </symbol>
     <symbol id="hyl" viewBox="0 0 100 100">
-      <path d="M20,50 a1,1 0 0,0 30,0 a1,1 0 0,1 30,0" fill="none" stroke="#000" stroke-width="1"/>
-      <text x="50" y="98" text-anchor="middle" fill="#000" stroke="#000" stroke-width="0" font-size="40">Hyl</text>
+      <path d="M20,50 a1,1 0 0,0 30,0 a1,1 0 0,1 30,0" fill="none" stroke="light-dark(#000, var(--text-color, #ddd))" stroke-width="1"/>
+      <text x="50" y="98" text-anchor="middle" fill="light-dark(#000, var(--text-color, #ddd))" stroke="#000" stroke-width="0" font-size="40">Hyl</text>
     </symbol>
   </defs>
   <!--
