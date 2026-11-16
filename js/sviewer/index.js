@@ -47,6 +47,7 @@ renderers.set('legra', () => import(/* webpackChunkName: "renderer-legra" */ 'le
 renderers.set('zdog', () => import(/* webpackChunkName: "renderer-zdog" */ 'zdog-glycan.js').then(m => m.ZDogCanvasRenderer));
 renderers.set('isomer', () => import(/* webpackChunkName: "renderer-isomer" */ 'isomer-glycan.js').then(m => m.IsomerCanvasRenderer));
 renderers.set('phoria', () => import(/* webpackChunkName: "renderer-phoria" */ 'phoria-glycan.js').then(m => m.PhoriaCanvasRenderer));
+renderers.set('celtic', () => import(/* webpackChunkName: "renderer-celtic" */ 'celtic-glycan.js').then(m => m.CelticSVGRenderer));
 
 class SViewer extends SViewerLite {
 

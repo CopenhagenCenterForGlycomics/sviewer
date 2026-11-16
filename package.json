@@ -8,6 +8,7 @@
     "test": "test"
   },
   "dependencies": {
+    "celtic-glycan.js": "github:CopenhagenCenterForGlycomics/celtic-glycan.js",
     "debug": "^4.4.1",
     "DragMenus": "github:hirenj/DragMenus",
     "es6-tween": "^5.5.11",
