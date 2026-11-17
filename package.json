@@ -8,16 +8,10 @@
     "test": "test"
   },
   "dependencies": {
-    "celtic-glycan.js": "github:CopenhagenCenterForGlycomics/celtic-glycan.js",
     "debug": "^4.4.1",
     "DragMenus": "github:hirenj/DragMenus",
     "es6-tween": "^5.5.11",
-    "esm": "^3.2.25",
-    "isomer-glycan.js": "github:CopenhagenCenterForGlycomics/isomer-glycan.js",
-    "legra-glycan.js": "github:hirenj/legra-glycan.js",
-    "phoria-glycan.js": "github:CopenhagenCenterForGlycomics/phoria-glycan.js",
-    "rough-glycan.js": "github:CopenhagenCenterForGlycomics/rough-glycan.js",
-    "zdog-glycan.js": "github:CopenhagenCenterForGlycomics/zdog-glycan.js"
+    "esm": "^3.2.25"
   },
   "overrides": {
     "glycan.js": "github:CopenhagenCenterForGlycomics/glycan.js"

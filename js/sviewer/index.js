@@ -1,17 +1,11 @@
-import { SNFGFiziko } from 'glycan.js/renderers/fiziko';
-import { SNFGHeraldic } from 'glycan.js/renderers/heraldic';
-import { SNFGUkiyoe } from 'glycan.js/renderers/ukiyoe';
-import { SNFGHaeckel, SNFGHaeckelOrnate } from 'glycan.js/renderers/haeckel';
-import { SNFGNeon } from 'glycan.js/renderers/neon';
-import { SugarTextRenderer } from 'glycan.js/renderers/text';
-
 import { DraggableForm, DragManager, ShadowDragDropTouch } from 'DragMenus';
 
 export { IupacSugar } from './lite';
 
-import {default as SViewerLite, RegisteredRenderers as renderers} from './lite';
+import {default as SViewerLite} from './lite';
 
 export { SViewerLite }
+export { registerRenderer, RegisteredRenderers } from './lite';
 
 let wire_drag_functions = function() {
   if (this.form) {
@@ -20,34 +14,21 @@ let wire_drag_functions = function() {
   }
 };
 
-// sketch/legra each pull in a whole extra drawing library (roughjs, legra)
-// that only matters for those two rarely-used renderer modes - loading
-// them lazily (a function here, resolved by getRendererClass()) keeps
-// roughjs/legra out of the main bundle, in their own webpack chunk that's
-// only fetched the first time that renderer is actually selected.
-//
-// Registered directly into lite.js's own shared `renderers` Map (imported
-// above as `renderers`) rather than a separate Map of our own - SViewer used
-// to override RegisteredRenderers with an entirely different Map object,
-// which meant any ccg-sviewer-lite element (whose own RegisteredRenderers
-// getter reads lite.js's Map, unaffected by this override) silently
-// couldn't resolve 'text'/'fiziko'/'heraldic'/etc. at all, falling back to
-// plain SVGRenderer no matter what its `renderer` attribute said - even
-// though the attribute itself was set correctly.
-renderers.set('text', SugarTextRenderer);
-renderers.set('sketch', () => import(/* webpackChunkName: "renderer-sketch" */ 'rough-glycan.js').then(m => m.RoughCanvasRenderer));
-renderers.set('sketch-svg', () => import(/* webpackChunkName: "renderer-sketch" */ 'rough-glycan.js').then(m => m.RoughSVGRenderer));
-renderers.set('fiziko', SNFGFiziko);
-renderers.set('heraldic', SNFGHeraldic);
-renderers.set('ukiyoe', SNFGUkiyoe);
-renderers.set('haeckel', SNFGHaeckel);
-renderers.set('haeckel-ornate', SNFGHaeckelOrnate);
-renderers.set('neon', SNFGNeon);
-renderers.set('legra', () => import(/* webpackChunkName: "renderer-legra" */ 'legra-glycan.js').then(m => m.LegraCanvasRenderer));
-renderers.set('zdog', () => import(/* webpackChunkName: "renderer-zdog" */ 'zdog-glycan.js').then(m => m.ZDogCanvasRenderer));
-renderers.set('isomer', () => import(/* webpackChunkName: "renderer-isomer" */ 'isomer-glycan.js').then(m => m.IsomerCanvasRenderer));
-renderers.set('phoria', () => import(/* webpackChunkName: "renderer-phoria" */ 'phoria-glycan.js').then(m => m.PhoriaCanvasRenderer));
-renderers.set('celtic', () => import(/* webpackChunkName: "renderer-celtic" */ 'celtic-glycan.js').then(m => m.CelticSVGRenderer));
+// sviewer no longer registers any renderer by name itself - it used to list
+// text/fiziko/heraldic/.../celtic here directly, which meant sviewer depended
+// on every one of those packages whether a given consumer used it or not
+// (see workbench/plans/theme-takeover-architecture.md, Phase 5). Each site
+// now registers only the renderer names it actually wants, via lite.js's
+// registerRenderer(), from its own renderers.js - e.g. glycome's
+// src/js/renderers.js, workbench's js/renderers.js. Those import from
+// 'sviewer/lite' directly rather than this file's bare 'sviewer' re-export
+// above (the re-export works for Node's own "main"-field resolution, but
+// this package's "module" field points bundlers like webpack at main.js
+// instead, which only exposes namespaced bundles, not this flat name - see
+// glycome's renderers.js for the full explanation). A consumer that doesn't
+// register a name it then uses sees ccg-sviewer-lite's own console warning
+// (lite.js's getRendererClass) rather than a silent fallback to plain
+// SVGRenderer.
 
 class SViewer extends SViewerLite {
 

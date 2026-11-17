@@ -1508,6 +1508,23 @@ const renderers = new Map(Object.entries({
   canvas: CanvasRenderer
 }));
 
+// Generic registration helper - no knowledge of any specific renderer, just a thin guard over
+// renderers.set(). Previously index.js was the one place that called .set() on this Map, for a
+// fixed list of names (text/fiziko/heraldic/.../celtic) - that made adding a new *-glycan.js
+// sibling package a PR against sviewer itself, and made sviewer depend on every renderer package
+// it listed, forever, whether a given consumer used it or not (see
+// workbench/plans/theme-takeover-architecture.md, Phase 5). Call this instead, from whichever
+// site/bundle actually wants a name available - each site's own renderers.js then only depends on
+// the renderer packages it actually lists. The guard exists because registration is now spread
+// across independent call sites instead of one reviewed list, so two unrelated callers silently
+// claiming the same name would otherwise be easy to miss.
+export function registerRenderer(name, loader) {
+  if (renderers.has(name)) {
+    console.warn(`ccg-sviewer: overwriting renderer registration for "${name}"`);
+  }
+  renderers.set(name, loader);
+}
+
 const scale_to_fit = function() {
   let padding = Object.assign({}, this.renderer.constructor.DEFAULT_PADDING || { top: 0, side: 0 });
   let padding_side = window.getComputedStyle(this).getPropertyValue('--sugar-padding-side');
@@ -1539,8 +1556,12 @@ class SViewer extends WrapHTML {
   // modes' roughjs/legra) a function returning a dynamic import() promise
   // for it, so that library only loads the first time it's selected.
   async getRendererClass() {
-    const entry = this.hasAttribute('renderer') ? this.constructor.RegisteredRenderers.get(this.getAttribute('renderer')) : null;
+    const name = this.hasAttribute('renderer') ? this.getAttribute('renderer') : null;
+    const entry = name ? this.constructor.RegisteredRenderers.get(name) : null;
     if (!entry) {
+      if (name) {
+        console.warn(`ccg-sviewer-lite: unknown renderer "${name}", falling back to plain SVGRenderer - is whatever registers it imported on this page?`);
+      }
       return SVGRenderer;
     }
     return typeof entry === 'function' && !entry.prototype ? await entry() : entry;
