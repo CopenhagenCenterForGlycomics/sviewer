@@ -180,6 +180,12 @@ tmpl.innerHTML = `
     width: 100%;
   }
 
+  /* Ring colour for highlighter.js's canvas drawing (read via
+     getComputedStyle, since a canvas can't resolve light-dark() itself). */
+  .highlight_canvas {
+    color: light-dark(black, var(--text-color, #e6e3ec));
+  }
+
   :host([editable]) .highlight_canvas {
     position: absolute;
     left: 0px;
@@ -1796,7 +1802,7 @@ class SViewer extends WrapHTML {
       if (opacity >= max_opacity) {
         ctx.strokeStyle = window.getComputedStyle(this).getPropertyValue('--selection-color').trim() || 'grey';
       } else {
-        ctx.strokeStyle = `rgba(0,0,0,${opacity.toFixed(2)})`;
+        ctx.strokeStyle = selection_highlighter.ink(opacity.toFixed(2));
       }
       ctx.arc( x+0.5*width,y+0.5*height, 1.5*width/2,-0.5*Math.PI, angle-0.5*Math.PI, false );
       ctx.stroke();

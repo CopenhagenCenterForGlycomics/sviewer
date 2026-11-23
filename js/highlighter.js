@@ -28,6 +28,16 @@ function create_offscreen(target,scale_factor) {
     return offScreenCanvas;
 }
 
+// The canvas can't take light-dark()/var() itself, so the ring colour comes
+// from the highlight canvas's own CSS `color` (themed in lite.js's shadow
+// stylesheet), read once per highlight() call - one getComputedStyle, not
+// one per animation frame. Returns a function giving that colour at a
+// given alpha, for draw() functions to use instead of hardcoded black.
+function inkFor(canvas) {
+  const rgb = (getComputedStyle(canvas).color.match(/[\d.]+/g) || [0,0,0]).slice(0,3).join(',');
+  return (alpha=1) => `rgba(${rgb},${alpha})`;
+}
+
 const active_tweens = new WeakMap();
 const part_elements = Symbol('part_elements');
 
@@ -77,6 +87,8 @@ function performHighlight(residues=[]) {
   }
 
   ctx.clearRect(0, 0, canv.width, canv.height);
+
+  this.ink = inkFor(canv);
 
   let boundingrect = canv.getBoundingClientRect();
   canv.width = scale_factor*boundingrect.width;
@@ -149,6 +161,7 @@ class Highlighter {
     this[canvas_symbol] = create_canvas(viewer,identifier);
     this.duration = 100
     this.draw = () => {}
+    this.ink = (alpha=1) => `rgba(0,0,0,${alpha})`;
   }
 
   get viewer() {

@@ -374,7 +374,7 @@ class SugarBuilder extends SViewer {
         ctx.beginPath();
         ctx.setLineDash([5, 5]);
         ctx.lineWidth = parseFloat((2 / Math.max(zoom,1)).toFixed(2));
-        ctx.strokeStyle = `rgba(0,0,0,0.5)`;
+        ctx.strokeStyle = selection_highlighter.ink(0.5);
         ctx.arc( x+0.5*width,y+0.5*height, 1.2*width/2,-0.5*Math.PI, 2*Math.PI, false );
         ctx.stroke();
       }
