@@ -1663,6 +1663,15 @@ class SViewer extends WrapHTML {
       }
       await initialise_renderer_object.call(this);
       await this.renderer.constructor.SYMBOLS;
+      // Same as connectedCallback: a new renderer has an empty canvas, and
+      // plain SVGRenderer (unlike the Fiziko family, which load their own in
+      // their constructors) only gets its <symbol>s from this call - without
+      // it, swapping back to the default renderer drew every residue as a
+      // <use> pointing at nothing. Editable viewers get theirs from the
+      // palette's defs in this shadow root instead.
+      if ( ! this.hasAttribute('editable')) {
+        await this.renderer.appendSymbols();
+      }
       initialise_renderer.call(this);
       return;
     }
