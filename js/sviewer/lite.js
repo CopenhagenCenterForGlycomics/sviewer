@@ -500,8 +500,20 @@ tmpl.innerHTML = `
     cursor: pointer;
   }
 
+  /* The trash-can paths have no fill of their own (SVG default: black):
+     the page's text colour in a dark scheme, as for labels above. */
+  :host #palette_delete svg {
+    fill: light-dark(black, var(--text-color, #e6e3ec));
+  }
+
   :host .palette label.checked {
     background: #faa;
+  }
+
+  /* Delete mode on: keep the icon black on the light pink, in either
+     scheme, so it doesn't wash out. */
+  :host #palette_delete.checked svg {
+    fill: black;
   }
 
   :host .palette label[draggable] {
